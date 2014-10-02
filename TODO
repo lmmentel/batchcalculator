@@ -1,0 +1,4 @@
+- add options (either from the edit dialog or a new menu in the menu bar) to
+  extend (add/remove/modify) entries in the database from the GUI
+- write a django app to expose the calculator functionality through a
+  web form

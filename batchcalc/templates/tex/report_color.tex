@@ -1,0 +1,207 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[charter]{mathdesign}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amsfonts}
+
+\usepackage{xcolor}
+\definecolor{bl}{rgb}{0.0,0.2,0.6}
+
+% define mergins
+\usepackage[a4paper, left=2cm, right=2cm, top=2cm, bottom=2cm]{geometry}
+
+\usepackage[colorlinks=true]{hyperref}
+\usepackage{booktabs}
+\usepackage{indentfirst}
+
+\usepackage{tabularx}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\setlength{\extrarowheight}{3pt} % Increase table row height
+
+\usepackage{sectsty}
+\usepackage[compact]{titlesec}
+\allsectionsfont{\centering\color{bl}\scshape\selectfont}
+
+%% environment for taking notes, takes 3 parameters
+%% \notes[add. vertical space]{number lines}{width}
+%% number lines: the number of lines to be drawn
+%% width: the vertical space occupied by these lines
+%% add. vertical space: adds more vertical space between the lines
+
+\usepackage{pgffor, ifthen}
+\newcommand{\notes}[3][\empty]{%
+    \noindent Notes\vspace{10pt}\\
+    \foreach \n in {1,...,#2}{%
+        \ifthenelse{\equal{#1}{\empty}}
+            {\rule{#3}{0.5pt}\\}
+            {\rule{#3}{0.5pt}\vspace{#1}\\}
+        }
+}
+
+%% small snippet for inserting date
+\usepackage{fancybox}
+\newcommand{\datefield}{%
+\begin{flushright}%
+{\color{bl} Date: \Ovalbox{ \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} }}%
+\end{flushright}}
+
+\newcommand{\secwithdate}[1]{{\color{bl}\scshape\bfseries\Large {#1} }\hfill %
+{\color{bl} Date: \Ovalbox{ \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} }} \\}
+
+\newcommand{\subsecwithdate}[1]{{\color{bl}\scshape\bfseries\large {#1} }\hfill %
+{\color{bl} Date: \Ovalbox{ \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} }} \par}
+
+\newcommand{\subsecwodate}[1]{{\color{bl}\scshape\bfseries\large {#1} } \par }
+
+%%%%% Definitions
+% Define a new command that prints the title only
+\makeatletter							% Begin definition
+\def\printtitle{%						% Define command: \printtitle
+    {\color{bl} \centering \huge \sc \textbf{\@title}\par}}		% Typesetting
+\makeatother							% End definition
+
+\title{<< title >> \\ {\large \normalfont << molar_ratios >>}}
+
+% Define a new command that prints the author(s) only
+\makeatletter							% Begin definition
+\def\printauthor{%					% Define command: \printauthor
+    {\centering \small \@author}}				% Typesetting
+\makeatother							% End definition
+
+\author{ << author >> \\
+\href{mailto: << email >>}{{\color{bl}<< email >>}}\\}
+
+% Custom headers and footers
+\usepackage{fancyhdr}
+	\pagestyle{fancy}					% Enabling the custom headers/footers
+\usepackage{lastpage}
+	% Header (empty)
+	\lhead{}
+	\chead{}
+	\rhead{<< date >>}
+	% Footer (you may change this to your own needs)
+	\lfoot{}
+	\cfoot{}
+	\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}	% "Page 1 of 2"
+	\renewcommand{\headrulewidth}{0.0pt}
+	\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+\printtitle
+
+\printauthor
+
+\section{Batch Composition Calculation}
+<* if composition *>
+\subsecwodate{Composition Matrix [C]}
+<< a_matrix >>
+<* endif *>
+
+<* if batch *>
+\subsecwodate{Batch Matrix [B]}
+<< b_matrix >>
+<* endif *>
+
+<* if rescale_all *>
+\subsecwodate{Result Matrix [X] = [B]$^{-1}\cdot$[C] (SF=<< rescale_all_factor >>)}
+<< x_matrix >>
+<* endif *>
+
+<* if rescale_to *>
+\subsecwodate{Result Matrix [X] = [B]$^{-1}\cdot$[C] (SF=<< rescale_to_factor >>)}
+<< x_matrix_scaled >>
+<* endif *>
+
+
+<* if calcination_i or ion_exchange or calcination_ii *>
+\newpage
+\section{Synthesis}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|C}
+\toprule
+Sample name & \\
+\midrule
+Time & \\ \cline{2-2}
+Date & \\ \cline{2-2}
+Temperature & \\ \cline{2-2}
+Oven & \\ \cline{2-2}
+Liner & \\ \cline{2-2}
+Autoclave & \\ \cline{2-2}
+Drying & \\ \cline{2-2}
+Comment & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+<* endif *>
+
+<* if calcination_i *>
+\subsecwithdate{Calcination I}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|C|C}
+\toprule
+Mass [g] & Before calcination & After calcination \\
+\midrule
+Weighing boat & & \\ \cline{2-3}
+Weighing boat + sample & & \\ \cline{2-3}
+Sample & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+<* endif *>
+
+<* if ion_exchange *>
+\subsecwithdate{Ion exchange}
+\notes[8pt]{4}{\textwidth}
+<* endif *>
+
+<* if calcination_ii *>
+\subsecwithdate{Calcination II}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|C|C}
+\toprule
+Mass [g] & Before calcination & After calcination \\
+\midrule
+Weighing boat & & \\ \cline{2-3}
+Weighing boat + sample & & \\ \cline{2-3}
+Sample & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+<* endif *>
+
+<* if sem or xrd *>
+\section{Analysis}
+<* endif *>
+
+<* if xrd *>
+\subsecwithdate{XRD}
+\begin{center}
+    \begin{tabularx}{\textwidth}{C|C|C}
+    \toprule
+    Sample name & Result & Comment \\
+    \midrule
+            &        &         \\
+    \bottomrule
+    \end{tabularx}
+\end{center}
+<* endif *>
+
+<* if sem *>
+\subsecwithdate{SEM}
+\begin{center}
+    \begin{tabularx}{\textwidth}{C|C|C|C}
+    \toprule
+    Sample name & Aspect ratio & Si/Al & Comment \\
+    \midrule
+            &              &       &   \\
+    \bottomrule
+    \end{tabularx}
+\end{center}
+<* endif *>
+\end{document}

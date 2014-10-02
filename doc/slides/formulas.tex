@@ -1,0 +1,258 @@
+\documentclass[amsmath,
+               amssymb,
+               superscriptaddress,
+               %groupedaddress,
+               %unsortedaddress,
+               %runinaddress,
+               %frontmatterverbose, 
+               %showpacs,preprintnumbers,
+               %nofootinbib,
+               %nobibnotes,
+               %bibnotes,
+               aps,
+               %prl,
+               %jcp,
+               %pra,
+               %prb,
+               %rmp,
+               %prstab,
+               %prstper,
+               %longbibliography,
+               floats,
+               %floatfix,
+               %lengthcheck,%
+               showkeys,
+               %preprint,
+               %reprint,
+               notitlepage, % remove page break after title
+               ]{revtex4-1}
+
+\usepackage[utf8]{inputenc}
+\usepackage{indentfirst}
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+\usepackage{latexsym}
+\usepackage{pstricks}
+\usepackage{graphics}
+\usepackage{epsfig}
+\usepackage{longtable}
+\usepackage{enumerate}
+\usepackage{subfigure}
+\usepackage{cancel}
+%\usepackage{float}
+
+\newcommand{\ud}{\mathrm{d}}
+\newcommand{\Nat}{\mathbb{N}}
+\newcommand{\Reals}{\mathbb{R}}
+\newcommand{\du}{\partial}
+\newcommand{\Energy}{\mathcal{E}}
+\newcommand{\Acal}{\mathcal{A}}
+\newcommand{\Bcal}{\mathcal{B}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Ecal}{\mathcal{E}}
+\newcommand{\Kcal}{\mathcal{K}}
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Wcal}{\mathcal{W}}
+\newcommand{\eqspace}{\phantom{=}\,\,\,\:\!}
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\thalf}{\tfrac{1}{2}}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\expo}[1]{\mathrm{e}^{#1}}
+\newcommand{\dt}[1]{\left|#1\right|}
+\newcommand{\bas}[1]{\left\lbrace{\text{#1}}\right\rbrace}
+\newcommand{\mint}[2]{\left[{#1}\middle|{#2}\right]}
+
+%bold symbols
+\newcommand{\mb}[1]{\boldsymbol{#1}}
+\newcommand{\br}{\mb{r}}
+\newcommand{\bx}{\mb{x}}
+
+%creation and annihilation operators
+\newcommand{\crea}[1]{\hat{#1}^{\dagger}}
+\newcommand{\anni}[1]{\hat{#1}^{\vphantom{\dagger}}}
+
+%Extra operators
+\DeclareMathOperator{\Fourier}{\mathcal{F}}
+\DeclareMathOperator{\Imag}{Im}
+\DeclareMathOperator{\Real}{Re}
+\DeclareMathOperator*{\Residual}{\mathrm{Res}}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\Time}{\mathcal{T}}
+\DeclareMathOperator{\Trace}{\mathrm{Tr}}
+
+%Integral operators
+\newcommand{\integ}[1]{\int\!\!\!\:\ud{#1}\:}
+\newcommand{\iinteg}[2]{\integ{#1}\!\!\!\integ{#2}}
+\newcommand{\iiinteg}[3]{\integ{#1}\!\!\!\integ{#2}\!\!\!\integ{#3}}
+
+%Brakets
+\newcommand{\bra}[1]{\langle{#1}|}
+\newcommand{\ket}[1]{|{#1}\rangle}
+
+\newcommand{\abraket}[2]{\left\langle{#1}\middle|{#2}\right\rangle}
+\newcommand{\braket}[2]{\langle{#1}|{#2}\rangle}
+\newcommand{\bigbraket}[2]{\bigl\langle{#1}\big|{#2}\bigr\rangle}
+\newcommand{\abrakket}[3]{\left\langle {#1}\middle|{#2}\middle|{#3} \right\rangle}
+\newcommand{\brakket}[3]{\langle{#1}|{#2}|{#3}\rangle}
+\newcommand{\bigbrakket}[3]{\bigl\langle{#1}\big|{#2}\big|{#3}\bigr\rangle}
+
+%sqrt not scaling with the superscript
+\newlength{\back}
+\newcommand{\tsqrt}[2]{%
+\settowidth{\back}{${#1}^{#2}$}%
+\sqrt{\vphantom{#1}\hphantom{{#1}^{#2}}}\hskip-\back{#1}^{#2}%
+}
+
+%temporary counters
+\newcounter{saveCounter1}
+\newcounter{saveCounter2}
+\newcounter{backupCounter}
+
+%allow page breaks for equations (\\* prevents them at that line)
+%\allowdisplaybreaks[2]
+
+%figure directory
+\def\figdir{../figures}
+
+% change the section numbering to roman
+%\renewcommand \thesection{\Roman{section}}
+
+% thick line for tabular header and foot 
+\newcommand{\thline}{\noalign{\hrule height 1.0pt}}
+
+% abbreviations for the spin components
+\newcommand{\aaaa}{\alpha\alpha\alpha\alpha}
+\newcommand{\abab}{\alpha\beta\alpha\beta}
+\newcommand{\baba}{\beta\alpha\beta\alpha}
+\newcommand{\abba}{\alpha\beta\beta\alpha}
+\newcommand{\baab}{\beta\alpha\alpha\beta}
+\newcommand{\bbbb}{\beta\beta\beta\beta}
+\newcommand{\aabb}{\alpha\alpha\beta\beta}
+\newcommand{\bbaa}{\beta\beta\alpha\alpha}
+
+\definecolor{zgreen}{RGB}{134, 164, 57}
+\definecolor{zred}{RGB}{206, 46, 41}
+
+\begin{document}
+\title{}
+\thanks{}
+\author{\L{}. M. Mentel}
+\email{Email: l.m.mentel@vu.nl}
+\affiliation{Section Theoretical Chemistry, VU University, Amsterdam, The Netherlands}
+\affiliation{Pohang University of Science and Technology, Pohang, South Korea}
+
+\date{\today}
+
+\begin{abstract}
+abstract
+\end{abstract}
+
+\keywords{keywords}%Use showkeys class option if keyword display desired
+\maketitle
+
+\section{intro}
+
+\begin{align}\notag
+{\color{zred}n_{\textrm{Na}_2\textrm{O}}} &= w^{\textrm{Na}_2\textrm{O}}_{\textrm{NaOH}} \cdot {\color{zgreen}x_{\textrm{NaOH}}} \\ \notag
+{\color{zred}n_{\textrm{K}_2\textrm{O}}} &= w^{\textrm{K}_2\textrm{O}}_{\textrm{KOH}} \cdot {\color{zgreen}x_{\textrm{KOH}}} \\ \notag
+{\color{zred}n_{\textrm{Al}_{2}\textrm{O}_{3}}} &= w^{\textrm{Al}_{2}\textrm{O}_{3}}_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}} \cdot {\color{zgreen}x_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}}} \\ \notag
+{\color{zred}n_{\textrm{SiO}_{2}}} &= w^{\textrm{SiO}_{2}}_{\textrm{SiO}_{2}} \cdot {\color{zgreen}x_{\textrm{SiO}_{2}}} \\ \notag
+{\color{zred}n_{\textrm{H}_2\textrm{O}}} &= 
+w^{\textrm{H}_2\textrm{O}}_{\textrm{NaOH}} \cdot {\color{zgreen}x_{\textrm{NaOH}}}
++ w^{\textrm{H}_2\textrm{O}}_{\textrm{KOH}} \cdot {\color{zgreen}x_{\textrm{KOH}}}
++ w^{\textrm{H}_{2}\textrm{O}}_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}} \cdot {\color{zgreen}x_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}}}
++ w^{\textrm{H}_2\textrm{O}}_{\textrm{H}_2\textrm{O}} \cdot {\color{zgreen}x_{\textrm{H}_2\textrm{O}}}  \\ \notag
+%{\color{zred}n_{\textrm{TMACl}}} &= w^{\textrm{TMACl}}_{\textrm{TMACl}} \cdot {\color{zgreen}x_{\textrm{TMACl}}} \\ \notag
+\end{align}
+
+$$
+\begin{bmatrix}
+w^{\textrm{Na}_2\textrm{O}}_{\textrm{NaOH}} & 0 & 0 & 0 & 0 \\
+0 & w^{\textrm{K}_2\textrm{O}}_{\textrm{KOH}} & 0 & 0 & 0 \\
+0 & 0 & w^{\textrm{Al}_{2}\textrm{O}_{3}}_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}} & 0 & 0\\
+0 & 0 & 0 & w^{\textrm{SiO}_{2}}_{\textrm{SiO}_{2}} & 0 \\
+w^{\textrm{H}_2\textrm{O}}_{\textrm{NaOH}} & w^{\textrm{H}_2\textrm{O}}_{\textrm{KOH}} & w^{\textrm{H}_{2}\textrm{O}}_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}} & 0 & w^{\textrm{H}_2\textrm{O}}_{\textrm{H}_2\textrm{O}}\\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+{\color{zgreen}x_{\textrm{NaOH}}} \\
+{\color{zgreen}x_{\textrm{KOH}}} \\
+{\color{zgreen}x_{\textrm{Al(OC}_{3}\textrm{H}_{7}\textrm{)}_{3}}} \\
+{\color{zgreen}x_{\textrm{SiO}_{2}}} \\
+{\color{zgreen}x_{\textrm{H}_2\textrm{O}}} \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+{\color{zred}n_{\textrm{Na}_2\textrm{O}}} \\
+{\color{zred}n_{\textrm{K}_2\textrm{O}}} \\
+{\color{zred}n_{\textrm{Al}_{2}\textrm{O}_{3}}} \\
+{\color{zred}n_{\textrm{SiO}_{2}}} \\
+{\color{zred}n_{\textrm{H}_2\textrm{O}}} \\
+\end{bmatrix}
+$$
+
+\section{first section}
+
+$$
+\begin{bmatrix}
+B_{11} & B_{12} & B_{13} & \cdots & B_{1m}\\
+B_{21} & B_{22} & B_{23} & \cdots & B_{2m}\\
+B_{31} & B_{32} & B_{33} & \cdots & B_{3m}\\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+B_{n1} & B_{n2} & B_{n3} & \cdots & B_{nm}\\
+\end{bmatrix}
+\cdot
+\begin{bmatrix}
+r_{1} \\
+r_{2} \\
+r_{3} \\
+\vdots \\
+r_{m} \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+z_{1} \\
+z_{2} \\
+z_{3} \\
+\vdots \\
+z_{n} \\
+\end{bmatrix}
+$$
+
+$$
+\mathbf{B}\mathbf{r}=\mathbf{z}
+$$
+
+$$
+\mathbf{r}=\mathbf{B}^{-1}\mathbf{z}
+$$
+
+$$
+\mathbf{r}=\left(\mathbf{B}^{\textrm{T}}\mathbf{B}\right)^{-1}\mathbf{B}^{\textrm{T}}\mathbf{z}
+$$
+
+$$\mathbf{r}_{i},\quad\mathbf{z}_{i}$$
+
+$$\mathbf{r}=\left(\mathbf{B}\mathbf{B}^{\textrm{T}}\right)^{-1}
+\mathbf{B}^{\textrm{T}}\mathbf{z}$$
+
+
+
+\begin{acknowledgments}
+ acknowledgements
+\end{acknowledgments}
+
+\appendix
+\section{appendix section title}
+
+
+
+\bibliography{libraryfile}
+
+\end{document}
+   

@@ -1,0 +1,3 @@
+include LICENSE.txt
+include batchcalc/data/zeolite.db
+recursive-include batchcalc/templates *.tex *.html

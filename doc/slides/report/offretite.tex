@@ -1,0 +1,253 @@
+\documentclass[10pt,a4paper]{article}
+% font
+\usepackage[scaled]{helvet}
+%\usepackage{DejaVuSansCondensed}
+\renewcommand*\familydefault{\sfdefault}
+\usepackage[T1]{fontenc}
+%\usepackage[bitstream-charter]{mathdesign}
+
+\usepackage[utf8]{inputenc}							% Input encoding
+\usepackage[english]{babel}								% English language/hyphenation
+\usepackage{amsmath,amsfonts}							% Math
+
+\usepackage{xcolor}
+\definecolor{bl}{rgb}{0.0,0.2,0.6}
+
+% define mergins
+\usepackage[a4paper, left=2cm, right=2cm, top=2cm, bottom=2cm]{geometry}
+
+\usepackage[colorlinks=true]{hyperref}
+
+\usepackage{booktabs}
+
+\usepackage{tabularx} % Better tables
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\setlength{\extrarowheight}{3pt} % Increase table row height
+
+\usepackage{sectsty}
+\usepackage[compact]{titlesec}
+\allsectionsfont{\centering\color{bl}\scshape\selectfont}
+
+%% environment for taking notes, takes 3 parameters
+%% \notes[add. vertical space]{number lines}{width}
+%% number lines: the number of lines to be drawn
+%% width: the vertical space occupied by these lines
+%% add. vertical space: adds more vertical space between the lines
+
+\usepackage{indentfirst}
+
+\usepackage{pgffor, ifthen}
+\newcommand{\notes}[3][\empty]{%
+    \noindent Notes\vspace{10pt}\\
+    \foreach \n in {1,...,#2}{%
+        \ifthenelse{\equal{#1}{\empty}}
+            {\rule{#3}{0.5pt}\\}
+            {\rule{#3}{0.5pt}\vspace{#1}\\}
+        }
+}
+
+%% small snippet for inserting date
+\usepackage{fancybox}
+\newcommand{\datefield}{%
+\begin{flushright}%
+{\color{bl} Date: \Ovalbox{ \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} }}%
+\end{flushright}}
+
+\newcommand{\secwithdate}[1]{{\color{bl}\scshape\bfseries\Large {#1} }\hfill %
+{\color{bl} Date: \Ovalbox{ \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} }} \\}
+
+\newcommand{\subsecwithdate}[1]{{\color{bl}\scshape\bfseries\large {#1} }\hfill %
+{\color{bl} Date: \Ovalbox{ \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} }} \par}
+
+\newcommand{\subsecwodate}[1]{{\color{bl}\scshape\bfseries\large {#1} } \par }
+
+%%%%% Definitions
+% Define a new command that prints the title only
+\makeatletter							% Begin definition
+\def\printtitle{%						% Define command: \printtitle
+    {\color{bl} \centering \huge \sc \textbf{\@title}\par}}		% Typesetting
+\makeatother							% End definition
+
+\title{Offretite with glycol \\ {\large \normalfont 4.8Na$_{2}$O:1.0K$_{2}$O:1.0Al$_{2}$O$_{3}$:15.8SiO$_{2}$:249.5H$_{2}$O:1.0TMACl:15.8glycol}}
+
+% Define a new command that prints the author(s) only
+\makeatletter							% Begin definition
+\def\printauthor{%					% Define command: \printauthor
+    {\centering \small \@author}}				% Typesetting
+\makeatother							% End definition
+
+\author{ Katarzyna Lukaszuk \\
+\href{mailto: lukaszuk.kasia@gmail.com}{{\color{bl}lukaszuk.kasia@gmail.com}}\\}
+
+% Custom headers and footers
+\usepackage{fancyhdr}
+	\pagestyle{fancy}					% Enabling the custom headers/footers
+\usepackage{lastpage}
+	% Header (empty)
+	\lhead{}
+	\chead{}
+	\rhead{10:21:13 24.09.2014}
+	% Footer (you may change this to your own needs)
+	\lfoot{}
+	\cfoot{}
+	\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}	% "Page 1 of 2"
+	\renewcommand{\headrulewidth}{0.0pt}
+	\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+\printtitle
+
+\printauthor
+
+\section{Batch Composition Calculation}
+
+\subsecwodate{Composition Matrix [C]}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|RRRRRRR}\toprule
+Compound &\multicolumn{1}{c}{Na$_{2}$O} & \multicolumn{1}{c}{K$_{2}$O} & \multicolumn{1}{c}{Al$_{2}$O$_{3}$} & \multicolumn{1}{c}{SiO$_{2}$} & \multicolumn{1}{c}{H$_{2}$O} & \multicolumn{1}{c}{TMACl} & \multicolumn{1}{c}{glycol}\\ \midrule
+Mole ratio &     4.800 &      1.000 &      1.000 &     15.800 &    249.500 &      1.000 &     15.800\\ 
+Weight [g] &   297.499 &     94.196 &    101.961 &    949.332 &   4494.792 &    109.599 &    980.678\\ 
+Mol. wt. [g/mol] &    61.979 &     94.196 &    101.961 &     60.084 &     18.015 &    109.599 &     62.068\\ 
+\bottomrule\end{tabularx}
+\end{center}
+
+
+
+
+\subsecwodate{Batch Matrix [B]}
+\begin{center}
+\begin{tabularx}{\textwidth}{lCCCCCCC}\toprule
+Compound & Na$_{2}$O & K$_{2}$O & Al$_{2}$O$_{3}$ & SiO$_{2}$ & H$_{2}$O & TMACl & glycol\\ \midrule
+NaOH (98.0\%) &     0.7593 &     0.0000 &     0.0000 &     0.0000 &     0.2407 &     0.0000 &     0.0000\\
+KOH (85.0\%) &     0.0000 &     0.7135 &     0.0000 &     0.0000 &     0.2865 &     0.0000 &     0.0000\\
+Al(iPrO)3 (98.0\%) &     0.0000 &     0.0000 &     0.2496 &     0.0000 &    -0.1323 &     0.0000 &     0.0000\\
+SiO$_{2}$ (100.0\%) &     0.0000 &     0.0000 &     0.0000 &     1.0000 &     0.0000 &     0.0000 &     0.0000\\
+H$_{2}$O (100.0\%) &     0.0000 &     0.0000 &     0.0000 &     0.0000 &     1.0000 &     0.0000 &     0.0000\\
+TMACl (98.0\%) &     0.0000 &     0.0000 &     0.0000 &     0.0000 &     0.0000 &     1.0000 &     0.0000\\
+glycol (100.0\%) &     0.0000 &     0.0000 &     0.0000 &     0.0000 &     0.0000 &     0.0000 &     1.0000\\
+\bottomrule\end{tabularx}
+\end{center}
+
+
+
+
+\subsecwodate{Result Matrix [X] = [B]$^{-1}\cdot$[C] (SF=100.0000)}
+\begin{center}
+\begin{tabularx}{\textwidth}{lRR|C|}\toprule
+Substance & \multicolumn{1}{c}{Mass [g]} & Scaled Mass [g] ( 100.000) & Weighted mass [g]\\ \midrule
+       NaOH (98.0\%) &        391.8080 &          3.9181 & \\\cline{4-4}
+        KOH (85.0\%) &        132.0132 &          1.3201 & \\\cline{4-4}
+  Al(iPrO)3 (98.0\%) &        416.8258 &          4.1683 & \\\cline{4-4}
+ SiO$_{2}$ (100.0\%) &        949.3319 &          9.4933 & \\\cline{4-4}
+  H$_{2}$O (100.0\%) &       4416.7117 &         44.1671 & \\\cline{4-4}
+      TMACl (98.0\%) &        111.8352 &          1.1184 & \\\cline{4-4}
+    glycol (100.0\%) &        980.6776 &          9.8068 & \\
+\midrule Sum &       7399.2034 &         73.9920 & \\ 
+\bottomrule\end{tabularx}
+\end{center}
+
+
+
+
+\subsecwodate{Result Matrix [X] = [B]$^{-1}\cdot$[C] (SF=1283.7052)}
+\begin{center}
+\begin{tabularx}{\textwidth}{lRR|C|}\toprule
+Substance & \multicolumn{1}{c}{Mass [g]} & Scaled Mass [g] (1283.705) & Weighted mass [g]\\ \midrule
+       NaOH (98.0\%) &        391.8080 &          0.3052 & \\\cline{4-4}
+        KOH (85.0\%) &        132.0132 &          0.1028 & \\\cline{4-4}
+  Al(iPrO)3 (98.0\%) &        416.8258 &          0.3247 & \\\cline{4-4}
+ SiO$_{2}$ (100.0\%) &        949.3319 &          0.7395 & \\\cline{4-4}
+  H$_{2}$O (100.0\%) &       4416.7117 &          3.4406 & \\\cline{4-4}
+      TMACl (98.0\%) &        111.8352 &          0.0871 & \\
+\midrule Sum &       7399.2034 &          5.7639 & \\ \midrule
+    glycol (100.0\%) &        980.6776 &          0.7639 & \\ 
+\bottomrule\end{tabularx}
+\end{center}
+
+
+
+
+
+\newpage
+\section{Synthesis}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|C}
+\toprule
+Sample name & \\
+\midrule
+Time & \\ \cline{2-2}
+Date & \\ \cline{2-2}
+Temperature & \\ \cline{2-2}
+Oven & \\ \cline{2-2}
+Liner & \\ \cline{2-2}
+Autoclave & \\ \cline{2-2}
+Drying & \\ \cline{2-2}
+Comment & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+
+\subsecwithdate{Calcination I}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|C|C}
+\toprule
+Mass [g] & Before calcination & After calcination \\
+\midrule
+Weighing boat & & \\ \cline{2-3}
+Weighing boat + sample & & \\ \cline{2-3}
+Sample & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+
+\subsecwithdate{Ion exchange}
+\notes[8pt]{4}{\textwidth}
+
+\subsecwithdate{Calcination II}
+\begin{center}
+\begin{tabularx}{\textwidth}{l|C|C}
+\toprule
+Mass [g] & Before calcination & After calcination \\
+\midrule
+Weighing boat & & \\ \cline{2-3}
+Weighing boat + sample & & \\ \cline{2-3}
+Sample & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+
+\section{Analysis}
+\subsecwithdate{XRD}
+\begin{center}
+    \begin{tabularx}{\textwidth}{C|C|C}
+    \toprule
+    Sample name & Result & Comment \\
+    \midrule
+            &        &         \\
+    \bottomrule
+    \end{tabularx}
+\end{center}
+
+
+
+\subsecwithdate{SEM}
+\begin{center}
+    \begin{tabularx}{\textwidth}{C|C|C|C}
+    \toprule
+    Sample name & Aspect ratio & Si/Al & Comment \\
+    \midrule
+            &              &       &   \\
+    \bottomrule
+    \end{tabularx}
+\end{center}
+
+\end{document}
