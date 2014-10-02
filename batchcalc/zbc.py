@@ -1055,7 +1055,7 @@ class MainFrame(wx.Frame):
 the correct amount of reagents (batch) for a particular zeolite composition \
 given by the molar ratio of its components.''', 350, wx.ClientDC(self)))
 
-        info.WebSite = ("https://bitbucket.org/lukaszmentel/batchcalc", "ZBC Code Repository")
+        info.WebSite = ("https://github.com/lmmentel/batchcalculator", "ZBC Code Repository")
         info.Developers = ["Katarzyna Lukaszuk"]
         #info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
 
