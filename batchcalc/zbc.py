@@ -2,7 +2,7 @@
 #
 #    Zeolite Batch Calculator
 #
-# A program based for calculating the correct amount of reagents (batch) for a
+# A program for calculating the correct amount of reagents (batch) for a
 # particular zeolite composition given by the molar ratio of its components.
 #
 # The MIT License (MIT)
@@ -57,6 +57,8 @@ def which(prog):
     the "prog" if it is found on the system PATH.
     '''
 
+    if sys.platform == "win32":
+        prog += ".exe"
     for path in os.getenv('PATH').split(os.path.pathsep):
         fprog = os.path.join(path, prog)
         if os.path.exists(fprog) and os.access(fprog, os.X_OK):
@@ -455,8 +457,10 @@ class ExportTexDialog(wx.Dialog):
         cb_sem = wx.CheckBox(panel, label="SEM")
 
         cb_pdf = wx.CheckBox(panel, label="Typeset PDF")
-        #pdflatex_lbl = wx.StaticText(panel, -1, "pdflatex:")
-        self.pdflatex = wx.TextCtrl(panel, -1, which("pdflatex"))
+        pdflatex_path = which("pdflatex")
+        if pdflatex_path is None:
+            pdflatex_path = ""
+        self.pdflatex = wx.TextCtrl(panel, -1, pdflatex_path)
         self.pdflatex.Enable(False)
 
         sb_calculation = wx.StaticBox(panel, label="Include")
@@ -994,8 +998,6 @@ class MainFrame(wx.Frame):
             self, message="Save file as ...", defaultDir=os.getcwd(),
             defaultFile="", wildcard=texwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
             )
-
-        dlg.SetFilterIndex(2)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
