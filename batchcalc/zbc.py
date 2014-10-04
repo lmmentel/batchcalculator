@@ -45,6 +45,8 @@ import wx.grid as gridlib
 import wx.lib.mixins.listctrl as listmix
 from wx.lib.wordwrap import wordwrap
 import wx.lib.agw.genericmessagedialog as GMD
+# uncomment for debugging
+#import wx.lib.inspection
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator
@@ -801,7 +803,7 @@ class MainFrame(wx.Frame):
         self.inppanel = InputPanel(self.main_splitter, self)
         self.outpanel = OutputPanel(self.main_splitter, self)
 
-        self.main_splitter.SplitHorizontally(self.inppanel, self.outpanel)
+        self.main_splitter.SplitHorizontally(self.inppanel, self.outpanel, sashPosition=250)
 
         # Menu
 
@@ -1186,7 +1188,7 @@ class ZeoGui(wx.App):
     def OnInit(self):
 
         self.frame = MainFrame(None, title="Zeolite Batch Calculator",
-                               size=(850, 550))
+                               size=(860, 550))
         # change the default exception handling
         sys.excepthook = ExceptionHook
         self.SetTopWindow(self.frame)
@@ -1197,4 +1199,6 @@ class ZeoGui(wx.App):
 if __name__ == "__main__":
 
     app = ZeoGui(False)
+    # uncomment for debugging
+    # wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
