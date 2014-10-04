@@ -30,7 +30,6 @@
 __version__ = "0.1.0"
 
 import traceback
-import pkg_resources
 import os
 import sys
 import pickle
@@ -905,7 +904,7 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
 
             # open the file and read the actual data
-            fp = open(path, 'r')
+            fp = open(path, 'rb')
             (self.model.components, self.model.reactants,\
             self.model.A, self.model.B, self.model.X,\
             self.model.scale_all, self.model.sample_scale,\
@@ -968,7 +967,7 @@ class MainFrame(wx.Frame):
                     self.model.A, self.model.B, self.model.X,
                     self.model.scale_all, self.model.sample_scale,
                     self.model.sample_size, self.model.selections)
-            fp = file(path, 'w') # Create file anew
+            fp = file(path, 'wb') # Create file anew
             pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
             fp.close()
 
