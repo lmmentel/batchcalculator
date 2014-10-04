@@ -2,7 +2,7 @@
 #
 #    Zeolite Batch Calculator
 #
-# A program based for calculating the correct amount of reagents (batch) for a
+# A program for calculating the correct amount of reagents (batch) for a
 # particular zeolite composition given by the molar ratio of its components.
 #
 # The MIT License (MIT)
@@ -31,8 +31,8 @@ __version__ = "0.1.0"
 
 import operator
 import os
-import pkg_resources
 import re
+import sys
 
 from numpy.linalg import solve
 import numpy as np
@@ -242,9 +242,7 @@ class BatchCalculator(object):
     def __init__(self):
 
         # default database path
-        dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                 pkg_resources.resource_filename("batchcalc", "data/zeolite.db"))
-
+        dbpath = self.get_dbpath()
         self.new_dbsession(dbpath)
 
         self.lists = ["components", "reactants"]
@@ -261,6 +259,20 @@ class BatchCalculator(object):
         self.sample_scale = 1.0
         self.sample_size = 5.0
         self.selections = []
+
+    def get_dbpath(self):
+        '''
+        Depending on the execution environment get the proper database path.
+        '''
+
+        dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "zeolite.db")
+        if os.path.exists(dbpath):
+            return dbpath
+        elif sys.executable is not None:
+            dbpath = os.path.join(os.path.dirname(sys.executable), "data", "zeolite.db")
+            return dbpath
+        else:
+            raise ValueError("database not found on: {}".format(dbpath))
 
     def new_dbsession(self, dbpath):
         '''
