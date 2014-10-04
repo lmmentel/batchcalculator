@@ -2,7 +2,7 @@
 #
 #    Zeolite Batch Calculator
 #
-# A program based for calculating the correct amount of reagents (batch) for a
+# A program for calculating the correct amount of reagents (batch) for a
 # particular zeolite composition given by the molar ratio of its components.
 #
 # The MIT License (MIT)
@@ -33,17 +33,18 @@ import re
 import os
 import datetime
 import numpy as np
-from jinja2 import Environment, PackageLoader, Template
+from jinja2 import Environment, FileSystemLoader, Template
 
 def get_report_as_string(flags, model):
     '''
     Return a string with a report in the TeX format.
     '''
 
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates", "tex")
     env = Environment('<*', '*>', '<<', '>>', '<#', '#>',
                     autoescape=False,
                     extensions=['jinja2.ext.autoescape'],
-                    loader=PackageLoader('batchcalc', os.path.join('templates', 'tex')))
+                    loader=FileSystemLoader(path))
     template = env.get_template('report_color.tex')
 
     flags['date'] = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
