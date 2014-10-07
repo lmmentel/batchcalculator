@@ -35,16 +35,29 @@ import datetime
 import numpy as np
 from jinja2 import Environment, FileSystemLoader, Template
 
+def get_temppath():
+    '''
+    Depending on the execution environment get the proper template path.
+    '''
+
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates", "tex")
+    if os.path.exists(path):
+        return path
+    elif sys.executable is not None:
+        path = os.path.join(os.path.dirname(sys.executable), "templates", "tex")
+        return path
+    else:
+        raise ValueError("template path doesn't exist: {}".format(path))
+
 def get_report_as_string(flags, model):
     '''
     Return a string with a report in the TeX format.
     '''
 
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates", "tex")
     env = Environment('<*', '*>', '<<', '>>', '<#', '#>',
                     autoescape=False,
                     extensions=['jinja2.ext.autoescape'],
-                    loader=FileSystemLoader(path))
+                    loader=FileSystemLoader(get_temppath()))
     template = env.get_template('report_color.tex')
 
     flags['date'] = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
