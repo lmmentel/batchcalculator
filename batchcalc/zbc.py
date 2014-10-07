@@ -434,9 +434,9 @@ class ExportTexDialog(wx.Dialog):
         title_lbl = wx.StaticText(panel, -1, "Title:")
         title = wx.TextCtrl(panel, -1, "")
         author_lbl = wx.StaticText(panel, -1, "Author:")
-        author = wx.TextCtrl(panel, -1, "Katarzyna Lukaszuk")
+        author = wx.TextCtrl(panel, -1, "")
         email_lbl = wx.StaticText(panel, -1, "Email:")
-        email = wx.TextCtrl(panel, -1, "lukaszuk.kasia@gmail.com")
+        email = wx.TextCtrl(panel, -1, "")
 
         export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
         cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
