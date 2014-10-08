@@ -78,31 +78,6 @@ def clean_tex(fname):
         if os.path.exists(fil):
             os.remove(fil)
 
-class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin, listmix.TextEditMixin, listmix.ListCtrlAutoWidthMixin):
-
-    def __init__(self, editable, *args, **kwargs):
-        wx.ListCtrl.__init__(self, *args, **kwargs)
-        listmix.TextEditMixin.__init__(self)
-        listmix.CheckListCtrlMixin.__init__(self)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
-
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
-
-        # editable column indexes
-        self.editable = editable
-
-        self.current_selections = list()
-
-    def OnBeginLabelEdit(self, event):
-
-        if event.m_col not in self.editable:
-            event.Veto()
-        else:
-            event.Skip()
-
-    def OnCheckItem(self, index, flag):
-        self.current_selections[index] = not self.current_selections[index]
-
 class CheckableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin, listmix.ListCtrlAutoWidthMixin):
 
     def __init__(self, *args, **kwargs):
@@ -317,21 +292,18 @@ class ComponentDialog(wx.Dialog):
         super(ComponentDialog, self).__init__(parent, id, title, pos, (dlgwidth, 620), style, name)
 
         panel = wx.Panel(self)
-        self.elist = EditableListCtrl([3], panel, style=wx.LC_SINGLE_SEL|wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.insert_columns(parent.main.columns, cols)
-        self.elist.Arrange()
 
-        for i, comp in enumerate(model.get_component(component)):
-            self.elist.current_selections.append(False)
-            if comp.id in [z.id for z in model.components]:
-                zeo = model.select_item("components", 'id', comp.id)
-                self.elist.Append([zeo.id, zeo.name, zeo.formula, "{0:6.2f}".format(zeo.moles), "{0:8.2f}".format(zeo.molwt), zeo.short_name])
-                self.elist.CheckItem(i, True)
-            else:
-                self.elist.Append([comp.id, comp.name, comp.formula, "{0:6.2f}".format(0.0), "{0:8.2f}".format(comp.molwt), comp.short_name])
+        self.compsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+        self.compsOlv.rowFormatter = compRowFormatter
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.elist, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        self.SetComponents(model)
+
+        sizer = wx.FlexGridSizer(rows=2, cols=1, hgap=10, vgap=10)
+
+        sizer.AddGrowableCol(0)
+        sizer.AddGrowableRow(0)
+        sizer.Add(self.compsOlv, flag=wx.GROW | wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
 
         buttonOK = wx.Button(panel, id=wx.ID_OK)
         buttonOK.SetDefault()
@@ -342,22 +314,24 @@ class ComponentDialog(wx.Dialog):
         hbox.Add(buttonOK)
         sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
 
-        panel.SetSizerAndFit(sizer)
+        panel.SetSizer(sizer)
+        panel.Fit()
+
+    def SetComponents(self, model, data=None):
+
+        self.compsOlv.SetColumns([
+            ColumnDefn("Name", "left", 150, "name", isEditable=False),
+            ColumnDefn("Formula", "left", 100, "formula", isEditable=False),
+            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.2f"),
+            ColumnDefn("Category", "left", 100, "category", isEditable=False),
+            ColumnDefn("Molecular Wight", "right", 120, "molwt", isEditable=False, stringConverter="%.3f"),
+            ColumnDefn("Short Name", "left", 120, "short_name", isEditable=False),
+        ])
+        self.compsOlv.CreateCheckStateColumn()
+        self.compsOlv.SetObjects(model.get_components())
 
     def GetCurrentSelections(self):
-        cs = self.elist.current_selections
-        selected_rows = [x for x in range(len(cs)) if cs[x]]
-        res = list()
-        for row in selected_rows:
-            item_id = self.elist.GetItem(row, 0)
-            item_moles = self.elist.GetItem(row, 3)
-            res.append((item_id.GetText(), item_moles.GetText()))
-        return res
-
-    def insert_columns(self, columns, keys):
-
-        for i, item in enumerate(OrderedDict([(k, columns[k]) for k in columns.keys() if k in keys]).values()):
-            self.elist.InsertColumn(i, item.name, format=item.format, width=item.width)
+        return self.compsOlv.GetCheckedObjects()
 
 class ReactantDialog(wx.Dialog):
 
@@ -369,53 +343,43 @@ class ReactantDialog(wx.Dialog):
         dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
         super(ReactantDialog, self).__init__(parent, id, title, pos, (dlgwidth, 620), style, name)
 
-        self.panel = wx.Panel(self)
-        self.elist = EditableListCtrl([3], self.panel, style=wx.LC_SINGLE_SEL|wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.insert_columns(parent.main.columns, cols)
-        self.elist.Arrange()
+        panel = wx.Panel(self)
 
-        for i, (chem, typ) in enumerate(model.get_chemicals(showall=(len(model.components) == 0))):
-            self.elist.current_selections.append(False)
-            if chem.id in [r.id for r in model.reactants]:
-                ritem = model.select_item("reactants", 'id', chem.id)
-                self.elist.Append([ritem.id, ritem.name, ritem.formula,
-                            "{0:8.2f}".format(ritem.concentration),
-                            "{0:8.2f}".format(ritem.molwt),
-                            ritem.short_name, typ.name, ritem.cas])
-                self.elist.CheckItem(i, True)
-            else:
-                self.elist.Append([chem.id, chem.name, chem.formula,
-                        "{0:6.2f}".format(chem.concentration), "{0:8.2f}".format(chem.molwt),
-                        chem.short_name, typ.name, chem.cas])
+        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+
+        self.SetReactants(model)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.elist, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
 
-        buttonOK = wx.Button(self.panel, id=wx.ID_OK)
+        buttonOK = wx.Button(panel, id=wx.ID_OK)
         buttonOK.SetDefault()
-        buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
+        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
         hbox.Add(buttonOK)
         self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
 
-        self.panel.SetSizerAndFit(self.sizer)
+        panel.SetSizerAndFit(self.sizer)
+
+    def SetReactants(self, model, data=None):
+
+        self.reacsOlv.SetColumns([
+            ColumnDefn("Name", "left", 150, "name", isEditable=False),
+            ColumnDefn("Formula", "left", 100, "formula", isEditable=False),
+            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
+            ColumnDefn("Molecular Wight", "right", 120, "molwt", isEditable=False, stringConverter="%.3f"),
+            ColumnDefn("Short Name", "left", 120, "short_name", isEditable=False),
+            ColumnDefn("Type", "left", 120, "typ", isEditable=False),
+            ColumnDefn("CAS No.", "left", 120, "cas", isEditable=False),
+        ])
+        self.reacsOlv.CreateCheckStateColumn()
+        self.reacsOlv.SetObjects(model.get_chemicals(showall=(len(model.components) == 0)))
 
     def GetCurrentSelections(self):
-        cs = self.elist.current_selections
-        selected_rows = [x for x in range(len(cs)) if cs[x]]
-        res = list()
-        for row in selected_rows:
-            item_id = self.elist.GetItem(row, 0)
-            item_moles = self.elist.GetItem(row, 3)
-            res.append((item_id.GetText(), item_moles.GetText()))
-        return res
-
-    def insert_columns(self, columns, keys):
-
-        for i, item in enumerate(OrderedDict([(k, columns[k]) for k in columns.keys() if k in keys]).values()):
-            self.elist.InsertColumn(i, item.name, format=item.format, width=item.width)
+        return self.reacsOlv.GetCheckedObjects()
 
 class ExportTexDialog(wx.Dialog):
     '''
@@ -556,7 +520,6 @@ class ExportTexDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
-
 def compRowFormatter(listItem, Component):
     red    = "#FF6B66"
     yellow = "#FFDE66"
@@ -644,8 +607,7 @@ class InputPanel(wx.Panel):
         self.dlg = ComponentDialog(self, self.main.model, "zeolite", id=-1, title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            selections = self.dlg.GetCurrentSelections()
-            self.main.model.update_components("zeolite", selections)
+            self.main.model.components = self.dlg.GetCurrentSelections()
         self.compOlv.SetObjects(self.main.model.components)
         self.dlg.Destroy()
 
@@ -654,13 +616,12 @@ class InputPanel(wx.Panel):
         Show the dialog with the reactants retrieved from the database.
         '''
 
-        self.rctdialog = ReactantDialog(self, self.main.model, id=-1)
-        result = self.rctdialog.ShowModal()
+        self.dlg = ReactantDialog(self, self.main.model, id=-1)
+        result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            selections = self.rctdialog.GetCurrentSelections()
-            self.main.model.update_reactants(selections)
+            self.main.model.reactants = self.dlg.GetCurrentSelections()
         self.reacOlv.SetObjects(self.main.model.reactants)
-        self.rctdialog.Destroy()
+        self.dlg.Destroy()
 
 class OutputPanel(wx.Panel):
 
@@ -734,10 +695,6 @@ class MainFrame(wx.Frame):
         # Attributes
 
         # some color definition for nices display
-        self.red    = "#FF6B66"
-        self.orange = "#FF9166"
-        self.yellow = "#FFDE66"
-        self.green  = "#D4FF66"
         self.gray   = "#939393"
 
         self.columns = OrderedDict([
@@ -751,10 +708,10 @@ class MainFrame(wx.Frame):
             ("short"   , column("Short name", wx.LIST_FORMAT_LEFT, 120)),
             ("typ"     , column("Type", wx.LIST_FORMAT_LEFT, 100)),
             ("reaction", column("Reaction", wx.LIST_FORMAT_LEFT, 200)),
-            ("cas"     , column("CAS #", wx.LIST_FORMAT_RIGHT, 120)),
+            ("cas"     , column("CAS No.", wx.LIST_FORMAT_RIGHT, 120)),
         ])
 
-        self.inplists = ["zeolst", "tmplst", "zgmlst", "rctlst"]
+        self.inplists = ["zeolst", "rctlst"]
         self.outlists = ["resultlst", "rescalealllst", "rescaletolst"]
 
         self.model = BatchCalculator()

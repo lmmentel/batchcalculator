@@ -322,6 +322,19 @@ class BatchCalculator(object):
                 filter(DBComponent.category == Category.id).\
                 filter(Category.name == category).all()
 
+    def get_components(self, category=None):
+
+        query = self.session.query(DBComponent, Category).\
+                filter(DBComponent.category == Category.id).all()
+
+        result = []
+        for comp, cat in query:
+            kwargs = {k : v for k, v in comp.__dict__.items() if not k.startswith('_')}
+            kwargs["category"] = cat.name
+            kwargs["moles"] = 0.0
+            result.append(Component(**kwargs))
+        return result
+
     def get_chemicals(self, showall=False):
         '''
         Return chemicals that are sources for the components present in the
@@ -329,16 +342,21 @@ class BatchCalculator(object):
         '''
 
         if showall:
-            return self.session.query(Chemical,Types).filter(Chemical.typ == Types.id).all()
+            query =  self.session.query(Chemical,Types).filter(Chemical.typ == Types.id).all()
         else:
-            res = set()
+            comps = set()
             for item in self.components:
                 temp = self.session.query(Chemical, Types).join(Batch).\
                            filter(Chemical.typ == Types.id).\
                            filter(Batch.component_id == item.id).all()
-                res.update(temp)
-            out = list(res)
-            return sorted(out, key=lambda x: x[0].id)
+                comps.update(temp)
+            query = list(comps)
+        result = []
+        for reac, typ in query:
+            kwargs = {k : v for k, v in reac.__dict__.items() if not k.startswith('_')}
+            kwargs["typ"] = typ.name
+            result.append(Reactant(**kwargs))
+        return sorted(result, key=lambda x: x.id)
 
     def select_item(self, lst, attr, value):
         '''
