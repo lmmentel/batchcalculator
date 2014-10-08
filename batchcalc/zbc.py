@@ -45,11 +45,13 @@ import wx.grid as gridlib
 import wx.lib.mixins.listctrl as listmix
 from wx.lib.wordwrap import wordwrap
 import wx.lib.agw.genericmessagedialog as GMD
+# ObjectListView
+from ObjectListView import ObjectListView, ColumnDefn
 # uncomment for debugging
 #import wx.lib.inspection
 
 from batchcalc.tex_writer import get_report_as_string
-from batchcalc.calculator import BatchCalculator
+from batchcalc.calculator import BatchCalculator, Component
 
 column = namedtuple("column", ["name", "format", "width"])
 
@@ -554,6 +556,21 @@ class ExportTexDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
+
+def compRowFormatter(listItem, Component):
+    red    = "#FF6B66"
+    yellow = "#FFDE66"
+    orange = "#FF9166"
+    green  = "#D4FF66"
+    gray   = "#939393"
+
+    if Component.category == "zeolite":
+        listItem.SetBackgroundColour(red)
+    elif Component.category == "template":
+        listItem.SetBackgroundColour(yellow)
+    elif Component.category == "zgm":
+        listItem.SetBackgroundColour(orange)
+
 class InputPanel(wx.Panel):
 
     def __init__(self, parent, main):
@@ -563,52 +580,36 @@ class InputPanel(wx.Panel):
 
         self.main = main
 
-        zeotxt = wx.StaticText(self, -1, label="Zeolite Components")
-        tmptxt = wx.StaticText(self, -1, label="OSDAs")
-        zgmtxt = wx.StaticText(self, -1, label="ZGMs")
+        cmptxt = wx.StaticText(self, -1, label="Components")
         rcttxt = wx.StaticText(self, -1, label="Reactants")
 
-        # create listctrl for components
-        lists  = ["zeolst", "zgmlst", "tmplst"]
-        colors = [self.main.red, self.main.orange, self.main.yellow]
-        columns = [main.columns['label'], main.columns['moles']]
+        self.compOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.compOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+        self.compOlv.rowFormatter = compRowFormatter
 
-        for name, color in zip(lists, colors):
-            self.create_listctrl(name, columns, color)
+        self.reacOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.reacOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        # create a listctrl for the reactants
-        self.create_listctrl("rctlst",
-                             [main.columns['label'], main.columns['conc']],
-                             main.green)
-
+        self.SetComponents()
+        self.SetReactants()
         zeobtn = wx.Button(self, -1, label="Edit")
-        zgmbtn = wx.Button(self, -1, label="Edit")
-        tmpbtn = wx.Button(self, -1, label="Edit")
         rctbtn = wx.Button(self, -1, label="Edit")
 
         # Layout
 
-        fgs = wx.FlexGridSizer(rows=3, cols=4, hgap=10, vgap=10)
+        fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
 
         fgs.AddGrowableCol(0)
         fgs.AddGrowableCol(1)
-        fgs.AddGrowableCol(2)
-        fgs.AddGrowableCol(3)
         fgs.AddGrowableRow(1)
 
-        fgs.Add(zeotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-        fgs.Add(tmptxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-        fgs.Add(zgmtxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        fgs.Add(cmptxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
         fgs.Add(rcttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
 
-        fgs.Add(self.zeolst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        fgs.Add(self.tmplst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW)
-        fgs.Add(self.zgmlst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW)
-        fgs.Add(self.rctlst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+        fgs.Add(self.compOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        fgs.Add(self.reacOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
 
         fgs.Add(zeobtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-        fgs.Add(tmpbtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-        fgs.Add(zgmbtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
         fgs.Add(rctbtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
         self.SetSizer(fgs)
         self.Fit()
@@ -616,17 +617,23 @@ class InputPanel(wx.Panel):
         # Event Handlers
 
         zeobtn.Bind(wx.EVT_BUTTON, self.OnEditZeolites)
-        tmpbtn.Bind(wx.EVT_BUTTON, self.OnEditTemplates)
-        zgmbtn.Bind(wx.EVT_BUTTON, self.OnEditZgms)
         rctbtn.Bind(wx.EVT_BUTTON, self.OnEditReactants)
 
-    def create_listctrl(self, name, columns, color):
+    def SetComponents(self, data=None):
 
-        lst = ResizableListCtrl(self, style=wx.LC_REPORT, size=(190, -1))
-        lst.SetBackgroundColour(color)
-        for i, col in enumerate(columns):
-            lst.InsertColumn(i, col.name, format=col.format, width=col.width)
-        setattr(self, name, lst)
+        self.compOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.2f"),
+        ])
+        self.compOlv.SetObjects(self.main.model.components)
+
+    def SetReactants(self, data=None):
+
+        self.reacOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
+        ])
+        self.reacOlv.SetObjects(self.main.model.reactants)
 
     def OnEditZeolites(self, event):
         '''
@@ -638,51 +645,8 @@ class InputPanel(wx.Panel):
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             selections = self.dlg.GetCurrentSelections()
-
             self.main.model.update_components("zeolite", selections)
-
-            self.zeolst.DeleteAllItems()
-            for obj in self.main.model.components:
-                if obj.category == "zeolite":
-                    self.zeolst.Append([obj.listctrl_label(), "{0:6.2f}".format(obj.moles)])
-        self.dlg.Destroy()
-
-    def OnEditTemplates(self, event):
-        '''
-        Show the dialog with the templates retrieved from the database.
-        '''
-
-        self.dlg = ComponentDialog(self, self.main.model, "template", id=-1, title="Choose OSDAs...")
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            selections = self.dlg.GetCurrentSelections()
-
-            self.main.model.update_components("template", selections)
-
-            self.tmplst.DeleteAllItems()
-            for obj in self.main.model.components:
-                if obj.category == "template":
-                    self.tmplst.Append([obj.listctrl_label(), "{0:6.2f}".format(obj.moles)])
-        self.dlg.Destroy()
-
-    def OnEditZgms(self, event):
-        '''
-        Show the dialog with the zeolite growth modifiers retrieved from the
-        database.
-        '''
-
-        self.dlg = ComponentDialog(self, self.main.model, "zgm", id=-1, title="Choose ZGMs...")
-        result = self.dlg.ShowModal()
-
-        if result == wx.ID_OK:
-            selections = self.dlg.GetCurrentSelections()
-
-            self.main.model.update_components("zgm", selections)
-
-            self.zgmlst.DeleteAllItems()
-            for obj in self.main.model.components:
-                if obj.category == "zgm":
-                    self.zgmlst.Append([obj.listctrl_label(), "{0:6.2f}".format(obj.moles)])
+        self.compOlv.SetObjects(self.main.model.components)
         self.dlg.Destroy()
 
     def OnEditReactants(self, event):
@@ -694,12 +658,8 @@ class InputPanel(wx.Panel):
         result = self.rctdialog.ShowModal()
         if result == wx.ID_OK:
             selections = self.rctdialog.GetCurrentSelections()
-
             self.main.model.update_reactants(selections)
-
-            self.rctlst.DeleteAllItems()
-            for rct in self.main.model.reactants:
-                self.rctlst.Append([rct.listctrl_label(), "{0:8.2f}".format(rct.concentration)])
+        self.reacOlv.SetObjects(self.main.model.reactants)
         self.rctdialog.Destroy()
 
 class OutputPanel(wx.Panel):
