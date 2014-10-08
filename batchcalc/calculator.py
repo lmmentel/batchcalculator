@@ -34,7 +34,7 @@ import os
 import re
 import sys
 
-from numpy.linalg import solve
+from numpy.linalg import solve, lstsq
 import numpy as np
 
 from sqlalchemy import Column, Integer, String, Float, create_engine, ForeignKey
@@ -414,20 +414,14 @@ class BatchCalculator(object):
 
     def calculate(self):
         '''
-        Solve the system of equations  B * X = C
+        Solve the linear system of equations  B * X = C
         '''
 
         if len(self.components) == 0:
             raise ValueError("No Zeolite components selected")
 
         if len(self.reactants) == 0:
-            raise ValueError(2, "No Reactants selected")
-
-        if len(self.components) != len(self.reactants):
-            raise ValueError("Number of zeolite components has to be equal to the " +
-                      "number of reactants. " +
-                      "You entered {0:<2d} zeolite components and {1:<2d} reactants.".format(\
-                              len(self.components), len(self.reactants)))
+            raise ValueError("No Reactants selected")
 
         for comp in self.components:
             tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
@@ -438,14 +432,16 @@ class BatchCalculator(object):
         self.B = self.get_B_matrix()
 
         try:
-            self.X = solve(np.transpose(self.B), self.A)
+            if self.B.shape[0] == self.B.shape[1]:
+                self.X = solve(np.transpose(self.B), self.A)
+            else:
+                self.X, resid, rank, s = lstsq(np.transpose(self.B), self.A)
             # assign calculated masses to the reactants
             for reac, x in zip(self.reactants, self.X):
                 if reac.typ == "reactant":
                     reac.mass = x/reac.concentration
                 else:
                     reac.mass = x
-            return (0, "success")
         except Exception as e:
             raise e
 

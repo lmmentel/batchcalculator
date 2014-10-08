@@ -903,6 +903,8 @@ class MainFrame(wx.Frame):
             style=wx.OPEN | wx.CHANGE_DIR
             )
 
+        dlg.SetFilterIndex(0)
+
         # Show the dialog and retrieve the user response. If it is the OK response,
         # process the data.
         if dlg.ShowModal() == wx.ID_OK:
@@ -959,7 +961,7 @@ class MainFrame(wx.Frame):
 
         # This sets the default filter that the user will initially see. Otherwise,
         # the first filter in the list will be used by default.
-        dlg.SetFilterIndex(2)
+        dlg.SetFilterIndex(0)
 
         # Show the dialog and retrieve the user response. If it is the OK response,
         # process the data.
