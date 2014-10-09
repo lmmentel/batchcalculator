@@ -293,7 +293,10 @@ class ComponentDialog(wx.Dialog):
 
         panel = wx.Panel(self)
 
-        self.compsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.compsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.compsOlv.evenRowsBackColor="#DCF0C7"
+        self.compsOlv.oddRowsBackColor="#FFFFFF"
         self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetComponents(model)
@@ -350,7 +353,10 @@ class ReactantDialog(wx.Dialog):
 
         panel = wx.Panel(self)
 
-        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.reacsOlv.evenRowsBackColor="#DCF0C7"
+        self.reacsOlv.oddRowsBackColor="#FFFFFF"
         self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetReactants(model)
@@ -562,7 +568,11 @@ class InputPanel(wx.Panel):
         self.compOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
         self.compOlv.rowFormatter = compRowFormatter
 
-        self.reacOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+
+        self.reacOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.reacOlv.evenRowsBackColor="#DCF0C7"
+        self.reacOlv.oddRowsBackColor="#FFFFFF"
         self.reacOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetComponents()
@@ -650,12 +660,10 @@ class OutputPanel(wx.Panel):
         self.rescalealltxt = wx.StaticText(self, -1, label="Rescaled by")
         self.rescaletotxt = wx.StaticText(self, -1, label="Rescaled to")
 
-        self.resultlst = ResizableListCtrl(self, style=wx.LC_REPORT, size=(200, -1))
+        self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
         self.rescalealllst = ResizableListCtrl(self, style=wx.LC_REPORT, size=(200, -1))
         self.rescaletolst = ResizableListCtrl(self, style=wx.LC_REPORT, size=(200, -1))
-
-        self.resultlst.InsertColumn(0, "Formula", format=wx.LIST_FORMAT_LEFT, width=100)
-        self.resultlst.InsertColumn(1, "Mass [g]", format=wx.LIST_FORMAT_RIGHT, width=140)
 
         self.rescalealllst.InsertColumn(0, "Formula", format=wx.LIST_FORMAT_LEFT, width=100)
         self.rescalealllst.InsertColumn(1, "Scaled Mass [g]", format=wx.LIST_FORMAT_RIGHT, width=140)
@@ -665,6 +673,8 @@ class OutputPanel(wx.Panel):
         calculatebtn = wx.Button(self, label="Calculate")
         rescaleAllbtn = wx.Button(self, label="Rescale All")
         rescaleTobtn = wx.Button(self, label="Rescale To")
+
+        self.SetResults()
 
         # Layout
 
@@ -679,7 +689,7 @@ class OutputPanel(wx.Panel):
         fgs.Add(self.rescalealltxt, 0, wx.ALIGN_CENTER_HORIZONTAL)
         fgs.Add(self.rescaletotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=10)
 
-        fgs.Add(self.resultlst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        fgs.Add(self.resultOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
         fgs.Add(self.rescalealllst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW)
         fgs.Add(self.rescaletolst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
 
@@ -696,14 +706,19 @@ class OutputPanel(wx.Panel):
         rescaleAllbtn.Bind(wx.EVT_BUTTON, self.OnRescaleAll)
         rescaleTobtn.Bind(wx.EVT_BUTTON, self.OnRescaleTo)
 
+    def SetResults(self, data=None):
+
+        self.resultOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+        ])
+        self.resultOlv.SetObjects(self.model.components)
+
+
     def OnCalculate(self, event):
 
         self.model.calculate()
-
-        self.resultlst.DeleteAllItems()
-
-        for i, reac in enumerate(self.model.reactants):
-            self.resultlst.Append([reac.listctrl_label(), "{0:10.4f}".format(reac.mass)])
+        self.resultOlv.SetObjects(self.model.reactants)
 
     def OnRescaleAll(self, event):
         '''
@@ -955,10 +970,7 @@ class MainFrame(wx.Frame):
                  name="MainFrame"):
         super(MainFrame, self).__init__(parent, id, title, pos, size, style,
                                         name)
-
         # Attributes
-
-        # some color definition for nices display
 
         self.columns = OrderedDict([
             ("id"      , column("Id", wx.LIST_FORMAT_LEFT, 50, "left", False)),
@@ -974,7 +986,7 @@ class MainFrame(wx.Frame):
             ("cas"     , column("CAS No.", wx.LIST_FORMAT_RIGHT, 120, "left", False)),
         ])
 
-        self.outlists = ["resultlst", "rescalealllst", "rescaletolst"]
+        self.outlists = ["rescalealllst", "rescaletolst"]
 
         self.model = BatchCalculator()
 
@@ -1034,6 +1046,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExportTex, metex)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
+
+    # Menu Bindings ------------------------------------------------------------
 
     def OnInverseCalculation(self, event):
 
@@ -1109,15 +1123,6 @@ class MainFrame(wx.Frame):
             # clear all the lists with the inputs
             self.ClearAllListCtrls()
 
-            for obj in self.model.components:
-                if obj.category == "zeolite":
-                    self.inppanel.zeolst.Append([obj.listctrl_label(), "{0:>8.2f}".format(obj.moles)])
-                elif obj.category == "template":
-                    self.inppanel.tmplst.Append([obj.listctrl_label(), "{0:>8.2f}".format(obj.moles)])
-                elif obj.category == "zgm":
-                    self.inppanel.zgmlst.Append([obj.listctrl_label(), "{0:>8.2f}".format(obj.moles)])
-            for obj in self.model.reactants:
-                self.inppanel.rctlst.Append([obj.listctrl_label(), "{0:>8.2f}".format(obj.concentration)])
 
             for obj in self.model.reactants:
                 self.outpanel.resultlst.Append([obj.listctrl_label(), "{0:10.4f}".format(obj.mass)])
@@ -1134,7 +1139,7 @@ class MainFrame(wx.Frame):
 
     def OnSave(self, event):
         '''
-        Open the save file dialog.
+        Open the save file dialog and save the model data to a file as a pickle.
         '''
 
         wildcard = "ZBC Files (*.zbc)|*.zbc|"     \
