@@ -187,7 +187,7 @@ class Component(object):
     Class representing the zeolite component object including the OSDA'a and ZGM's.
     '''
     def __init__(self, id=None, name=None, formula=None, molwt=None,
-                 typ=None, short_name=None, moles=None, category=None):
+                 typ=None, short_name=None, moles=0.0, category=None):
 
         self.id = id
         self.name = name

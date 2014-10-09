@@ -29,12 +29,12 @@
 
 __version__ = "0.1.0"
 
-import traceback
 import os
-import sys
 import pickle
 import re
 import subprocess
+import sys
+import traceback
 from collections import namedtuple, OrderedDict
 
 from numpy.linalg import inv
@@ -53,7 +53,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator, Component
 
-column = namedtuple("column", ["name", "format", "width"])
+column = namedtuple("column", ["name", "format", "width", "align", "isEditable"])
 
 def which(prog):
     '''
@@ -295,7 +295,6 @@ class ComponentDialog(wx.Dialog):
 
         self.compsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-        self.compsOlv.rowFormatter = compRowFormatter
 
         self.SetComponents(model)
 
@@ -328,7 +327,13 @@ class ComponentDialog(wx.Dialog):
             ColumnDefn("Short Name", "left", 120, "short_name", isEditable=False),
         ])
         self.compsOlv.CreateCheckStateColumn()
-        self.compsOlv.SetObjects(model.get_components())
+        data = model.get_components()
+        for item in data:
+            if item.id in [r.id for r in model.components]:
+                self.compsOlv.SetCheckState(item, True)
+                comp = model.select_item("components", "id", item.id)
+                item.moles = comp.moles
+        self.compsOlv.SetObjects(data)
 
     def GetCurrentSelections(self):
         return self.compsOlv.GetCheckedObjects()
@@ -376,7 +381,11 @@ class ReactantDialog(wx.Dialog):
             ColumnDefn("CAS No.", "left", 120, "cas", isEditable=False),
         ])
         self.reacsOlv.CreateCheckStateColumn()
-        self.reacsOlv.SetObjects(model.get_chemicals(showall=(len(model.components) == 0)))
+        data = model.get_chemicals(showall=(len(model.components) == 0))
+        for item in data:
+            if item.id in [r.id for r in model.reactants]:
+                self.reacsOlv.SetCheckState(item, True)
+        self.reacsOlv.SetObjects(data)
 
     def GetCurrentSelections(self):
         return self.reacsOlv.GetCheckedObjects()
@@ -659,17 +668,17 @@ class OutputPanel(wx.Panel):
         fgs.AddGrowableCol(2)
         fgs.AddGrowableRow(1)
 
-        fgs.Add(resulttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=50)
+        fgs.Add(resulttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
         fgs.Add(self.rescalealltxt, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        fgs.Add(self.rescaletotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=50)
+        fgs.Add(self.rescaletotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=10)
 
-        fgs.Add(self.resultlst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=50)
+        fgs.Add(self.resultlst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
         fgs.Add(self.rescalealllst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW)
-        fgs.Add(self.rescaletolst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=50)
+        fgs.Add(self.rescaletolst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
 
-        fgs.Add(calculatebtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=50)
+        fgs.Add(calculatebtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
         fgs.Add(rescaleAllbtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
-        fgs.Add(rescaleTobtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=50)
+        fgs.Add(rescaleTobtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=10)
 
         self.SetSizer(fgs)
         self.Fit()
@@ -698,20 +707,19 @@ class MainFrame(wx.Frame):
         self.gray   = "#939393"
 
         self.columns = OrderedDict([
-            ("id"      , column("Id", wx.LIST_FORMAT_LEFT, 50)),
-            ("name"    , column("Name", wx.LIST_FORMAT_LEFT, 200)),
-            ("formula" , column("Formula", wx.LIST_FORMAT_LEFT, 120)),
-            ("label"   , column("Label", wx.LIST_FORMAT_LEFT, 100)),
-            ("moles"   , column("Moles", wx.LIST_FORMAT_RIGHT, 90)),
-            ("conc"    , column("Concentration", wx.LIST_FORMAT_RIGHT, 100)),
-            ("molwt"   , column("Molecular Weight", wx.LIST_FORMAT_RIGHT, 120)),
-            ("short"   , column("Short name", wx.LIST_FORMAT_LEFT, 120)),
-            ("typ"     , column("Type", wx.LIST_FORMAT_LEFT, 100)),
-            ("reaction", column("Reaction", wx.LIST_FORMAT_LEFT, 200)),
-            ("cas"     , column("CAS No.", wx.LIST_FORMAT_RIGHT, 120)),
+            ("id"      , column("Id", wx.LIST_FORMAT_LEFT, 50, "left", False)),
+            ("name"    , column("Name", wx.LIST_FORMAT_LEFT, 200, "left", False)),
+            ("formula" , column("Formula", wx.LIST_FORMAT_LEFT, 120, "left", False)),
+            ("label"   , column("Label", wx.LIST_FORMAT_LEFT, 100, "left", False)),
+            ("moles"   , column("Moles", wx.LIST_FORMAT_RIGHT, 90, "right", True)),
+            ("conc"    , column("Concentration", wx.LIST_FORMAT_RIGHT, 100, "right", True)),
+            ("molwt"   , column("Molecular Weight", wx.LIST_FORMAT_RIGHT, 120, "right", False)),
+            ("short"   , column("Short name", wx.LIST_FORMAT_LEFT, 120, "left", False)),
+            ("typ"     , column("Type", wx.LIST_FORMAT_LEFT, 100, "left", False)),
+            ("reaction", column("Reaction", wx.LIST_FORMAT_LEFT, 200, "left", False)),
+            ("cas"     , column("CAS No.", wx.LIST_FORMAT_RIGHT, 120, "left", False)),
         ])
 
-        self.inplists = ["zeolst", "rctlst"]
         self.outlists = ["resultlst", "rescalealllst", "rescaletolst"]
 
         self.model = BatchCalculator()
@@ -799,8 +807,6 @@ class MainFrame(wx.Frame):
         Clear all the ListCtrls in the input and output panels.
         '''
 
-        for attr in self.inplists:
-            getattr(self.inppanel, attr).DeleteAllItems()
         for attr in self.outlists:
             getattr(self.outpanel, attr).DeleteAllItems()
 
