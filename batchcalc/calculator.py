@@ -146,6 +146,10 @@ class Reactant(object):
         self.cas = cas
         self.mass = float(mass)
 
+    @property
+    def moles(self):
+        return self.mass/self.molwt
+
     def formula_to_tex(self):
         '''
         Convert the formula string to tex string.
@@ -374,62 +378,6 @@ class BatchCalculator(object):
         else:
             return None
 
-    def update_components(self, category, selections):
-        '''
-        Based on the selections (list of 2-tuples) update the components list.
-        '''
-
-        if any(len(x) != 2 for x in selections):
-            raise ValueError("selections should be tuples of length 2")
-
-        for sitem in selections:
-            comp, cat = self.session.query(DBComponent, Category).\
-                    filter(DBComponent.category == Category.id).\
-                    filter(DBComponent.id == sitem[0]).one()
-
-            kwargs = {k : v for k, v in comp.__dict__.items() if not k.startswith('_')}
-            kwargs["category"] = cat.name
-            if int(sitem[0]) in [x.id for x in self.components]:
-                # update the number of moles and concentration
-                sobj = self.select_item("components", 'id', int(sitem[0]))
-                sobj.moles = float(sitem[1])
-            else:
-                kwargs['moles'] = sitem[1]
-                obj = Component(**kwargs)
-                self.components.append(obj)
-
-        # remove unselected items
-        selid = [int(x[0]) for x in selections]
-        cat_items = [x for x in self.components if x.id in selid and x.category == category]
-        self.components = [x for x in self.components if x.category != category] + cat_items
-
-    def update_reactants(self, selections):
-        '''
-        Based on the selections (list of 2-tuples) update the reactants list.
-        '''
-
-        if any(len(x) != 2 for x in selections):
-            raise ValueError("selections should be tuples of length 2")
-
-        for sitem in selections:
-            reac, typ = self.session.query(Chemical, Types).\
-                    filter(Chemical.typ==Types.id).\
-                    filter(Chemical.id==int(sitem[0])).one()
-            kwargs = {k : v for k, v in reac.__dict__.items() if not k.startswith('_')}
-            kwargs["typ"] = typ.name
-            if int(sitem[0]) in [x.id for x in self.reactants]:
-                # update the number of moles
-                sobj = self.select_item("reactants", "id", int(sitem[0]))
-                sobj.concentration = float(sitem[1])
-            else:
-                kwargs['concentration'] = sitem[1]
-                obj = Reactant(**kwargs)
-                self.reactants.append(obj)
-
-        # remove unselected items
-        selid = [int(x[0]) for x in selections]
-        self.reactants = [x for x in self.reactants if x.id in selid]
-
     def calculate(self):
         '''
         Solve the linear system of equations  B * X = C
@@ -460,6 +408,39 @@ class BatchCalculator(object):
                     reac.mass = x/reac.concentration
                 else:
                     reac.mass = x
+        except Exception as e:
+            raise e
+
+    def calculate_moles(self):
+        '''
+        Calculate the composition matrix by multiplying C = B * X
+        '''
+
+        if len(self.components) == 0:
+            raise ValueError("No Zeolite components selected")
+
+        if len(self.reactants) == 0:
+            raise ValueError("No Reactants selected")
+
+        for comp in self.components:
+            tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
+            if len(set([t.id for t in tempr]) & set([r.id for r in self.reactants])) == 0:
+                raise ValueError("some compoennts need their sources: {0:s}".format(comp.name))
+
+        masses = []
+        for reac in self.reactants:
+            if reac.typ == "reactant":
+                masses.append(reac.mass*reac.concentration)
+            else:
+                masses.append(reac.mass)
+
+        self.X = np.array(masses, dtype=float)
+        self.B = self.get_B_matrix()
+
+        try:
+            self.A = np.dot(np.transpose(self.B), self.X)
+            for comp, a in zip(self.components, self.A):
+                comp.moles = a/comp.molwt
         except Exception as e:
             raise e
 

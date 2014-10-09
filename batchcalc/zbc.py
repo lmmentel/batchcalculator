@@ -284,12 +284,12 @@ class RescaleToDialog(wx.Dialog):
 class ComponentDialog(wx.Dialog):
 
     def __init__(self, parent, model, component, id=wx.ID_ANY, title="Default window title",
-            pos=wx.DefaultPosition, size=(590, 300),
+            pos=wx.DefaultPosition, size=(730, 500),
             style=wx.DEFAULT_FRAME_STYLE, name="Component Dialog"):
 
-        cols = ["id", "name", "formula", "moles", "molwt", "short"]
-        dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
-        super(ComponentDialog, self).__init__(parent, id, title, pos, (dlgwidth, 620), style, name)
+        #cols = ["id", "name", "formula", "moles", "molwt", "short"]
+        #dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
+        super(ComponentDialog, self).__init__(parent, id, title, pos, size, style, name)
 
         panel = wx.Panel(self)
 
@@ -341,12 +341,12 @@ class ComponentDialog(wx.Dialog):
 class ReactantDialog(wx.Dialog):
 
     def __init__(self, parent, model, id=wx.ID_ANY, title="Choose Reactants",
-            pos=wx.DefaultPosition, size=(820, 320),
+            pos=wx.DefaultPosition, size=(850, 520),
             style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
 
-        cols = ["id", "name", "formula", "conc", "molwt", "short", "typ", "cas"]
-        dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
-        super(ReactantDialog, self).__init__(parent, id, title, pos, (dlgwidth, 620), style, name)
+        #cols = ["id", "name", "formula", "conc", "molwt", "short", "typ", "cas"]
+        #dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
+        super(ReactantDialog, self).__init__(parent, id, title, pos, size, style, name)
 
         panel = wx.Panel(self)
 
@@ -385,6 +385,9 @@ class ReactantDialog(wx.Dialog):
         for item in data:
             if item.id in [r.id for r in model.reactants]:
                 self.reacsOlv.SetCheckState(item, True)
+                reac = model.select_item("reactants", "id", item.id)
+                item.mass = reac.mass
+                item.concentration = reac.concentration
         self.reacsOlv.SetObjects(data)
 
     def GetCurrentSelections(self):
@@ -550,7 +553,7 @@ class InputPanel(wx.Panel):
 
         # Attributes
 
-        self.main = main
+        self.model = main.model
 
         cmptxt = wx.StaticText(self, -1, label="Components")
         rcttxt = wx.StaticText(self, -1, label="Reactants")
@@ -564,8 +567,8 @@ class InputPanel(wx.Panel):
 
         self.SetComponents()
         self.SetReactants()
-        zeobtn = wx.Button(self, -1, label="Edit")
-        rctbtn = wx.Button(self, -1, label="Edit")
+        zeobtn = wx.Button(self, -1, label="Add/Remove")
+        rctbtn = wx.Button(self, -1, label="Add/Remove")
 
         # Layout
 
@@ -597,7 +600,7 @@ class InputPanel(wx.Panel):
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.2f"),
         ])
-        self.compOlv.SetObjects(self.main.model.components)
+        self.compOlv.SetObjects(self.model.components)
 
     def SetReactants(self, data=None):
 
@@ -605,7 +608,7 @@ class InputPanel(wx.Panel):
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
         ])
-        self.reacOlv.SetObjects(self.main.model.reactants)
+        self.reacOlv.SetObjects(self.model.reactants)
 
     def OnEditZeolites(self, event):
         '''
@@ -613,11 +616,11 @@ class InputPanel(wx.Panel):
         database.
         '''
 
-        self.dlg = ComponentDialog(self, self.main.model, "zeolite", id=-1, title="Choose Zeolite Components...")
+        self.dlg = ComponentDialog(self, self.model, "zeolite", id=-1, title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            self.main.model.components = self.dlg.GetCurrentSelections()
-        self.compOlv.SetObjects(self.main.model.components)
+            self.model.components = self.dlg.GetCurrentSelections()
+        self.compOlv.SetObjects(self.model.components)
         self.dlg.Destroy()
 
     def OnEditReactants(self, event):
@@ -625,11 +628,11 @@ class InputPanel(wx.Panel):
         Show the dialog with the reactants retrieved from the database.
         '''
 
-        self.dlg = ReactantDialog(self, self.main.model, id=-1)
+        self.dlg = ReactantDialog(self, self.model, id=-1)
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            self.main.model.reactants = self.dlg.GetCurrentSelections()
-        self.reacOlv.SetObjects(self.main.model.reactants)
+            self.model.reactants = self.dlg.GetCurrentSelections()
+        self.reacOlv.SetObjects(self.model.reactants)
         self.dlg.Destroy()
 
 class OutputPanel(wx.Panel):
@@ -637,7 +640,11 @@ class OutputPanel(wx.Panel):
     def __init__(self, parent, main):
         super(OutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
+        self.model = main.model
+
         # Attributes
+
+        self.gray   = "#939393"
 
         resulttxt = wx.StaticText(self, -1, label="Results [X]")
         self.rescalealltxt = wx.StaticText(self, -1, label="Rescaled by")
@@ -685,9 +692,257 @@ class OutputPanel(wx.Panel):
 
         # Event Handlers
 
-        calculatebtn.Bind(wx.EVT_BUTTON, main.OnCalculate)
-        rescaleAllbtn.Bind(wx.EVT_BUTTON, main.OnRescaleAll)
-        rescaleTobtn.Bind(wx.EVT_BUTTON, main.OnRescaleTo)
+        calculatebtn.Bind(wx.EVT_BUTTON, self.OnCalculate)
+        rescaleAllbtn.Bind(wx.EVT_BUTTON, self.OnRescaleAll)
+        rescaleTobtn.Bind(wx.EVT_BUTTON, self.OnRescaleTo)
+
+    def OnCalculate(self, event):
+
+        self.model.calculate()
+
+        self.resultlst.DeleteAllItems()
+
+        for i, reac in enumerate(self.model.reactants):
+            self.resultlst.Append([reac.listctrl_label(), "{0:10.4f}".format(reac.mass)])
+
+    def OnRescaleAll(self, event):
+        '''
+        Retrieve a float from a TextCtrl dialog, rescale the result and print
+        it to the ListCtrl.
+        '''
+
+        dialog = wx.TextEntryDialog(None,
+            "Enter the scaling factor",
+            "Enter the scaling factor", str(self.model.scale_all), style=wx.OK|wx.CANCEL)
+        if dialog.ShowModal() == wx.ID_OK:
+            try:
+                self.model.scale_all = float(dialog.GetValue())
+
+                self.rescalealllst.DeleteAllItems()
+
+                rescaled = self.model.rescale_all()
+                for i, (subs, mass) in enumerate(rescaled):
+                    self.rescalealllst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
+                self.rescalealltxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
+                self.Layout()
+            except:
+                ed = wx.MessageDialog(None, "Scale factor must be a number",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+        dialog.Destroy()
+
+    def OnRescaleTo(self, event):
+        '''
+        Retrieve thescaling afctor and selections from a custom dialog, then
+        calculate the scaling factor so that the selected item after rescaling
+        sum up to the sample size. Use the scaling factor to rescale all the
+        items and print them to the ListCtrl.
+        '''
+
+        rto = RescaleToDialog(self, self.model, -1, title="Choose substances and sample size")
+        result = rto.ShowModal()
+        if result == wx.ID_OK:
+            # get the sample size and sample selections
+            sample_size, sample_selections = rto.GetCurrentSelections()
+            try:
+                self.model.sample_size = float(sample_size)
+            except:
+                self.sample_size = 5.0
+                ed = wx.MessageDialog(None, "Scale factor must be a number",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+
+            self.model.selections = sample_selections
+            if len(sample_selections) == 0:
+                dlg = wx.MessageDialog(None, "At least one reactant must be selected.",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+            else:
+                self.rescaletolst.DeleteAllItems()
+                rescaled = self.model.rescale_to(sample_selections)
+                for i, (subs, mass) in enumerate(rescaled):
+                    self.rescaletolst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
+                    if i in sample_selections:
+                        self.rescaletolst.SetItemBackgroundColour(i, self.gray)
+                self.rescaletotxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
+                self.Layout()
+
+class InverseBatch(wx.Frame):
+
+    def __init__(self, parent, title=""):
+        super(InverseBatch, self).__init__(parent, id=-1, title="",
+                                           pos=wx.DefaultPosition,
+                                           size=(600, 550),
+                                           style=wx.DEFAULT_FRAME_STYLE,
+                                           name="")
+        menubar = wx.MenuBar()
+
+        # File Menu
+        filem = wx.Menu()
+        mnew  = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
+        filem.AppendSeparator()
+        mexit = filem.Append(wx.ID_CLOSE, "Exit\tAlt+F4")
+        menubar.Append(filem, "&File")
+        viewm = wx.Menu()
+        mshowb = viewm.Append(wx.ID_ANY, "Show B Matrix")
+        menubar.Append(viewm, "&View")
+        self.SetMenuBar(menubar)
+
+        # Event Handlers
+
+        # Bind Menu Handlers
+        self.Bind(wx.EVT_MENU, self.OnNew, mnew)
+        self.Bind(wx.EVT_MENU, self.OnExit, mexit)
+        self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
+
+        self.model = BatchCalculator()
+        self.panel = wx.Panel(self, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.SUNKEN_BORDER)
+
+        cmptxt = wx.StaticText(self.panel, -1, label="Components")
+        rcttxt = wx.StaticText(self.panel, -1, label="Reactants")
+
+        self.compsOlv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+        self.compsOlv.rowFormatter = compRowFormatter
+
+        self.reacsOlv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+
+        zeobtn = wx.Button(self.panel, -1, label="Add/Remove")
+        rctbtn = wx.Button(self.panel, -1, label="Add/Remove")
+
+        resulttxt = wx.StaticText(self.panel, -1, label="Results")
+
+        self.resultOlv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+
+        calculatebtn = wx.Button(self.panel, label="Calculate")
+        rescalebtn = wx.Button(self.panel, label="Rescale All")
+
+        self.SetComponents()
+        self.SetReactants()
+        self.SetResults()
+
+        # Layout
+
+        gbs = wx.GridBagSizer(hgap=5, vgap=5)
+
+        gbs.Add(cmptxt, pos=(0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        gbs.Add(rcttxt, pos=(0, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+
+        gbs.Add(self.compsOlv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        gbs.Add(self.reacsOlv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+
+        gbs.Add(zeobtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
+        gbs.Add(rctbtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
+
+        gbs.Add(wx.StaticLine(self.panel, style=wx.LI_HORIZONTAL), pos=(3, 0), span=(1, 2), flag=wx.GROW|wx.ALIGN_CENTER_HORIZONTAL)
+        gbs.Add(resulttxt, pos=(4, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT|wx.LEFT, border=10)
+
+        gbs.Add(self.resultOlv, pos=(5, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT|wx.RIGHT, border=10)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(calculatebtn, 0, flag=wx.ALL, border=10)
+        hbox.Add(rescalebtn, 0, flag=wx.ALL, border=10)
+
+        gbs.Add(hbox, pos=(6, 0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, border=10)
+
+        gbs.AddGrowableCol(0)
+        gbs.AddGrowableCol(1)
+        gbs.AddGrowableRow(1)
+        gbs.AddGrowableRow(5)
+
+        self.panel.SetSizer(gbs)
+        self.panel.Fit()
+
+        # Event Handlers
+
+        zeobtn.Bind(wx.EVT_BUTTON, self.OnEditZeolites)
+        rctbtn.Bind(wx.EVT_BUTTON, self.OnEditReactants)
+        calculatebtn.Bind(wx.EVT_BUTTON, self.OnCalculateMoles)
+        rescalebtn.Bind(wx.EVT_BUTTON, self.OnRescaleMoles)
+
+    def SetComponents(self, data=None):
+
+        self.compsOlv.SetColumns([
+            ColumnDefn("Label", "left", 150, "listctrl_label", isEditable=False, isSpaceFilling=True),
+        ])
+        self.compsOlv.SetObjects(self.model.components)
+
+    def SetReactants(self, data=None):
+
+        self.reacsOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Mass", "right", 150, "mass", isEditable=True, stringConverter="%.4f"),
+            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
+        ])
+        self.reacsOlv.SetObjects(self.model.reactants)
+
+    def SetResults(self, data=None):
+
+        self.resultOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Moles", "right", 150, "moles", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+        ])
+        self.resultOlv.SetObjects(self.model.components)
+
+    # Menu Bindings ------------------------------------------------------------
+
+    def OnCalculateMoles(self, event):
+
+        self.model.calculate_moles()
+        self.resultOlv.SetObjects(self.model.components)
+
+    def OnExit(self, event):
+        self.Close()
+
+    def OnRescaleMoles(self, event):
+        pass
+
+    def OnEditZeolites(self, event):
+        '''
+        Show the dialog with the zeolite components retrieved from the
+        database.
+        '''
+
+        self.dlg = ComponentDialog(self, self.model, "zeolite", id=-1, title="Choose Zeolite Components...")
+        result = self.dlg.ShowModal()
+        if result == wx.ID_OK:
+            self.model.components = self.dlg.GetCurrentSelections()
+        self.compsOlv.SetObjects(self.model.components)
+        self.dlg.Destroy()
+
+    def OnEditReactants(self, event):
+        '''
+        Show the dialog with the reactants retrieved from the database.
+        '''
+
+        self.dlg = ReactantDialog(self, self.model, id=-1)
+        result = self.dlg.ShowModal()
+        if result == wx.ID_OK:
+            self.model.reactants = self.dlg.GetCurrentSelections()
+        self.reacsOlv.SetObjects(self.model.reactants)
+        self.dlg.Destroy()
+
+    def OnNew(self, event):
+        self.model.reset()
+        self.SetComponents()
+        self.SetReactants()
+        self.SetResults()
+
+    def OnShowB(self, event):
+
+        if isinstance(self.model.B, list):
+            dlg = wx.MessageDialog(None, "Batch Matrix needs to be defined first.",
+                                    "", wx.OK | wx.ICON_WARNING)
+            dlg.ShowModal()
+            dlg.Destroy()
+        elif type(self.model.B).__module__ == np.__name__:
+            frame = ShowBFrame(self, sys.stdout)
+            frame.Show(True)
 
 class MainFrame(wx.Frame):
     '''
@@ -704,7 +959,6 @@ class MainFrame(wx.Frame):
         # Attributes
 
         # some color definition for nices display
-        self.gray   = "#939393"
 
         self.columns = OrderedDict([
             ("id"      , column("Id", wx.LIST_FORMAT_LEFT, 50, "left", False)),
@@ -755,6 +1009,9 @@ class MainFrame(wx.Frame):
         viewm = wx.Menu()
         mshowb = viewm.Append(wx.ID_ANY, "Show B Matrix")
         menubar.Append(viewm, "&View")
+        calcm = wx.Menu()
+        minvcalc = calcm.Append(wx.ID_ANY, "Calculate composition", "CC")
+        menubar.Append(calcm, "Calculation")
         # Database Menu
         dbm = wx.Menu()
         mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
@@ -772,10 +1029,16 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnOpen, mopen)
         self.Bind(wx.EVT_MENU, self.OnSave, msave)
         self.Bind(wx.EVT_MENU, self.OnExit, mexit)
+        self.Bind(wx.EVT_MENU, self.OnInverseCalculation, minvcalc)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
         self.Bind(wx.EVT_MENU, self.OnExportTex, metex)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
+
+    def OnInverseCalculation(self, event):
+
+        window = InverseBatch(self)
+        window.Show()
 
     def OnNew(self, event):
         '''
@@ -989,75 +1252,6 @@ given by the molar ratio of its components.''', 350, wx.ClientDC(self)))
 
         wx.AboutBox(info)
 
-    def OnCalculate(self, event):
-
-        self.model.calculate()
-
-        self.outpanel.resultlst.DeleteAllItems()
-
-        for i, reac in enumerate(self.model.reactants):
-            self.outpanel.resultlst.Append([reac.listctrl_label(), "{0:10.4f}".format(reac.mass)])
-
-    def OnRescaleAll(self, event):
-        '''
-        Retrieve a float from a TextCtrl dialog, rescale the result and print
-        it to the ListCtrl.
-        '''
-
-        dialog = wx.TextEntryDialog(None,
-            "Enter the scaling factor",
-            "Enter the scaling factor", str(self.model.scale_all), style=wx.OK|wx.CANCEL)
-        if dialog.ShowModal() == wx.ID_OK:
-            try:
-                self.model.scale_all = float(dialog.GetValue())
-
-                self.outpanel.rescalealllst.DeleteAllItems()
-
-                rescaled = self.model.rescale_all()
-                for i, (subs, mass) in enumerate(rescaled):
-                    self.outpanel.rescalealllst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
-                self.outpanel.rescalealltxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
-                self.outpanel.Layout()
-            except:
-                ed = wx.MessageDialog(None, "Scale factor must be a number",
-                                      "", wx.OK | wx.ICON_INFORMATION)
-                ed.ShowModal()
-                ed.Destroy()
-        dialog.Destroy()
-
-    def OnRescaleTo(self, event):
-        '''
-        Retrieve thescaling afctor and selections from a custom dialog, then
-        calculate the scaling factor so that the selected item after rescaling
-        sum up to the sample size. Use the scaling factor to rescale all the
-        items and print them to the ListCtrl.
-        '''
-
-        rto = RescaleToDialog(self, self.model, -1, title="Choose substances and sample size")
-        result = rto.ShowModal()
-        if result == wx.ID_OK:
-            # get the sample size and sample selections
-            try:
-                sample_size, sample_selections = rto.GetCurrentSelections()
-                self.model.sample_size = float(sample_size)
-                self.model.selections = sample_selections
-
-                self.outpanel.rescaletolst.DeleteAllItems()
-
-                rescaled = self.model.rescale_to(sample_selections)
-
-                for i, (subs, mass) in enumerate(rescaled):
-                    self.outpanel.rescaletolst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
-                    if i in sample_selections:
-                        self.outpanel.rescaletolst.SetItemBackgroundColour(i, self.gray)
-                self.outpanel.rescaletotxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
-                self.outpanel.Layout()
-            except:
-                self.sample_size = 5.0
-                ed = wx.MessageDialog(None, "Scale factor must be a number",
-                                      "", wx.OK | wx.ICON_INFORMATION)
-                ed.ShowModal()
-                ed.Destroy()
 
     def OnChangeDB(self, event):
         '''
