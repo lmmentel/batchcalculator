@@ -2,7 +2,7 @@
 #
 #    Zeolite Batch Calculator
 #
-# A program based for calculating the correct amount of reagents (batch) for a
+# A program for calculating the correct amount of reagents (batch) for a
 # particular zeolite composition given by the molar ratio of its components.
 #
 # The MIT License (MIT)
@@ -31,10 +31,10 @@ __version__ = "0.1.1"
 
 import operator
 import os
-import pkg_resources
 import re
+import sys
 
-from numpy.linalg import solve
+from numpy.linalg import solve, lstsq
 import numpy as np
 
 from sqlalchemy import Column, Integer, String, Float, create_engine, ForeignKey
@@ -78,14 +78,14 @@ class Batch(Base):
     __tablename__ = 'batch'
 
     id           = Column(Integer, primary_key=True)
-    reactant_id  = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
+    chemical_id  = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
     component_id = Column(Integer, ForeignKey('components.id'), nullable=False)
     reaction_id  = Column(Integer, ForeignKey('reactions.id'), nullable=True)
     coefficient  = Column(Float, nullable=True)
 
     def __repr__(self):
-        return "<Batch(id={i:>2d}, reactant_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
-                i=self.id, n=self.reactant_id, z=self.component_id, c=self.coefficient)
+        return "<Batch(id={i:>2d}, chemical_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
+                i=self.id, n=self.chemical_id, z=self.component_id, c=self.coefficient)
 
 class DBComponent(Base):
     '''
@@ -146,6 +146,10 @@ class Reactant(object):
         self.cas = cas
         self.mass = float(mass)
 
+    @property
+    def moles(self):
+        return self.mass/self.molwt
+
     def formula_to_tex(self):
         '''
         Convert the formula string to tex string.
@@ -187,7 +191,7 @@ class Component(object):
     Class representing the zeolite component object including the OSDA'a and ZGM's.
     '''
     def __init__(self, id=None, name=None, formula=None, molwt=None,
-                 typ=None, short_name=None, moles=None, category=None):
+                 typ=None, short_name=None, moles=0.0, category=None):
 
         self.id = id
         self.name = name
@@ -242,9 +246,7 @@ class BatchCalculator(object):
     def __init__(self):
 
         # default database path
-        dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                 pkg_resources.resource_filename("batchcalc", "data/zeolite.db"))
-
+        dbpath = self.get_dbpath()
         self.new_dbsession(dbpath)
 
         self.lists = ["components", "reactants"]
@@ -261,6 +263,20 @@ class BatchCalculator(object):
         self.sample_scale = 1.0
         self.sample_size = 5.0
         self.selections = []
+
+    def get_dbpath(self):
+        '''
+        Depending on the execution environment get the proper database path.
+        '''
+
+        dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "zeolite.db")
+        if os.path.exists(dbpath):
+            return dbpath
+        elif sys.executable is not None:
+            dbpath = os.path.join(os.path.dirname(sys.executable), "data", "zeolite.db")
+            return dbpath
+        else:
+            raise ValueError("database not found on: {}".format(dbpath))
 
     def new_dbsession(self, dbpath):
         '''
@@ -310,6 +326,19 @@ class BatchCalculator(object):
                 filter(DBComponent.category == Category.id).\
                 filter(Category.name == category).all()
 
+    def get_components(self, category=None):
+
+        query = self.session.query(DBComponent, Category).\
+                filter(DBComponent.category == Category.id).all()
+
+        result = []
+        for comp, cat in query:
+            kwargs = {k : v for k, v in comp.__dict__.items() if not k.startswith('_')}
+            kwargs["category"] = cat.name
+            kwargs["moles"] = 0.0
+            result.append(Component(**kwargs))
+        return result
+
     def get_chemicals(self, showall=False):
         '''
         Return chemicals that are sources for the components present in the
@@ -317,16 +346,21 @@ class BatchCalculator(object):
         '''
 
         if showall:
-            return self.session.query(Chemical,Types).filter(Chemical.typ == Types.id).all()
+            query =  self.session.query(Chemical,Types).filter(Chemical.typ == Types.id).all()
         else:
-            res = set()
+            comps = set()
             for item in self.components:
                 temp = self.session.query(Chemical, Types).join(Batch).\
                            filter(Chemical.typ == Types.id).\
                            filter(Batch.component_id == item.id).all()
-                res.update(temp)
-            out = list(res)
-            return sorted(out, key=lambda x: x[0].id)
+                comps.update(temp)
+            query = list(comps)
+        result = []
+        for reac, typ in query:
+            kwargs = {k : v for k, v in reac.__dict__.items() if not k.startswith('_')}
+            kwargs["typ"] = typ.name
+            result.append(Reactant(**kwargs))
+        return sorted(result, key=lambda x: x.id)
 
     def select_item(self, lst, attr, value):
         '''
@@ -344,78 +378,16 @@ class BatchCalculator(object):
         else:
             return None
 
-    def update_components(self, category, selections):
-        '''
-        Based on the selections (list of 2-tuples) update the components list.
-        '''
-
-        if any(len(x) != 2 for x in selections):
-            raise ValueError("selections should be tuples of length 2")
-
-        for sitem in selections:
-            comp, cat = self.session.query(DBComponent, Category).\
-                    filter(DBComponent.category == Category.id).\
-                    filter(DBComponent.id == sitem[0]).one()
-
-            kwargs = {k : v for k, v in comp.__dict__.items() if not k.startswith('_')}
-            kwargs["category"] = cat.name
-            if int(sitem[0]) in [x.id for x in self.components]:
-                # update the number of moles and concentration
-                sobj = self.select_item("components", 'id', int(sitem[0]))
-                sobj.moles = float(sitem[1])
-            else:
-                kwargs['moles'] = sitem[1]
-                obj = Component(**kwargs)
-                self.components.append(obj)
-
-        # remove unselected items
-        selid = [int(x[0]) for x in selections]
-        cat_items = [x for x in self.components if x.id in selid and x.category == category]
-        self.components = [x for x in self.components if x.category != category] + cat_items
-
-    def update_reactants(self, selections):
-        '''
-        Based on the selections (list of 2-tuples) update the reactants list.
-        '''
-
-        if any(len(x) != 2 for x in selections):
-            raise ValueError("selections should be tuples of length 2")
-
-        for sitem in selections:
-            reac, typ = self.session.query(Chemical, Types).\
-                    filter(Chemical.typ==Types.id).\
-                    filter(Chemical.id==int(sitem[0])).one()
-            kwargs = {k : v for k, v in reac.__dict__.items() if not k.startswith('_')}
-            kwargs["typ"] = typ.name
-            if int(sitem[0]) in [x.id for x in self.reactants]:
-                # update the number of moles
-                sobj = self.select_item("reactants", "id", int(sitem[0]))
-                sobj.concentration = float(sitem[1])
-            else:
-                kwargs['concentration'] = sitem[1]
-                obj = Reactant(**kwargs)
-                self.reactants.append(obj)
-
-        # remove unselected items
-        selid = [int(x[0]) for x in selections]
-        self.reactants = [x for x in self.reactants if x.id in selid]
-
     def calculate(self):
         '''
-        Solve the system of equations  B * X = C
+        Solve the linear system of equations  B * X = C
         '''
 
         if len(self.components) == 0:
             raise ValueError("No Zeolite components selected")
 
         if len(self.reactants) == 0:
-            raise ValueError(2, "No Reactants selected")
-
-        if len(self.components) != len(self.reactants):
-            raise ValueError("Number of zeolite components has to be equal to the " +
-                      "number of reactants. " +
-                      "You entered {0:<2d} zeolite components and {1:<2d} reactants.".format(\
-                              len(self.components), len(self.reactants)))
+            raise ValueError("No Reactants selected")
 
         for comp in self.components:
             tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
@@ -426,14 +398,49 @@ class BatchCalculator(object):
         self.B = self.get_B_matrix()
 
         try:
-            self.X = solve(np.transpose(self.B), self.A)
+            if self.B.shape[0] == self.B.shape[1]:
+                self.X = solve(np.transpose(self.B), self.A)
+            else:
+                self.X, resid, rank, s = lstsq(np.transpose(self.B), self.A)
             # assign calculated masses to the reactants
             for reac, x in zip(self.reactants, self.X):
                 if reac.typ == "reactant":
                     reac.mass = x/reac.concentration
                 else:
                     reac.mass = x
-            return (0, "success")
+        except Exception as e:
+            raise e
+
+    def calculate_moles(self):
+        '''
+        Calculate the composition matrix by multiplying C = B * X
+        '''
+
+        if len(self.components) == 0:
+            raise ValueError("No Zeolite components selected")
+
+        if len(self.reactants) == 0:
+            raise ValueError("No Reactants selected")
+
+        for comp in self.components:
+            tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
+            if len(set([t.id for t in tempr]) & set([r.id for r in self.reactants])) == 0:
+                raise ValueError("some compoennts need their sources: {0:s}".format(comp.name))
+
+        masses = []
+        for reac in self.reactants:
+            if reac.typ == "reactant":
+                masses.append(reac.mass*reac.concentration)
+            else:
+                masses.append(reac.mass)
+
+        self.X = np.array(masses, dtype=float)
+        self.B = self.get_B_matrix()
+
+        try:
+            self.A = np.dot(np.transpose(self.B), self.X)
+            for comp, a in zip(self.components, self.A):
+                comp.moles = a/comp.molwt
         except Exception as e:
             raise e
 
@@ -453,7 +460,7 @@ class BatchCalculator(object):
 
         for i, reactant in enumerate(self.reactants):
             comps = self.session.query(Batch,DBComponent).\
-                    filter(Batch.reactant_id == reactant.id).\
+                    filter(Batch.chemical_id == reactant.id).\
                     filter(DBComponent.id==Batch.component_id).all()
             wfs = self.get_weight_fractions(i, comps)
             for j, comp in enumerate(self.components):
@@ -532,10 +539,10 @@ class BatchCalculator(object):
         Rescale all the resulting masses by a factor.
         '''
 
-        res = [(s, s.mass/self.scale_all) for s in self.reactants]
+        res = [s.mass/self.scale_all for s in self.reactants]
         return res
 
-    def rescale_to(self, sample_selections):
+    def rescale_to_sample(self, selected):
         '''
         Rescale all masses by a factor chosen in such a way that the sum of
         masses of a selected subset of chemicals is equal to the chose sample
@@ -543,8 +550,18 @@ class BatchCalculator(object):
         '''
 
         masses = [s.mass for s in self.reactants]
-        self.sample_scale = sum([masses[i] for i in sample_selections])/float(self.sample_size)
-        res = [(s, s.mass/self.sample_scale) for s in self.reactants]
+        self.sample_scale = sum([s.mass for s in selected])/float(self.sample_size)
+        res = [s.mass/self.sample_scale for s in self.reactants]
+        return res
+
+    def rescale_to_item(self, item, amount):
+        '''
+        Rescale all mole numbers by a factor chosen in such a way that the
+        selected *item* has th number of moles equal to *amount*.
+        '''
+
+        factor = amount/item.moles
+        res = [s.moles*factor for s in self.components]
         return res
 
     def print_A(self):

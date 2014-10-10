@@ -1,4 +1,14 @@
-- add options (either from the edit dialog or a new menu in the menu bar) to
+TO DO
+=====
+
+* add options (either from the edit dialog or a new menu in the menu bar) to
   extend (add/remove/modify) entries in the database from the GUI
-- write a django app to expose the calculator functionality through a
+* write a django app to expose the calculator functionality through a
   web form
+* reduce the number of list in the inputa panel to 2 instead of 4, leave only
+  components nad reactants,
+* swith to ObjectListView instead of ListCtrl for lists in the inputa panel
+* add an option to calculate the molar ratios of the components based on the
+  masses of the reactants (for reconstructing the values from old papers)
+* add an option to select a tex template in the export tex dialog
+* add an option to export to HTML, and plain text

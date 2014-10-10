@@ -73,8 +73,10 @@
     {\centering \small \@author}}				% Typesetting
 \makeatother							% End definition
 
+<* if author *>
 \author{ << author >> \\
 \href{mailto: << email >>}{{\color{bl}<< email >>}}\\}
+<* endif *>
 
 % Custom headers and footers
 \usepackage{fancyhdr}
@@ -109,12 +111,12 @@
 <* endif *>
 
 <* if rescale_all *>
-\subsecwodate{Result Matrix [X] = [B]$^{-1}\cdot$[C] (SF=<< rescale_all_factor >>)}
+\subsecwodate{Result Matrix [X] (SF=<< rescale_all_factor >>)}
 << x_matrix >>
 <* endif *>
 
 <* if rescale_to *>
-\subsecwodate{Result Matrix [X] = [B]$^{-1}\cdot$[C] (SF=<< rescale_to_factor >>)}
+\subsecwodate{Result Matrix [X] (SF=<< rescale_to_factor >>)}
 << x_matrix_scaled >>
 <* endif *>
 
