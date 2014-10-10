@@ -557,6 +557,8 @@ class InputPanel(wx.Panel):
 
         cmptxt = wx.StaticText(self, -1, label="Components")
         rcttxt = wx.StaticText(self, -1, label="Reactants")
+        cmptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+        rcttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         self.compOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.compOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
@@ -685,6 +687,9 @@ class OutputPanel(wx.Panel):
         resulttxt = wx.StaticText(self, -1, label="Results [X]")
         self.rescalealltxt = wx.StaticText(self, -1, label="Rescaled by")
         self.rescaletotxt = wx.StaticText(self, -1, label="Rescaled to")
+        resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.rescalealltxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.rescaletotxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
                 useAlternateBackColors=True)
@@ -711,9 +716,9 @@ class OutputPanel(wx.Panel):
         fgs.AddGrowableCol(2)
         fgs.AddGrowableRow(1)
 
-        fgs.Add(resulttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
-        fgs.Add(self.rescalealltxt, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        fgs.Add(self.rescaletotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=10)
+        fgs.Add(resulttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
+        fgs.Add(self.rescalealltxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        fgs.Add(self.rescaletotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT|wx.TOP, border=5)
 
         fgs.Add(self.resultOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
         fgs.Add(self.rescalealllst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW)
@@ -819,6 +824,7 @@ class MolesOutputPanel(wx.Panel):
         self.columns = columns
 
         resulttxt = wx.StaticText(self, -1, label="Results")
+        resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         calculatebtn = wx.Button(self, label="Calculate")
         rescalebtn = wx.Button(self, label="Rescale All")
@@ -828,16 +834,14 @@ class MolesOutputPanel(wx.Panel):
         # Layout
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-
-        vbox.Add(resulttxt, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT|wx.LEFT, border=10)
-
+        vbox.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=5)
         vbox.Add(self.resultOlv, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(calculatebtn, 0, flag=wx.ALL, border=10)
-        hbox.Add(rescalebtn, 0, flag=wx.ALL, border=10)
+        hbox.Add(calculatebtn, 0, flag=wx.ALL, border=5)
+        hbox.Add(rescalebtn, 0, flag=wx.ALL, border=5)
 
-        vbox.Add(hbox, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, border=10)
+        vbox.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, border=10)
 
         self.SetSizer(vbox)
         self.Fit()
@@ -869,12 +873,10 @@ class InverseBatch(wx.Frame):
     def __init__(self, parent, title=""):
         super(InverseBatch, self).__init__(parent, id=-1, title="",
                                            pos=wx.DefaultPosition,
-                                           size=(600, 550),
+                                           size=(600, 600),
                                            style=wx.DEFAULT_FRAME_STYLE,
                                            name="")
         self.model = BatchCalculator()
-        print type(self)
-        print "Models equal: ", self.model == parent.model
         panel = wx.Panel(self)
         self.inppanel = MolesInputPanel(panel, self.model, parent.columns)
         self.outpanel = MolesOutputPanel(panel, self.model, parent.columns)
@@ -943,18 +945,18 @@ class MainFrame(wx.Frame):
         # Attributes
 
         self.columns = OrderedDict([
-            ("id"      , {"title" : "Id",               "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
-            ("name"    , {"title" : "Name",             "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False}),
-            ("formula" , {"title" : "Formula",          "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False}),
-            ("label"   , {"title" : "Label",            "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False}),
-            ("moles"   , {"title" : "Moles",            "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
-            ("conc"    , {"title" : "Concentration",    "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
-            ("molwt"   , {"title" : "Molecular Weight", "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("short"   , {"title" : "Short name",       "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
-            ("category", {"title" : "Category",         "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
-            ("typ"     , {"title" : "Type",             "width" : 100, "align" : "left",  "valueGetter" : "typ", "isEditable" : False}),
-            ("reaction", {"title" : "Reaction",         "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
-            ("cas"     , {"title" : "CAS No.",          "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
+            ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
+            ("name"    , {"title" : "Name",             "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False, "isSpaceFilling" : True}),
+            ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
+            ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False}),
+            ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
+            ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
+            ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
+            ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
+            ("typ"     , {"title" : "Type",             "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "typ", "isEditable" : False}),
+            ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
+            ("cas"     , {"title" : "CAS No.",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
         ])
 
         self.outlists = ["rescalealllst", "rescaletolst"]
@@ -1286,7 +1288,7 @@ class ZeoGui(wx.App):
     def OnInit(self):
 
         self.frame = MainFrame(None, title="Zeolite Batch Calculator",
-                               size=(860, 550))
+                               size=(860, 600))
         # change the default exception handling
         sys.excepthook = ExceptionHook
         self.SetTopWindow(self.frame)
