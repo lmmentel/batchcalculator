@@ -53,7 +53,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator, Component
 
-column = namedtuple("column", ["name", "format", "width", "align", "isEditable"])
+column = namedtuple("column", ["title", "format", "width", "align", "isEditable"])
 
 def which(prog):
     '''
@@ -283,7 +283,7 @@ class RescaleToDialog(wx.Dialog):
 
 class ComponentDialog(wx.Dialog):
 
-    def __init__(self, parent, model, component, id=wx.ID_ANY, title="Default window title",
+    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(730, 500),
             style=wx.DEFAULT_FRAME_STYLE, name="Component Dialog"):
 
@@ -299,7 +299,7 @@ class ComponentDialog(wx.Dialog):
         self.compsOlv.oddRowsBackColor="#FFFFFF"
         self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        self.SetComponents(model)
+        self.SetComponents(model, columns)
 
         sizer = wx.FlexGridSizer(rows=2, cols=1, hgap=10, vgap=10)
 
@@ -319,16 +319,13 @@ class ComponentDialog(wx.Dialog):
         panel.SetSizer(sizer)
         panel.Fit()
 
-    def SetComponents(self, model, data=None):
+    def SetComponents(self, model, columns):
 
-        self.compsOlv.SetColumns([
-            ColumnDefn("Name", "left", 150, "name", isEditable=False),
-            ColumnDefn("Formula", "left", 100, "formula", isEditable=False),
-            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.2f"),
-            ColumnDefn("Category", "left", 100, "category", isEditable=False),
-            ColumnDefn("Molecular Wight", "right", 120, "molwt", isEditable=False, stringConverter="%.3f"),
-            ColumnDefn("Short Name", "left", 120, "short_name", isEditable=False),
-        ])
+        olv_cols = []
+        for col in columns:
+            olv_cols.append(ColumnDefn(**col))
+
+        self.compsOlv.SetColumns(olv_cols)
         self.compsOlv.CreateCheckStateColumn()
         data = model.get_components()
         for item in data:
@@ -343,7 +340,7 @@ class ComponentDialog(wx.Dialog):
 
 class ReactantDialog(wx.Dialog):
 
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Choose Reactants",
+    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(850, 520),
             style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
 
@@ -359,7 +356,7 @@ class ReactantDialog(wx.Dialog):
         self.reacsOlv.oddRowsBackColor="#FFFFFF"
         self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        self.SetReactants(model)
+        self.SetReactants(model, columns)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -375,17 +372,13 @@ class ReactantDialog(wx.Dialog):
 
         panel.SetSizerAndFit(self.sizer)
 
-    def SetReactants(self, model, data=None):
+    def SetReactants(self, model, columns):
 
-        self.reacsOlv.SetColumns([
-            ColumnDefn("Name", "left", 150, "name", isEditable=False),
-            ColumnDefn("Formula", "left", 100, "formula", isEditable=False),
-            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
-            ColumnDefn("Molecular Wight", "right", 120, "molwt", isEditable=False, stringConverter="%.3f"),
-            ColumnDefn("Short Name", "left", 120, "short_name", isEditable=False),
-            ColumnDefn("Type", "left", 120, "typ", isEditable=False),
-            ColumnDefn("CAS No.", "left", 120, "cas", isEditable=False),
-        ])
+        olv_cols = []
+        for col in columns:
+            olv_cols.append(ColumnDefn(**col))
+
+        self.reacsOlv.SetColumns(olv_cols)
         self.reacsOlv.CreateCheckStateColumn()
         data = model.get_chemicals(showall=(len(model.components) == 0))
         for item in data:
@@ -554,12 +547,13 @@ def compRowFormatter(listItem, Component):
 
 class InputPanel(wx.Panel):
 
-    def __init__(self, parent, main):
+    def __init__(self, parent, model, columns):
         super(InputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
 
-        self.model = main.model
+        self.model = model
+        self.columns = columns
 
         cmptxt = wx.StaticText(self, -1, label="Components")
         rcttxt = wx.StaticText(self, -1, label="Reactants")
@@ -601,10 +595,45 @@ class InputPanel(wx.Panel):
 
         # Event Handlers
 
-        zeobtn.Bind(wx.EVT_BUTTON, self.OnEditZeolites)
-        rctbtn.Bind(wx.EVT_BUTTON, self.OnEditReactants)
+        zeobtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveComponents)
+        rctbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveReactants)
 
-    def SetComponents(self, data=None):
+    def get_component_cols(self):
+        fields = ["name", "formula", "molwt", "short", "category"]
+        return [self.columns[k] for k in self.columns.keys() if k in fields]
+
+    def get_reactant_cols(self):
+        fields = ["name", "formula", "conc", "molwt", "short", "typ", "cas"]
+        return [self.columns[k] for k in self.columns.keys() if k in fields]
+
+    def OnAddRemoveComponents(self, event):
+        '''
+        Show the dialog with the zeolite components retrieved from the
+        database.
+        '''
+
+        self.dlg = ComponentDialog(self, self.model, self.get_component_cols(),
+                                   id=-1, title="Choose Zeolite Components...")
+        result = self.dlg.ShowModal()
+        if result == wx.ID_OK:
+            self.model.components = self.dlg.GetCurrentSelections()
+        self.compOlv.SetObjects(self.model.components)
+        self.dlg.Destroy()
+
+    def OnAddRemoveReactants(self, event):
+        '''
+        Show the dialog with the reactants retrieved from the database.
+        '''
+
+        self.dlg = ReactantDialog(self, self.model, self.get_reactant_cols(),
+                                  id=-1, title="Choose Reactants...")
+        result = self.dlg.ShowModal()
+        if result == wx.ID_OK:
+            self.model.reactants = self.dlg.GetCurrentSelections()
+        self.reacOlv.SetObjects(self.model.reactants)
+        self.dlg.Destroy()
+
+    def SetComponents(self, columns=None):
 
         self.compOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
@@ -612,7 +641,7 @@ class InputPanel(wx.Panel):
         ])
         self.compOlv.SetObjects(self.model.components)
 
-    def SetReactants(self, data=None):
+    def SetReactants(self, columns=None):
 
         self.reacOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
@@ -620,37 +649,34 @@ class InputPanel(wx.Panel):
         ])
         self.reacOlv.SetObjects(self.model.reactants)
 
-    def OnEditZeolites(self, event):
-        '''
-        Show the dialog with the zeolite components retrieved from the
-        database.
-        '''
+class MolesInputPanel(InputPanel):
 
-        self.dlg = ComponentDialog(self, self.model, "zeolite", id=-1, title="Choose Zeolite Components...")
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.model.components = self.dlg.GetCurrentSelections()
+    def __init__(self, parent, model, columns):
+        super(MolesInputPanel, self).__init__(parent, model, columns)
+
+    def SetComponents(self):
+
+        self.compOlv.SetColumns([
+            ColumnDefn("Label", "left", 150, "listctrl_label", isEditable=False, isSpaceFilling=True),
+        ])
         self.compOlv.SetObjects(self.model.components)
-        self.dlg.Destroy()
 
-    def OnEditReactants(self, event):
-        '''
-        Show the dialog with the reactants retrieved from the database.
-        '''
+    def SetReactants(self):
 
-        self.dlg = ReactantDialog(self, self.model, id=-1)
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.model.reactants = self.dlg.GetCurrentSelections()
+        self.reacOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Mass", "right", 150, "mass", isEditable=True, stringConverter="%.4f"),
+            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
+        ])
         self.reacOlv.SetObjects(self.model.reactants)
-        self.dlg.Destroy()
 
 class OutputPanel(wx.Panel):
 
-    def __init__(self, parent, main):
+    def __init__(self, parent, model, columns):
         super(OutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
-        self.model = main.model
+        self.model = model
+        self.columns = columns
 
         # Attributes
 
@@ -713,7 +739,6 @@ class OutputPanel(wx.Panel):
             ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
         ])
         self.resultOlv.SetObjects(self.model.components)
-
 
     def OnCalculate(self, event):
 
@@ -785,6 +810,60 @@ class OutputPanel(wx.Panel):
                 self.rescaletotxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
                 self.Layout()
 
+class MolesOutputPanel(wx.Panel):
+
+    def __init__(self, parent, model, columns):
+        super(MolesOutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
+
+        self.model = model
+        self.columns = columns
+
+        resulttxt = wx.StaticText(self, -1, label="Results")
+        self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        calculatebtn = wx.Button(self, label="Calculate")
+        rescalebtn = wx.Button(self, label="Rescale All")
+
+        self.SetResults()
+
+        # Layout
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        vbox.Add(resulttxt, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT|wx.LEFT, border=10)
+
+        vbox.Add(self.resultOlv, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(calculatebtn, 0, flag=wx.ALL, border=10)
+        hbox.Add(rescalebtn, 0, flag=wx.ALL, border=10)
+
+        vbox.Add(hbox, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, border=10)
+
+        self.SetSizer(vbox)
+        self.Fit()
+
+        # Event Handlers
+
+        calculatebtn.Bind(wx.EVT_BUTTON, self.OnCalculateMoles)
+        rescalebtn.Bind(wx.EVT_BUTTON, self.OnRescaleMoles)
+
+    def OnCalculateMoles(self, event):
+
+        self.model.calculate_moles()
+        self.resultOlv.SetObjects(self.model.components)
+
+    def OnRescaleMoles(self, event):
+        pass
+
+    def SetResults(self):
+
+        self.resultOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Moles", "right", 150, "moles", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+        ])
+        self.resultOlv.SetObjects(self.model.components)
+
 class InverseBatch(wx.Frame):
 
     def __init__(self, parent, title=""):
@@ -793,6 +872,21 @@ class InverseBatch(wx.Frame):
                                            size=(600, 550),
                                            style=wx.DEFAULT_FRAME_STYLE,
                                            name="")
+        self.model = BatchCalculator()
+        print type(self)
+        print "Models equal: ", self.model == parent.model
+        panel = wx.Panel(self)
+        self.inppanel = MolesInputPanel(panel, self.model, parent.columns)
+        self.outpanel = MolesOutputPanel(panel, self.model, parent.columns)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
+        vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
+
+        panel.SetSizer(vbox)
+        panel.Fit()
+
+        # Menu
+
         menubar = wx.MenuBar()
 
         # File Menu
@@ -813,140 +907,16 @@ class InverseBatch(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, mexit)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
 
-        self.model = BatchCalculator()
-        self.panel = wx.Panel(self, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.SUNKEN_BORDER)
-
-        cmptxt = wx.StaticText(self.panel, -1, label="Components")
-        rcttxt = wx.StaticText(self.panel, -1, label="Reactants")
-
-        self.compsOlv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-        self.compsOlv.rowFormatter = compRowFormatter
-
-        self.reacsOlv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-
-        zeobtn = wx.Button(self.panel, -1, label="Add/Remove")
-        rctbtn = wx.Button(self.panel, -1, label="Add/Remove")
-
-        resulttxt = wx.StaticText(self.panel, -1, label="Results")
-
-        self.resultOlv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-
-        calculatebtn = wx.Button(self.panel, label="Calculate")
-        rescalebtn = wx.Button(self.panel, label="Rescale All")
-
-        self.SetComponents()
-        self.SetReactants()
-        self.SetResults()
-
-        # Layout
-
-        gbs = wx.GridBagSizer(hgap=5, vgap=5)
-
-        gbs.Add(cmptxt, pos=(0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-        gbs.Add(rcttxt, pos=(0, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-
-        gbs.Add(self.compsOlv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        gbs.Add(self.reacsOlv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
-
-        gbs.Add(zeobtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-        gbs.Add(rctbtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-
-        gbs.Add(wx.StaticLine(self.panel, style=wx.LI_HORIZONTAL), pos=(3, 0), span=(1, 2), flag=wx.GROW|wx.ALIGN_CENTER_HORIZONTAL)
-        gbs.Add(resulttxt, pos=(4, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT|wx.LEFT, border=10)
-
-        gbs.Add(self.resultOlv, pos=(5, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT|wx.RIGHT, border=10)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(calculatebtn, 0, flag=wx.ALL, border=10)
-        hbox.Add(rescalebtn, 0, flag=wx.ALL, border=10)
-
-        gbs.Add(hbox, pos=(6, 0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, border=10)
-
-        gbs.AddGrowableCol(0)
-        gbs.AddGrowableCol(1)
-        gbs.AddGrowableRow(1)
-        gbs.AddGrowableRow(5)
-
-        self.panel.SetSizer(gbs)
-        self.panel.Fit()
-
-        # Event Handlers
-
-        zeobtn.Bind(wx.EVT_BUTTON, self.OnEditZeolites)
-        rctbtn.Bind(wx.EVT_BUTTON, self.OnEditReactants)
-        calculatebtn.Bind(wx.EVT_BUTTON, self.OnCalculateMoles)
-        rescalebtn.Bind(wx.EVT_BUTTON, self.OnRescaleMoles)
-
-    def SetComponents(self, data=None):
-
-        self.compsOlv.SetColumns([
-            ColumnDefn("Label", "left", 150, "listctrl_label", isEditable=False, isSpaceFilling=True),
-        ])
-        self.compsOlv.SetObjects(self.model.components)
-
-    def SetReactants(self, data=None):
-
-        self.reacsOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Mass", "right", 150, "mass", isEditable=True, stringConverter="%.4f"),
-            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
-        ])
-        self.reacsOlv.SetObjects(self.model.reactants)
-
-    def SetResults(self, data=None):
-
-        self.resultOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Moles", "right", 150, "moles", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
-        ])
-        self.resultOlv.SetObjects(self.model.components)
-
     # Menu Bindings ------------------------------------------------------------
-
-    def OnCalculateMoles(self, event):
-
-        self.model.calculate_moles()
-        self.resultOlv.SetObjects(self.model.components)
 
     def OnExit(self, event):
         self.Close()
 
-    def OnRescaleMoles(self, event):
-        pass
-
-    def OnEditZeolites(self, event):
-        '''
-        Show the dialog with the zeolite components retrieved from the
-        database.
-        '''
-
-        self.dlg = ComponentDialog(self, self.model, "zeolite", id=-1, title="Choose Zeolite Components...")
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.model.components = self.dlg.GetCurrentSelections()
-        self.compsOlv.SetObjects(self.model.components)
-        self.dlg.Destroy()
-
-    def OnEditReactants(self, event):
-        '''
-        Show the dialog with the reactants retrieved from the database.
-        '''
-
-        self.dlg = ReactantDialog(self, self.model, id=-1)
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.model.reactants = self.dlg.GetCurrentSelections()
-        self.reacsOlv.SetObjects(self.model.reactants)
-        self.dlg.Destroy()
-
     def OnNew(self, event):
         self.model.reset()
-        self.SetComponents()
-        self.SetReactants()
-        self.SetResults()
+        self.inppanel.SetComponents()
+        self.inppanel.SetReactants()
+        self.outpanel.SetResults()
 
     def OnShowB(self, event):
 
@@ -973,28 +943,32 @@ class MainFrame(wx.Frame):
         # Attributes
 
         self.columns = OrderedDict([
-            ("id"      , column("Id", wx.LIST_FORMAT_LEFT, 50, "left", False)),
-            ("name"    , column("Name", wx.LIST_FORMAT_LEFT, 200, "left", False)),
-            ("formula" , column("Formula", wx.LIST_FORMAT_LEFT, 120, "left", False)),
-            ("label"   , column("Label", wx.LIST_FORMAT_LEFT, 100, "left", False)),
-            ("moles"   , column("Moles", wx.LIST_FORMAT_RIGHT, 90, "right", True)),
-            ("conc"    , column("Concentration", wx.LIST_FORMAT_RIGHT, 100, "right", True)),
-            ("molwt"   , column("Molecular Weight", wx.LIST_FORMAT_RIGHT, 120, "right", False)),
-            ("short"   , column("Short name", wx.LIST_FORMAT_LEFT, 120, "left", False)),
-            ("typ"     , column("Type", wx.LIST_FORMAT_LEFT, 100, "left", False)),
-            ("reaction", column("Reaction", wx.LIST_FORMAT_LEFT, 200, "left", False)),
-            ("cas"     , column("CAS No.", wx.LIST_FORMAT_RIGHT, 120, "left", False)),
+            ("id"      , {"title" : "Id",               "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
+            ("name"    , {"title" : "Name",             "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False}),
+            ("formula" , {"title" : "Formula",          "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False}),
+            ("label"   , {"title" : "Label",            "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False}),
+            ("moles"   , {"title" : "Moles",            "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
+            ("conc"    , {"title" : "Concentration",    "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
+            ("molwt"   , {"title" : "Molecular Weight", "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("short"   , {"title" : "Short name",       "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
+            ("category", {"title" : "Category",         "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
+            ("typ"     , {"title" : "Type",             "width" : 100, "align" : "left",  "valueGetter" : "typ", "isEditable" : False}),
+            ("reaction", {"title" : "Reaction",         "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
+            ("cas"     , {"title" : "CAS No.",          "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
         ])
 
         self.outlists = ["rescalealllst", "rescaletolst"]
-
         self.model = BatchCalculator()
 
-        self.main_splitter = wx.SplitterWindow(self)
-        self.inppanel = InputPanel(self.main_splitter, self)
-        self.outpanel = OutputPanel(self.main_splitter, self)
+        main_panel = wx.Panel(self)
+        self.inppanel = InputPanel(main_panel, self.model, self.columns)
+        self.outpanel = OutputPanel(main_panel, self.model, self.columns)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
+        vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
 
-        self.main_splitter.SplitHorizontally(self.inppanel, self.outpanel, sashPosition=250)
+        main_panel.SetSizer(vbox)
+        main_panel.Fit()
 
         # Menu
 
