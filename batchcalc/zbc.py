@@ -32,18 +32,15 @@ __version__ = "0.1.0"
 import copy
 import os
 import pickle
-import re
 import subprocess
 import sys
 import traceback
 from collections import OrderedDict
 
-from numpy.linalg import inv
 import numpy as np
 
 import wx
 import wx.grid as gridlib
-import wx.lib.mixins.listctrl as listmix
 from wx.lib.wordwrap import wordwrap
 import wx.lib.agw.genericmessagedialog as GMD
 # ObjectListView
@@ -52,7 +49,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 #import wx.lib.inspection
 
 from batchcalc.tex_writer import get_report_as_string
-from batchcalc.calculator import BatchCalculator, Component
+from batchcalc.calculator import BatchCalculator
 
 def which(prog):
     '''
@@ -76,12 +73,6 @@ def clean_tex(fname):
     for fil in [fbase + ext for ext in exts]:
         if os.path.exists(fil):
             os.remove(fil)
-
-class ResizableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin, listmix.ListCtrlAutoWidthMixin):
-
-    def __init__(self, *args, **kwargs):
-        wx.ListCtrl.__init__(self, *args, **kwargs)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
 
 class ShowBFrame(wx.Frame):
     def __init__(self, parent, log, id=wx.ID_ANY, title="Batch Matrix",
@@ -767,22 +758,6 @@ class OutputPanel(wx.Panel):
         fields = ["label", "mass"]
         return [self.columns[k] for k in self.columns.keys() if k in fields]
 
-    def SetResults(self):
-
-        self.resultOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
-        ])
-        self.resultOlv.SetObjects(self.model.reactants)
-
-    def SetScaled(self):
-
-        self.scaledOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Scaled Mass [g]", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
-        ])
-        self.scaledOlv.SetObjects(self.model.reactants)
-
     def OnCalculate(self, event):
 
         self.model.calculate()
@@ -808,16 +783,6 @@ class OutputPanel(wx.Panel):
                 ed.ShowModal()
                 ed.Destroy()
         dialog.Destroy()
-
-    def RescaleAll(self):
-
-        reactants = copy.deepcopy(self.model.reactants)
-        newmasses = self.model.rescale_all()
-        for reac, newmass in zip(reactants, newmasses):
-            reac.mass = newmass
-        self.scaledOlv.SetObjects(reactants)
-        self.rescaledtxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
-
 
     def OnRescaleTo(self, event):
         '''
@@ -855,6 +820,31 @@ class OutputPanel(wx.Panel):
                 self.scaledOlv.SetObjects(reactants)
                 self.rescaledtxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
                 self.Layout()
+
+    def RescaleAll(self):
+
+        reactants = copy.deepcopy(self.model.reactants)
+        newmasses = self.model.rescale_all()
+        for reac, newmass in zip(reactants, newmasses):
+            reac.mass = newmass
+        self.scaledOlv.SetObjects(reactants)
+        self.rescaledtxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
+
+    def SetResults(self):
+
+        self.resultOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+        ])
+        self.resultOlv.SetObjects(self.model.reactants)
+
+    def SetScaled(self):
+
+        self.scaledOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Scaled Mass [g]", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+        ])
+        self.scaledOlv.SetObjects(self.model.reactants)
 
 class MolesOutputPanel(wx.Panel):
 
@@ -1103,6 +1093,62 @@ class MainFrame(wx.Frame):
 
     # Menu Bindings ------------------------------------------------------------
 
+    def OnAbout(self, event):
+        '''
+        Show the about dialog
+        '''
+
+        info = wx.AboutDialogInfo()
+        info.SetName("Zeolite Batch Calculator")
+        info.SetVersion(__version__)
+        info.SetCopyright("Copyright (C) Lukasz Mentel")
+        info.SetDescription(wordwrap("A GUI script based on wxPython for " +\
+            "calculating the correct amount of reagents (batch) for a  "   +\
+            "particular zeolite composition given by the molar ratio "     +\
+            "of its components.", 350, wx.ClientDC(self)))
+
+        info.WebSite = ("https://github.com/lmmentel/batchcalculator", "ZBC Code Repository")
+        info.Developers = ["Katarzyna Lukaszuk"]
+        #info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
+        wx.AboutBox(info)
+
+    def OnChangeDB(self, event):
+        '''
+        Diplay the file dialog to choose the new database to be used
+        then establish the db session in the model (BatchCalculator).
+        '''
+
+        dbwildcard = "db Files (*.db)|*.db|"     \
+                     "All files (*.*)|*.*"
+
+        dlg = wx.FileDialog(
+            self, message="Choose database file",
+            defaultDir=os.getcwd(),
+            defaultFile="",
+            wildcard=dbwildcard,
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.model.new_dbsession(path)
+        dlg.Destroy()
+
+    def OnExit(self, event):
+        self.Close()
+
+    def OnExportTex(self, event):
+        '''
+        Open the dialog with options about the TeX document tobe written.
+        '''
+        etexdialog = ExportTexDialog(parent=self, id=-1)
+        result = etexdialog.ShowModal()
+        if result == wx.ID_OK:
+            flags = etexdialog.GetData()
+            # get the string with contents of the TeX report
+            tex = get_report_as_string(flags, self.model)
+            self.OnSaveTeX(tex, flags['typeset'], flags['pdflatex'])
+
     def OnInverseCalculation(self, event):
 
         window = InverseBatch(self)
@@ -1132,13 +1178,6 @@ class MainFrame(wx.Frame):
                 event.Skip()
 
             dlg.Destroy()
-
-    def update_all_objectlistviews(self):
-
-        self.inppanel.compOlv.SetObjects(self.model.components)
-        self.inppanel.reacOlv.SetObjects(self.model.reactants)
-        self.outpanel.resultOlv.SetObjects(self.model.reactants)
-        self.outpanel.scaledOlv.SetObjects(self.model.reactants)
 
     def OnOpen(self, evt):
         '''
@@ -1212,17 +1251,6 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
-    def OnExportTex(self, event):
-        '''
-        Open the dialog with options about the TeX document tobe written.
-        '''
-        etexdialog = ExportTexDialog(parent=self, id=-1)
-        result = etexdialog.ShowModal()
-        if result == wx.ID_OK:
-            flags = etexdialog.GetData()
-            # get the string with contents of the TeX report
-            tex = get_report_as_string(flags, self.model)
-            self.OnSaveTeX(tex, flags['typeset'], flags['pdflatex'])
 
     def OnSaveTeX(self, texdata, typeset, pdflatex):
 
@@ -1264,9 +1292,6 @@ class MainFrame(wx.Frame):
                     dlg.ShowModal()
                     dlg.Destroy()
 
-    def OnExit(self, event):
-        self.Close()
-
     def OnShowB(self, event):
 
         if isinstance(self.model.B, list):
@@ -1278,48 +1303,15 @@ class MainFrame(wx.Frame):
             frame = ShowBFrame(self, sys.stdout)
             frame.Show(True)
 
-    def OnAbout(self, event):
+    def update_all_objectlistviews(self):
         '''
-        Show the about dialog
-        '''
-
-        info = wx.AboutDialogInfo()
-        info.SetName("Zeolite Batch Calculator")
-        info.SetVersion(__version__)
-        info.SetCopyright("Copyright (C) Lukasz Mentel")
-        info.SetDescription(wordwrap('''A GUI script based on wxPython for calculating \
-the correct amount of reagents (batch) for a particular zeolite composition \
-given by the molar ratio of its components.''', 350, wx.ClientDC(self)))
-
-        info.WebSite = ("https://github.com/lmmentel/batchcalculator", "ZBC Code Repository")
-        info.Developers = ["Katarzyna Lukaszuk"]
-        #info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
-
-        wx.AboutBox(info)
-
-
-    def OnChangeDB(self, event):
-        '''
-        Diplay the file dialog to choose the new database to be used
-        then establish the db session in the model (BatchCalculator).
+        Update all the ObjectListView with the current state of the model.
         '''
 
-        dbwildcard = "db Files (*.db)|*.db|"     \
-                     "All files (*.*)|*.*"
-
-        dlg = wx.FileDialog(
-            self, message="Choose database file",
-            defaultDir=os.getcwd(),
-            defaultFile="",
-            wildcard=dbwildcard,
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
-
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-            self.model.new_dbsession(path)
-        dlg.Destroy()
-
+        self.inppanel.compOlv.SetObjects(self.model.components)
+        self.inppanel.reacOlv.SetObjects(self.model.reactants)
+        self.outpanel.resultOlv.SetObjects(self.model.reactants)
+        self.outpanel.scaledOlv.SetObjects(self.model.reactants)
 
 class ExceptionDialog(GMD.GenericMessageDialog):
     def __init__(self, msg):
