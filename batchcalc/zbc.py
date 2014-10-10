@@ -29,6 +29,7 @@
 
 __version__ = "0.1.0"
 
+import copy
 import os
 import pickle
 import re
@@ -75,18 +76,6 @@ def clean_tex(fname):
     for fil in [fbase + ext for ext in exts]:
         if os.path.exists(fil):
             os.remove(fil)
-
-class CheckableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin, listmix.ListCtrlAutoWidthMixin):
-
-    def __init__(self, *args, **kwargs):
-        wx.ListCtrl.__init__(self, *args, **kwargs)
-        listmix.CheckListCtrlMixin.__init__(self)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
-
-        self.current_selections = list()
-
-    def OnCheckItem(self, index, flag):
-        self.current_selections[index] = not self.current_selections[index]
 
 class ResizableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin, listmix.ListCtrlAutoWidthMixin):
 
@@ -228,27 +217,21 @@ class CustTableGrid(gridlib.Grid):
         if self.CanEnableCellControl():
             self.EnableCellEditControl()
 
-class RescaleToDialog(wx.Dialog):
+class RescaleToSampleDialog(wx.Dialog):
 
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Choose compounds and sample size ...",
-            pos=wx.DefaultPosition, size=(470, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Dialog"):
+    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="Choose compounds and sample size ...",
+                 pos=wx.DefaultPosition, size=(400, 400),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Sample Dialog"):
 
-        super(RescaleToDialog, self).__init__(parent, id, title, pos, size, style, name)
+        super(RescaleToSampleDialog, self).__init__(parent, id, title, pos, size, style, name)
 
         panel = wx.Panel(self)
 
-        self.clist = CheckableListCtrl(panel, style=wx.LC_SINGLE_SEL|wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.clist.InsertColumn(0, "Name", format=wx.LIST_FORMAT_LEFT, width=200)
-        self.clist.InsertColumn(1, "Formula", format=wx.LIST_FORMAT_LEFT, width=150)
-        self.clist.InsertColumn(2, "Mass [g]", format=wx.LIST_FORMAT_RIGHT, width=100)
-
-        for i, reac in enumerate(model.reactants):
-            self.clist.current_selections.append(False)
-            self.clist.Append([reac.name, reac.listctrl_label(), "{0:10.4f}".format(reac.mass)])
-            self.clist.CheckItem(i, True)
-            if i not in model.selections:
-                self.clist.CheckItem(i, False)
+        self.olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.olv.evenRowsBackColor="#DCF0C7"
+        self.olv.oddRowsBackColor="#FFFFFF"
+        self.SetReactants(model, columns)
 
         scalelbl = wx.StaticText(panel, -1, "Sample size [g]:")
         self.sample_size = wx.TextCtrl(panel, -1, str(model.sample_size))
@@ -260,24 +243,27 @@ class RescaleToDialog(wx.Dialog):
         # Layout
 
         sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(self.clist, pos=(0, 0), span=(1, 4), flag=wx.GROW|wx.ALL, border=5)
-
+        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW|wx.ALL, border=5)
         sizer.Add(scalelbl,  pos=(1, 0), flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
         sizer.Add(self.sample_size, pos=(1, 1), span=(1, 2), flag=wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-
         sizer.Add(buttonCancel, pos=(2, 2), flag=wx.BOTTOM, border=10)
         sizer.Add(buttonOK, pos=(2, 3), flag=wx.BOTTOM|wx.RIGHT, border=10)
-
         sizer.AddGrowableCol(1)
         sizer.AddGrowableRow(0)
-
         panel.SetSizer(sizer)
 
+    def SetReactants(self, model, columns):
+
+        olv_cols = []
+        for col in columns:
+            olv_cols.append(ColumnDefn(**col))
+
+        self.olv.SetColumns(olv_cols)
+        self.olv.CreateCheckStateColumn()
+        self.olv.SetObjects(model.reactants)
+
     def GetCurrentSelections(self):
-        cs = self.clist.current_selections
-        selected_rows = [x for x in range(len(cs)) if cs[x]]
-        sample_size = self.sample_size.GetValue()
-        return sample_size, selected_rows
+        return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
 
 class RescaleToItemDialog(wx.Dialog):
 
@@ -728,50 +714,45 @@ class OutputPanel(wx.Panel):
         self.gray   = "#939393"
 
         resulttxt = wx.StaticText(self, -1, label="Results [X]")
-        self.rescalealltxt = wx.StaticText(self, -1, label="Rescaled by")
-        self.rescaletotxt = wx.StaticText(self, -1, label="Rescaled to")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.rescalealltxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.rescaletotxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.rescaledtxt = wx.StaticText(self, -1, label="Rescaled")
+        self.rescaledtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
                 useAlternateBackColors=True)
         self.resultOlv.evenRowsBackColor="#DCF0C7"
         self.resultOlv.oddRowsBackColor="#FFFFFF"
-        self.rescalealllst = ResizableListCtrl(self, style=wx.LC_REPORT, size=(200, -1))
-        self.rescaletolst = ResizableListCtrl(self, style=wx.LC_REPORT, size=(200, -1))
-
-        self.rescalealllst.InsertColumn(0, "Formula", format=wx.LIST_FORMAT_LEFT, width=100)
-        self.rescalealllst.InsertColumn(1, "Scaled Mass [g]", format=wx.LIST_FORMAT_RIGHT, width=140)
-        self.rescaletolst.InsertColumn(0, "Formula", format=wx.LIST_FORMAT_LEFT, width=100)
-        self.rescaletolst.InsertColumn(1, "Scaled Mass [g]", format=wx.LIST_FORMAT_RIGHT, width=140)
+        self.scaledOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.resultOlv.evenRowsBackColor="#DCF0C7"
+        self.resultOlv.oddRowsBackColor="#FFFFFF"
 
         calculatebtn = wx.Button(self, label="Calculate")
         rescaleAllbtn = wx.Button(self, label="Rescale All")
         rescaleTobtn = wx.Button(self, label="Rescale To")
 
         self.SetResults()
+        self.SetScaled()
 
         # Layout
 
-        fgs = wx.FlexGridSizer(rows=3, cols=3, hgap=10, vgap=10)
-
-        fgs.Add(resulttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
-        fgs.Add(self.rescalealltxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-        fgs.Add(self.rescaletotxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT|wx.TOP, border=5)
-
-        fgs.Add(self.resultOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        fgs.Add(self.rescalealllst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW)
-        fgs.Add(self.rescaletolst, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
-
-        fgs.Add(calculatebtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
-        fgs.Add(rescaleAllbtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
-        fgs.Add(rescaleTobtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.RIGHT, border=10)
+        fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
 
         fgs.AddGrowableCol(0)
         fgs.AddGrowableCol(1)
-        fgs.AddGrowableCol(2)
         fgs.AddGrowableRow(1)
+
+        fgs.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
+        fgs.Add(self.rescaledtxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+
+        fgs.Add(self.resultOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        fgs.Add(self.scaledOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+
+        fgs.Add(calculatebtn, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(rescaleAllbtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
+        hbox.Add(rescaleTobtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
+        fgs.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
 
         self.SetSizer(fgs)
         self.Fit()
@@ -782,13 +763,25 @@ class OutputPanel(wx.Panel):
         rescaleAllbtn.Bind(wx.EVT_BUTTON, self.OnRescaleAll)
         rescaleTobtn.Bind(wx.EVT_BUTTON, self.OnRescaleTo)
 
-    def SetResults(self, data=None):
+    def get_rescale_columns(self):
+        fields = ["label", "mass"]
+        return [self.columns[k] for k in self.columns.keys() if k in fields]
+
+    def SetResults(self):
 
         self.resultOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
         ])
-        self.resultOlv.SetObjects(self.model.components)
+        self.resultOlv.SetObjects(self.model.reactants)
+
+    def SetScaled(self):
+
+        self.scaledOlv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Scaled Mass [g]", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+        ])
+        self.scaledOlv.SetObjects(self.model.reactants)
 
     def OnCalculate(self, event):
 
@@ -807,13 +800,7 @@ class OutputPanel(wx.Panel):
         if dialog.ShowModal() == wx.ID_OK:
             try:
                 self.model.scale_all = float(dialog.GetValue())
-
-                self.rescalealllst.DeleteAllItems()
-
-                rescaled = self.model.rescale_all()
-                for i, (subs, mass) in enumerate(rescaled):
-                    self.rescalealllst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
-                self.rescalealltxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
+                self.RescaleAll()
                 self.Layout()
             except:
                 ed = wx.MessageDialog(None, "Scale factor must be a number",
@@ -821,6 +808,16 @@ class OutputPanel(wx.Panel):
                 ed.ShowModal()
                 ed.Destroy()
         dialog.Destroy()
+
+    def RescaleAll(self):
+
+        reactants = copy.deepcopy(self.model.reactants)
+        newmasses = self.model.rescale_all()
+        for reac, newmass in zip(reactants, newmasses):
+            reac.mass = newmass
+        self.scaledOlv.SetObjects(reactants)
+        self.rescaledtxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
+
 
     def OnRescaleTo(self, event):
         '''
@@ -830,11 +827,11 @@ class OutputPanel(wx.Panel):
         items and print them to the ListCtrl.
         '''
 
-        rto = RescaleToDialog(self, self.model, -1, title="Choose substances and sample size")
+        rto = RescaleToSampleDialog(self, self.model, self.get_rescale_columns(), title="Choose reactants and sample size")
         result = rto.ShowModal()
         if result == wx.ID_OK:
             # get the sample size and sample selections
-            sample_size, sample_selections = rto.GetCurrentSelections()
+            sample_size, selections = rto.GetCurrentSelections()
             try:
                 self.model.sample_size = float(sample_size)
             except:
@@ -844,20 +841,19 @@ class OutputPanel(wx.Panel):
                 ed.ShowModal()
                 ed.Destroy()
 
-            self.model.selections = sample_selections
-            if len(sample_selections) == 0:
+            self.model.selections = selections
+            if len(selections) == 0:
                 dlg = wx.MessageDialog(None, "At least one reactant must be selected.",
                                       "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
-                self.rescaletolst.DeleteAllItems()
-                rescaled = self.model.rescale_to_sample(sample_selections)
-                for i, (subs, mass) in enumerate(rescaled):
-                    self.rescaletolst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
-                    if i in sample_selections:
-                        self.rescaletolst.SetItemBackgroundColour(i, self.gray)
-                self.rescaletotxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
+                reactants = copy.deepcopy(self.model.reactants)
+                newmasses = self.model.rescale_to_sample(selections)
+                for reac, newmass in zip(reactants, newmasses):
+                    reac.mass = newmass
+                self.scaledOlv.SetObjects(reactants)
+                self.rescaledtxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
                 self.Layout()
 
 class MolesOutputPanel(wx.Panel):
@@ -1033,6 +1029,7 @@ class MainFrame(wx.Frame):
             ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
             ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False, "isSpaceFilling" : True}),
             ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
+            ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
             ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
@@ -1042,7 +1039,6 @@ class MainFrame(wx.Frame):
             ("cas"     , {"title" : "CAS No.",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
         ])
 
-        self.outlists = ["rescalealllst", "rescaletolst"]
         self.model = BatchCalculator()
 
         main_panel = wx.Panel(self)
@@ -1051,7 +1047,6 @@ class MainFrame(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
         vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
-
         main_panel.SetSizer(vbox)
         main_panel.Fit()
 
@@ -1128,11 +1123,9 @@ class MainFrame(wx.Frame):
             result = dlg.ShowModal()
             if result == wx.ID_YES:
                 self.OnSave(-1)
-                self.ClearAllListCtrls()
                 self.model.reset()
                 self.update_all_objectlistviews()
             elif result == wx.ID_NO:
-                self.ClearAllListCtrls()
                 self.model.reset()
                 self.update_all_objectlistviews()
             else:
@@ -1145,14 +1138,7 @@ class MainFrame(wx.Frame):
         self.inppanel.compOlv.SetObjects(self.model.components)
         self.inppanel.reacOlv.SetObjects(self.model.reactants)
         self.outpanel.resultOlv.SetObjects(self.model.reactants)
-
-    def ClearAllListCtrls(self):
-        '''
-        Clear all the ListCtrls in the input and output panels.
-        '''
-
-        for attr in self.outlists:
-            getattr(self.outpanel, attr).DeleteAllItems()
+        self.outpanel.scaledOlv.SetObjects(self.model.reactants)
 
     def OnOpen(self, evt):
         '''
@@ -1187,19 +1173,7 @@ class MainFrame(wx.Frame):
 
             fp.close()
 
-            # clear all the lists with the inputs
-            self.ClearAllListCtrls()
-
             self.update_all_objectlistviews()
-
-            rescaled = self.model.rescale_all()
-            for subs, mass in rescaled:
-                self.outpanel.rescalealllst.Append([subs.listctrl_label(), "{0:10.4f}".format(mass)])
-            rescaled = self.model.rescale_to_sample(self.model.selections)
-            for i, (obj, mass) in enumerate(rescaled):
-                self.outpanel.rescaletolst.Append([obj.listctrl_label(), "{0:10.4f}".format(mass)])
-                if i in self.model.selections:
-                        self.outpanel.rescaletolst.SetItemBackgroundColour(i, self.gray)
 
         dlg.Destroy()
 
