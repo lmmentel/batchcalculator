@@ -542,7 +542,7 @@ class BatchCalculator(object):
         res = [(s, s.mass/self.scale_all) for s in self.reactants]
         return res
 
-    def rescale_to(self, sample_selections):
+    def rescale_to_sample(self, sample_selections):
         '''
         Rescale all masses by a factor chosen in such a way that the sum of
         masses of a selected subset of chemicals is equal to the chose sample
@@ -552,6 +552,16 @@ class BatchCalculator(object):
         masses = [s.mass for s in self.reactants]
         self.sample_scale = sum([masses[i] for i in sample_selections])/float(self.sample_size)
         res = [(s, s.mass/self.sample_scale) for s in self.reactants]
+        return res
+
+    def rescale_to_item(self, item, amount):
+        '''
+        Rescale all mole numbers by a factor chosen in such a way that the
+        selected *item* has th number of moles equal to *amount*.
+        '''
+
+        factor = amount/item.moles
+        res = [s.moles*factor for s in self.components]
         return res
 
     def print_A(self):
