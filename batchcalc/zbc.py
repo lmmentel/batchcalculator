@@ -35,7 +35,7 @@ import re
 import subprocess
 import sys
 import traceback
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 
 from numpy.linalg import inv
 import numpy as np
@@ -52,8 +52,6 @@ from ObjectListView import ObjectListView, ColumnDefn
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator, Component
-
-column = namedtuple("column", ["title", "format", "width", "align", "isEditable"])
 
 def which(prog):
     '''
