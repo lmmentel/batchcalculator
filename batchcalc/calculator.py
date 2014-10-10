@@ -78,14 +78,14 @@ class Batch(Base):
     __tablename__ = 'batch'
 
     id           = Column(Integer, primary_key=True)
-    reactant_id  = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
+    chemical_id  = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
     component_id = Column(Integer, ForeignKey('components.id'), nullable=False)
     reaction_id  = Column(Integer, ForeignKey('reactions.id'), nullable=True)
     coefficient  = Column(Float, nullable=True)
 
     def __repr__(self):
-        return "<Batch(id={i:>2d}, reactant_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
-                i=self.id, n=self.reactant_id, z=self.component_id, c=self.coefficient)
+        return "<Batch(id={i:>2d}, chemical_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
+                i=self.id, n=self.chemical_id, z=self.component_id, c=self.coefficient)
 
 class DBComponent(Base):
     '''
@@ -460,7 +460,7 @@ class BatchCalculator(object):
 
         for i, reactant in enumerate(self.reactants):
             comps = self.session.query(Batch,DBComponent).\
-                    filter(Batch.reactant_id == reactant.id).\
+                    filter(Batch.chemical_id == reactant.id).\
                     filter(DBComponent.id==Batch.component_id).all()
             wfs = self.get_weight_fractions(i, comps)
             for j, comp in enumerate(self.components):
