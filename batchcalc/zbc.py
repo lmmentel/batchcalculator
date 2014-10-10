@@ -287,9 +287,8 @@ class ComponentDialog(wx.Dialog):
             pos=wx.DefaultPosition, size=(730, 500),
             style=wx.DEFAULT_FRAME_STYLE, name="Component Dialog"):
 
-        #cols = ["id", "name", "formula", "moles", "molwt", "short"]
-        #dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
-        super(ComponentDialog, self).__init__(parent, id, title, pos, size, style, name)
+        dlgwidth = sum([c["width"] for c in columns]) + 50
+        super(ComponentDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
 
         panel = wx.Panel(self)
 
@@ -314,7 +313,7 @@ class ComponentDialog(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
         hbox.Add(buttonOK)
-        sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
+        sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.BOTTOM|wx.RIGHT, border=10)
 
         panel.SetSizer(sizer)
         panel.Fit()
@@ -344,9 +343,8 @@ class ReactantDialog(wx.Dialog):
             pos=wx.DefaultPosition, size=(850, 520),
             style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
 
-        #cols = ["id", "name", "formula", "conc", "molwt", "short", "typ", "cas"]
-        #dlgwidth = sum([parent.main.columns[key].width for key in cols]) + 15
-        super(ReactantDialog, self).__init__(parent, id, title, pos, size, style, name)
+        dlgwidth = sum([c["width"] for c in columns]) + 60
+        super(ReactantDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
 
         panel = wx.Panel(self)
 
