@@ -968,6 +968,10 @@ class InverseBatch(wx.Frame):
         mshowb = viewm.Append(wx.ID_ANY, "Show B Matrix")
         menubar.Append(viewm, "&View")
         self.SetMenuBar(menubar)
+        # Database Menu
+        dbm = wx.Menu()
+        mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
+        menubar.Append(dbm, "Database")
 
         # Event Handlers
 
@@ -975,8 +979,31 @@ class InverseBatch(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnNew, mnew)
         self.Bind(wx.EVT_MENU, self.OnExit, mexit)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
+        self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
 
     # Menu Bindings ------------------------------------------------------------
+
+    def OnChangeDB(self, event):
+        '''
+        Diplay the file dialog to choose the new database to be used
+        then establish the db session in the model (BatchCalculator).
+        '''
+
+        dbwildcard = "db Files (*.db)|*.db|"     \
+                     "All files (*.*)|*.*"
+
+        dlg = wx.FileDialog(
+            self, message="Choose database file",
+            defaultDir=os.getcwd(),
+            defaultFile="",
+            wildcard=dbwildcard,
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.model.new_dbsession(path)
+        dlg.Destroy()
 
     def OnExit(self, event):
         self.Close()
