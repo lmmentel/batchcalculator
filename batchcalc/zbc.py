@@ -1353,8 +1353,8 @@ def ExceptionHook(exctype, value, trace):
 
     Args:
         exctype: Exception Type
-        value: Error Value
-        trace: Trace back info
+        value:   Error Value
+        trace:   Trace back info
     '''
 
     frame = wx.GetApp().GetTopWindow()
