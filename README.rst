@@ -63,6 +63,17 @@ from the command line by typing::
 Changelog
 =========
 
+v0.1.2 - October 2014
+---------------------
+
+* Corrected a bug in the TeX report when rescaling to sample size.
+* Updated the database schema for two tables to remove incompatibilities
+  when working with sqlitebrowser.
+* Updated the chemicals table in the database to include densities, pka, smiles.
+* Added an option to change database in the window for calculating the
+  composition from masses of reactants.
+* Corrected the labels displayed in the ListCtrls.
+
 v0.1.1 - October 2014
 ---------------------
 
