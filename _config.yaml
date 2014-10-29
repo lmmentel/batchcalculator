@@ -1,0 +1,29 @@
+# Site settings
+title: Batch Calculator
+email: lmmentel@gmail.com
+description: batch calculator homepage
+
+# Color settings (hex-codes without the leading hash-tag)
+color:
+  primary: 1FA4B6 #1D83C1 #138EDF #18bc9c #80B3FF
+  secondary: 333333 #2c3e50 #FD6E8A
+  secondary-dark: 111111 #233140 #A2122F
+
+# Social networks usernames (many more available: google-plus, flickr, dribbble, pinterest, instagram, tumblr, linkedin, etc.)
+social:
+  - title: stack-overflow
+    url: http://stackoverflow.com/questions/tagged/batch-calculator
+  - title: github
+    url: http://github.com/lmmentel/batchcalculator
+
+# Postal address (add as many lines as necessary)
+address:
+  - line: 3481 Melrose Place
+  - line: Beverly Hills, CA 90210
+
+url : "http://localhost:4000"
+paginate: 10
+
+# Build settings
+permalink: pretty
+highlighter: pygments

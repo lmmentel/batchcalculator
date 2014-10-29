@@ -1,0 +1,20 @@
+---
+title: Blog
+layout: subpage
+---
+
+<section>
+<div class=container">
+    <div class="row">
+        <div class="col-md-12">
+            {% for post in site.posts limit: 5 %}
+            <a href="{{ post.url }}"><h2>{{ post.title }}</h2></a>
+            <h4>{{ post.date | date_to_long_string }}</h4>
+            <p>
+                {{ post.excerpt }}
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</section>
