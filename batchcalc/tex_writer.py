@@ -103,7 +103,7 @@ def tex_X(model):
 
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
     table += " & ".join([ur'Substance', ur'\multicolumn{1}{c}{Mass [g]}',
-                         ur'Scaled Mass [g] ({0:8.3f})'.format(model.scale_all),
+                         ur'Scaled Mass [g]',
                          ur'Weighted mass [g]']) + ur'\\ \midrule' + u'\n'
     for i, subs in enumerate(model.reactants, start=1):
         table += ur"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(
@@ -118,21 +118,22 @@ def tex_X(model):
 
 def tex_X_rescale(model):
 
+    masspar = sum([s.mass for s in model.selections])
     masssum = sum([s.mass for s in model.reactants])
 
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
     table += " & ".join([ur'Substance', ur'\multicolumn{1}{c}{Mass [g]}',
-                         ur'Scaled Mass [g] ({0:8.3f})'.format(model.sample_scale),
+                         ur'Scaled Mass [g]',
                          ur'Weighted mass [g]']) + ur'\\ \midrule' + u'\n'
-    for i, idx in enumerate(model.selections, start=1):
-        subs = model.reactants[idx]
+    for i, subs in enumerate(model.selections, start=1):
         table += ur"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(l=subs.label(), v=subs.mass, s=subs.mass/model.sample_scale)
         if i < len(model.selections):
             table += ur'\cline{4-4}' + u'\n'
         else:
             table += u'\n'
-    table += ur'\midrule Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' + "{0:>15.4f}".format(masssum/model.sample_scale) + ur' & \\ '
-    not_selected = [model.reactants[idx] for idx in range(len(model.reactants)) if idx not in model.selections]
+    table += ur'\midrule Sum & '+ "{0:>15.4f}".format(masspar) + ' & ' + "{0:>15.4f}".format(masspar/model.sample_scale) + ur' & \\ '
+    nsel_ids = set([x.id for x in model.reactants]).difference(set([x.id for x in model.selections]))
+    not_selected = [x for x in model.reactants if x.id in nsel_ids]
     if len(not_selected) > 0:
         table += ur'\midrule' + u'\n'
     for i, subs in enumerate(not_selected, start=1):
@@ -141,4 +142,5 @@ def tex_X_rescale(model):
                 table += ur'\cline{4-4}' + u'\n'
             else:
                 table += u'\n'
+    table += ur'\midrule Total Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' + "{0:>15.4f}".format(masssum/model.sample_scale) + ur' & \\ '
     return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
