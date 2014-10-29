@@ -21,6 +21,7 @@ address:
   - line: 3481 Melrose Place
   - line: Beverly Hills, CA 90210
 
+baseurl: "/batchcalculator"
 url : "http://localhost:4000"
 paginate: 10
 
