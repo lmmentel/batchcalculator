@@ -5,15 +5,17 @@ TO DO
   extend (add/remove/modify) entries in the database from the GUI
 * write a django app to expose the calculator functionality through a
   web form
+* add an option to print volumes instead of masses for liquids
 * add an option to select a tex template in the export tex dialog
 * add an option to export to HTML, and plain text
-* add an option to calculate the pH of the bacth
+* add an option to calculate the pH of the batch
 
 DONE
 ====
 
-* reduce the number of list in the inputa panel to 2 instead of 4, leave only
-  components nad reactants,
-* swith to ObjectListView instead of ListCtrl for lists in the inputa panel
+* reduce the number of lists in the input panel to 2 instead of 4, leave only
+  components and reactants,
+* switch to ObjectListView instead of ListCtrl for lists in the input and 
+  output panels,
 * add an option to calculate the molar ratios of the components based on the
   masses of the reactants (for reconstructing the values from old papers)
