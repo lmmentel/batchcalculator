@@ -1,0 +1,8 @@
+Handbook of Chemistry and Physics 89
+p. 857
+ACTIVITY COEFFICIENTS OF ACIDS, BASES, AND SALTS
+molality 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+KOH      0.798, 0.760, 0.742, 0.734, 0.732, 0.733, 0.736, 0.742, 0.749, 0.756
+NaOH     0.766, 0.727, 0.708, 0.697, 0.690, 0.685, 0.681, 0.679, 0.678, 0.678
+
+
