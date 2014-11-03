@@ -122,6 +122,11 @@ class Chemical(Base):
     typ           = Column(Integer, ForeignKey('types.id'))
     concentration = Column(Float)
     cas           = Column(String)
+    physical_form_id = Column(Integer, ForeignKey('physical_forms.id'))
+    density       = Column(Float)
+    electrolyte_id = Column(Integer, ForeignKey('electrolytes.id'))
+    pk            = Column(Float)
+    smiles        = Column(String)
 
     def __repr__(self):
         return "<Chemical(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
