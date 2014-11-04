@@ -3,13 +3,44 @@ title: Installation
 layout: subpage
 ---
 
-
-
-<section id="windows" style="padding: 50px 0 10px 0">
 <div class=container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Windows and Mac</h1>
+            <h1>Overview</h1>
+            <ul>
+                <li><a href="#tex">PDF/Tex reports</a></li>
+                <li><a href="#windows">Installation on Windows and Mac</a></li>
+                <li><a href="#source">Installation from source</a></li>
+                <li><a href="#database">Database</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class=container">
+    <div class="row" id="tex">
+        <div class="col-md-12">
+            <h1>PDF/TeX reports</h1>
+            <p> Although a <a href=https://www.tug.org/">TeX</a> distribution is not a formal dependency
+                and the program will work without any trouble without it, it is required if you want to
+                produce nice pdf reports. If you don't know what TeX is, but you would like to know more
+                <a href=https://www.tug.org/">TUG (TeX Users Group)</a> website is a good place to start.</p>
+            <p> If you just want to get it to work here are some quick links to major TeX distributions
+                for different platforms
+                <ul class="lead">
+                    <li><a href="http://tug.org/texlive/">TeX Live</a> for Unix/Linux</li>
+                    <li><a href="http://tug.org/mactex/">MacTeX</a> for Mac OS</li>
+                    <li><a href="http://www.miktex.org/">MikTeX</a> for Windows</li>
+                </ul>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class=container">
+    <div class="row" id="windows">
+        <div class="col-md-12">
+            <h1>Installation on Windows and Mac</h1>
             <p>For windows and MacOSX GUI installers are available for each release that can be downloaded from
             <a href="https://github.com/lmmentel/batchcalculator/releases/latest">here</a>. After downloading
             adn double clicking on the installer a familiar wizard should appear and you only need to follow instructions
@@ -17,11 +48,9 @@ layout: subpage
         </div>
     </div>
 </div>
-</section>
 
-<section id="source" style="padding: 10px 0">
 <div class=container">
-    <div class="row">
+    <div class="row" id="source">
         <div class="col-md-12">
             <h1>Installation from source</h1>
             <h3>Prerequisites</h3>
@@ -30,12 +59,6 @@ layout: subpage
             <p>Before installing batch calculator on linux you should make sure you have wxPython installed
             which is the GUI toolkit used. wxPython is a multiplatform GUI toolkit and its latest version together
             with detailed instructions on how to install it are on <a href="http://www.wxpython.org">wxPython's webpage</a>.</p>
-            <h4>PDF/TeX reports</h4>
-            <p>Moreover if you want to produce nice pdf reports by exporting your calculations to a
-            <a href=https://www.tug.org/">TeX</a>
-            report and be able to automatically typeset the pdf you should have a TeX
-            distribution installed. If you don't know what TeX is <a href=https://www.tug.org/">TUG (TeX Users Group)</a>
-            is a good place to start.</p>
 
             <p>Below in the list of all the packages that batch calculator depends on:</p>
             <ul>
@@ -67,11 +90,9 @@ layout: subpage
         </div>
     </div>
 </div>
-</section>
 
-<section id="database" style="padding: 10px 0">
 <div class=container">
-    <div class="row">
+    <div class="row" id="database">
         <div class="col-md-12">
         <h1>Database</h1>
 
