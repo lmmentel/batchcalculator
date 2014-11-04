@@ -226,10 +226,10 @@ class Component(object):
         '''
         Return the string to be displayed in the ListCtrl's.
         '''
-        if self.short_name != "":
+        if self.short_name is not None and self.short_name not in ["", "None", "NULL"]:
             res = self.short_name
         else:
-            res = self.formula
+            res = self.name
         return res
 
     def label(self):
