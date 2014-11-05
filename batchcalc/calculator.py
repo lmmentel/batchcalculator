@@ -124,8 +124,8 @@ class Chemical(Base):
     cas           = Column(String)
     physical_form_id = Column(Integer, ForeignKey('physical_forms.id'))
     density       = Column(Float)
-    electrolyte_id = Column(Integer, ForeignKey('electrolytes.id'))
-    pk            = Column(Float)
+    #electrolyte_id = Column(Integer, ForeignKey('electrolytes.id'))
+    #pk            = Column(Float)
     smiles        = Column(String)
 
     def __repr__(self):
@@ -139,7 +139,8 @@ class Reactant(object):
 
     def __init__(self, id=None, name=None, formula=None, molwt=None,
                  short_name=None, typ=None, concentration=None, cas=None,
-                 mass=0.0):
+                 mass=0.0, physical_form_id=None, density=None,
+                 electrolyte_id=0, pk=None, smiles=None):
 
         self.id = id
         self.name = name
@@ -150,10 +151,19 @@ class Reactant(object):
         self.concentration = float(concentration)
         self.cas = cas
         self.mass = float(mass)
+        self.physical_form_id = int(physical_form_id)
+        self.density = float(density)
+        #self.electrolyte_id = int(electrolyte_id)
+        #self.pk = float(pk)
+        self.smiles = smiles
 
     @property
     def moles(self):
         return self.mass/self.molwt
+
+    @property
+    def volume(self):
+        return self.mass/self.density
 
     def formula_to_tex(self):
         '''
@@ -181,7 +191,7 @@ class Reactant(object):
         '''
         Return a label to be used in printable tables (tex, html).
         '''
-        if self.short_name != "":
+        if self.short_name is not None and self.short_name not in ["", "None", "NULL"]:
             res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
         else:
             res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
@@ -236,7 +246,7 @@ class Component(object):
         '''
         Return a label to be used in printable tables (tex, html).
         '''
-        if self.short_name != "":
+        if self.short_name is not None and self.short_name not in ["", "None", "NULL"]:
             res = self.short_name
         else:
             res = self.formula_to_tex()
@@ -364,6 +374,10 @@ class BatchCalculator(object):
         for reac, typ in query:
             kwargs = {k : v for k, v in reac.__dict__.items() if not k.startswith('_')}
             kwargs["typ"] = typ.name
+            if kwargs["physical_form_id"] is None:
+                kwargs["physical_form_id"] = 0
+            if kwargs["density"] is None:
+                kwargs["density"] = 0
             result.append(Reactant(**kwargs))
         return sorted(result, key=lambda x: x.id)
 
@@ -487,10 +501,7 @@ class BatchCalculator(object):
 
         if self.reactants[rindex].typ == "mixture":
             for batch, comp in comps:
-                if comp.formula != "H2O":
-                    res.append((comp.id, self.reactants[rindex].concentration))
-                else:
-                    res.append((comp.id, 1 - self.reactants[rindex].concentration))
+                res.append((comp.id, batch.coefficient))
             return res
 
         elif self.reactants[rindex].typ == "solution":

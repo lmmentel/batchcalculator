@@ -581,7 +581,7 @@ class InputPanel(wx.Panel):
         rcttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         self.compOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.compOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+        self.compOlv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
         self.compOlv.rowFormatter = compRowFormatter
 
 
@@ -659,7 +659,7 @@ class InputPanel(wx.Panel):
 
         self.compOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.2f"),
+            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.4f"),
         ])
         self.compOlv.SetObjects(self.model.components)
 
@@ -667,7 +667,7 @@ class InputPanel(wx.Panel):
 
         self.reacOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
+            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.3f"),
         ])
         self.reacOlv.SetObjects(self.model.reactants)
 
@@ -834,7 +834,8 @@ class OutputPanel(wx.Panel):
 
         self.resultOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter="%.4f"),
         ])
         self.resultOlv.SetObjects(self.model.reactants)
 
@@ -842,7 +843,8 @@ class OutputPanel(wx.Panel):
 
         self.scaledOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Scaled Mass [g]", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Scaled Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter="%.4f"),
         ])
         self.scaledOlv.SetObjects(self.model.reactants)
 
