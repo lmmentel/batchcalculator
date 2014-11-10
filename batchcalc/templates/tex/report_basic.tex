@@ -11,6 +11,7 @@
 
 \usepackage{indentfirst}
 \usepackage{booktabs}
+\usepackage{hyperref}
 
 \usepackage{tabularx} % Better tables
 \newcolumntype{C}{>{\centering\arraybackslash}X}
@@ -34,6 +35,14 @@
         }
 }
 
+\newcommand{\secwithdate}[1]{{\bfseries\Large {#1}} \hfill %
+{Date: \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} } \\}
+
+\newcommand{\subsecwithdate}[1]{{\bfseries\large {#1}} \hfill %
+{Date: \begin{minipage}{1.2in} \hfill\vspace{10pt} \end{minipage} } \par}
+
+\newcommand{\subsecwodate}[1]{{\bfseries\large {#1}} \par }
+
 \title{<< title >> \\ {\large \normalfont << molar_ratios >>}}
 \author{ << author >> \\ \href{mailto: << email >>}{\underline{<< email >>}}\\}
 
@@ -55,6 +64,27 @@
 \begin{document}
 
 \maketitle
+
+\section{Batch Composition Calculation}
+<* if composition *>
+\subsecwodate{Composition Matrix [C]}
+<< a_matrix >>
+<* endif *>
+
+<* if batch *>
+\subsecwodate{Batch Matrix [B]}
+<< b_matrix >>
+<* endif *>
+
+<* if rescale_all *>
+\subsecwodate{Result Matrix [X] (SF=<< rescale_all_factor >>)}
+<< x_matrix >>
+<* endif *>
+
+<* if rescale_to *>
+\subsecwodate{Result Matrix [X] (SF=<< rescale_to_factor >>)}
+<< x_matrix_scaled >>
+<* endif *>
 
 <* if calcination_i or ion_exchange or calcination_ii *>
 \newpage
@@ -97,7 +127,7 @@ Sample & & \\
 \notes[8pt]{4}{\textwidth}
 <* endif *>
 
-<* calcination_ii *>
+<* if calcination_ii *>
 \subsecwithdate{Calcination II}
 \begin{center}
 \begin{tabularx}{\textwidth}{l|C|C}
