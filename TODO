@@ -9,6 +9,9 @@ TO DO
 * add an option to select a tex template in the export tex dialog
 * add an option to export to HTML, and plain text
 * add an option to calculate the pH of the batch
+* rewrite the basic classes used in the calculator so that the interface and
+  manipulation become simpler
+* make a default to select all reactants for scaling to sample
 
 DONE
 ====
