@@ -56,6 +56,24 @@ class Category(Base):
         return "<Category(id={i}, name={n}, full_name={f})>".format(i=self.id,
                 n=self.name, f=self.full_name)
 
+class Electrolyte(Base):
+    __tablename__ = 'electrolytes'
+
+    id   = Column(Integer, primary_key=True)
+    name = Column(String)
+
+    def __repr__(self):
+        return "<Electrolyte(id={i}, form={n})>".format(i=self.id, n=self.name)
+
+class PhysicalForm(Base):
+    __tablename__ = 'physical_forms'
+
+    id   = Column(Integer, primary_key=True)
+    form = Column(String)
+
+    def __repr__(self):
+        return "<PhysicalForm(id={i}, form={n})>".format(i=self.id, n=self.form)
+
 class Types(Base):
     __tablename__ = 'types'
 
@@ -124,8 +142,8 @@ class Chemical(Base):
     cas           = Column(String)
     physical_form_id = Column(Integer, ForeignKey('physical_forms.id'))
     density       = Column(Float)
-    #electrolyte_id = Column(Integer, ForeignKey('electrolytes.id'))
-    #pk            = Column(Float)
+    electrolyte_id = Column(Integer, ForeignKey('electrolytes.id'))
+    pk            = Column(Float)
     smiles        = Column(String)
 
     def __repr__(self):
@@ -139,8 +157,8 @@ class Reactant(object):
 
     def __init__(self, id=None, name=None, formula=None, molwt=None,
                  short_name=None, typ=None, concentration=None, cas=None,
-                 mass=0.0, physical_form_id=None, density=None,
-                 electrolyte_id=0, pk=None, smiles=None):
+                 mass=0.0, physical_form=None, density=None,
+                 electrolyte=None, pk=None, smiles=None):
 
         self.id = id
         self.name = name
@@ -151,11 +169,21 @@ class Reactant(object):
         self.concentration = float(concentration)
         self.cas = cas
         self.mass = float(mass)
-        self.physical_form_id = int(physical_form_id)
+        self.physical_form = physical_form
         self.density = float(density)
-        #self.electrolyte_id = int(electrolyte_id)
-        #self.pk = float(pk)
+        self.electrolyte = electrolyte
+        self.pk = pk
         self.smiles = smiles
+
+    @property
+    def electrolyte(self):
+        return self._electrolyte
+
+    @electrolyte.setter
+    def electrolyte(self, value):
+        if self.is_empty(value):
+            value = "unknown"
+        self._electrolyte = value
 
     @property
     def moles(self):
@@ -164,6 +192,20 @@ class Reactant(object):
     @property
     def volume(self):
         return self.mass/self.density
+
+    @staticmethod
+    def set_default(item, default):
+        if self.is_empty(item):
+            return default
+        else:
+            return item
+
+    @staticmethod
+    def is_empty(item):
+        if item is None or item.lower() in ["", "null", "none"]:
+            return True
+        else:
+            return False
 
     def formula_to_tex(self):
         '''
@@ -175,26 +217,26 @@ class Reactant(object):
         '''
         Convert the formula string to html string.
         '''
-        return re.sub(ur'(\d+)', ur'<sub>\1</sub>$', self.formula)
+        return re.sub(ur'(\d+)', ur'<sub>\1</sub>', self.formula)
 
     def listctrl_label(self):
         '''
         Return the string to be displayed in the ListCtrl's.
         '''
-        if self.short_name is not None and self.short_name not in ["", "None", "NULL"]:
-            res = self.short_name
-        else:
+        if self.is_empty(self.short_name):
             res = self.name
+        else:
+            res = self.short_name
         return res
 
     def label(self):
         '''
         Return a label to be used in printable tables (tex, html).
         '''
-        if self.short_name is not None and self.short_name not in ["", "None", "NULL"]:
-            res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
-        else:
+        if self.is_empty(self.short_name):
             res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
+        else:
+            res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
         return res
 
     def __repr__(self):
@@ -215,6 +257,13 @@ class Component(object):
         self.short_name = short_name
         self.moles = float(moles)
         self.category = category
+
+    @staticmethod
+    def set_default(item, default):
+        if item is None or item in ["", "NULL", "None"]:
+            return default
+        else:
+            return item
 
     @property
     def mass(self):
@@ -361,25 +410,61 @@ class BatchCalculator(object):
         '''
 
         if showall:
-            query =  self.session.query(Chemical,Types).filter(Chemical.typ == Types.id).all()
+            query =  self.session.query(Chemical, Types.name, PhysicalForm.form).\
+                     filter(Chemical.typ == Types.id).\
+                     filter(Chemical.physical_form_id == PhysicalForm.id).all()
         else:
             comps = set()
             for item in self.components:
-                temp = self.session.query(Chemical, Types).join(Batch).\
+                temp = self.session.query(Chemical, Types.name, PhysicalForm.form).join(Batch).\
                            filter(Chemical.typ == Types.id).\
+                           filter(Chemical.physical_form_id == PhysicalForm.id).\
                            filter(Batch.component_id == item.id).all()
                 comps.update(temp)
             query = list(comps)
         result = []
-        for reac, typ in query:
+        for reac, typ, form in query:
             kwargs = {k : v for k, v in reac.__dict__.items() if not k.startswith('_')}
-            kwargs["typ"] = typ.name
-            if kwargs["physical_form_id"] is None:
-                kwargs["physical_form_id"] = 0
-            if kwargs["density"] is None:
+            kwargs["typ"] = typ
+            kwargs["physical_form"] = form
+            kwargs["electrolyte"] = "unknown"
+            kwargs.pop("physical_form_id")
+            kwargs.pop("electrolyte_id")
+            if self.is_empty(kwargs["density"]):
                 kwargs["density"] = 0
             result.append(Reactant(**kwargs))
         return sorted(result, key=lambda x: x.id)
+
+    def get_categories(self):
+        '''
+        Return the list of `Types` objects from the database
+        '''
+        return self.session.query(Category).order_by(Category.id).all()
+
+    def get_types(self):
+        '''
+        Return the list of `Types` objects from the database
+        '''
+        return self.session.query(Types).order_by(Types.id).all()
+
+    def get_physical_forms(self):
+        '''
+        Return the list of `PhysicalForm` objects from the database
+        '''
+        return self.session.query(PhysicalForm).order_by(PhysicalForm.id).all()
+
+    def get_electrolytes(self):
+        '''
+        Return the list of `Electrolyte` objects from the database
+        '''
+        return self.session.query(Electrolyte).order_by(Electrolyte.id).all()
+
+    @staticmethod
+    def is_empty(item):
+        if item is None or item in ["", "NULL", "None"]:
+            return True
+        else:
+            return False
 
     def select_item(self, lst, attr, value):
         '''
