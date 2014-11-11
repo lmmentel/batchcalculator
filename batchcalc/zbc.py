@@ -1306,7 +1306,7 @@ class MainFrame(wx.Frame):
             if typeset:
                 if pdflatex is not None:
                     os.chdir(os.path.split(path)[0])
-                    retcode = subprocess.call([pdflatex, opts, path])
+                    retcode = subprocess.call([pdflatex, opts, path], )
                     if retcode != 0:
                         dlg = wx.MessageDialog(None, "There were problems generating the pdf, check the log file {l:s}, return code: {r:d}".format(l=path.replace(".tex", ".log"), r=retcode),
                                                 "", wx.OK | wx.ICON_WARNING)
@@ -1318,6 +1318,8 @@ class MainFrame(wx.Frame):
                         clean_tex(path)
                         dlg = wx.MessageDialog(None, "Successfully generated the pdf",
                                                 "", wx.OK | wx.ICON_INFORMATION)
+                        dlg.ShowModal()
+                        dlg.Destroy()
                 else:
                     dlg = wx.MessageDialog(None, "pdflatex not found, pdf not generated",
                                             "", wx.OK | wx.ICON_WARNING)
