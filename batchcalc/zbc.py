@@ -256,12 +256,127 @@ class RescaleToSampleDialog(wx.Dialog):
     def GetCurrentSelections(self):
         return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
 
+class AddChemicalToDatabaseDialog(wx.Dialog):
+
+    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Chemical to the Database",
+            pos=wx.DefaultPosition, size=(400, 400),
+            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
+
+        super(AddChemicalToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
+
+        panel = wx.Panel(self)
+
+        # attributes
+
+        lbl_name = wx.StaticText(panel, -1, "Name")
+        lbl_formula = wx.StaticText(panel, -1, "Formula")
+        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
+        lbl_shname = wx.StaticText(panel, -1, "Short Name")
+        lbl_conc = wx.StaticText(panel, -1, "Concentration")
+        lbl_cas = wx.StaticText(panel, -1, "CAS")
+        lbl_density = wx.StaticText(panel, -1, "Density")
+        lbl_pk = wx.StaticText(panel, -1, "pK")
+        lbl_smiles = wx.StaticText(panel, -1, "SMILES")
+        lbl_type = wx.StaticText(panel, -1, "Type")
+        lbl_form = wx.StaticText(panel, -1, "Physical Form")
+        lbl_elect = wx.StaticText(panel, -1, "Electrolyte")
+
+        txtc_name = wx.TextCtrl(panel, -1, "")
+        txtc_formula = wx.TextCtrl(panel, -1, "")
+        txtc_molwt = wx.TextCtrl(panel, -1, "")
+        txtc_shname = wx.TextCtrl(panel, -1, "")
+        txtc_conc = wx.TextCtrl(panel, -1, "")
+        txtc_cas = wx.TextCtrl(panel, -1, "")
+        txtc_density = wx.TextCtrl(panel, -1, "")
+        txtc_pk = wx.TextCtrl(panel, -1, "")
+        txtc_smiles = wx.TextCtrl(panel, -1, "")
+
+        types = model.get_types()
+        forms = model.get_physical_forms()
+        elects = model.get_electrolytes()
+
+        self.ch_type = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in types])
+        self.ch_form = wx.Choice(panel, -1, (100, 50), choices=[x.form for x in forms])
+        self.ch_elects = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in elects])
+
+        sizer = wx.GridBagSizer(vgap=5, hgap=5)
+        sizer.Add(lbl_name,    pos=( 0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_formula, pos=( 1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_molwt,   pos=( 2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_shname,  pos=( 3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_conc,    pos=( 4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_cas,     pos=( 5, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_density, pos=( 6, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_pk,      pos=( 7, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_smiles,  pos=( 8, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_type,    pos=( 9, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_form,    pos=(10, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_elect,   pos=(11, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+
+        sizer.Add(txtc_name,      pos=( 0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_formula,   pos=( 1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_molwt,     pos=( 2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_shname,    pos=( 3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_conc,      pos=( 4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_cas,       pos=( 5, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_density,   pos=( 6, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_pk,        pos=( 7, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_smiles,    pos=( 8, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_type,   pos=( 9, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_form,   pos=(10, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_elects, pos=(11, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        sizer.AddGrowableCol(1)
+        panel.SetSizerAndFit(sizer)
+
+class AddComponentToDatabaseDialog(wx.Dialog):
+
+    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Chemical to the Database",
+            pos=wx.DefaultPosition, size=(400, 400),
+            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
+
+        super(AddComponentToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
+
+        panel = wx.Panel(self)
+
+        # attributes
+
+        lbl_name = wx.StaticText(panel, -1, "Name")
+        lbl_formula = wx.StaticText(panel, -1, "Formula")
+        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
+        lbl_shname = wx.StaticText(panel, -1, "Short Name")
+        lbl_category = wx.StaticText(panel, -1, "Category")
+
+        txtc_name = wx.TextCtrl(panel, -1, "")
+        txtc_formula = wx.TextCtrl(panel, -1, "")
+        txtc_molwt = wx.TextCtrl(panel, -1, "")
+        txtc_shname = wx.TextCtrl(panel, -1, "")
+
+        categs = model.get_categories()
+
+        self.ch_category = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in categs])
+
+        sizer = wx.GridBagSizer(vgap=5, hgap=5)
+        sizer.Add(lbl_name,     pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_formula,  pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_molwt,    pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_shname,   pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_category, pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+
+        sizer.Add(txtc_name,        pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_formula,     pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_molwt,       pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_shname,      pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_category, pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        sizer.AddGrowableCol(1)
+        panel.SetSizerAndFit(sizer)
+
 class RescaleToItemDialog(wx.Dialog):
 
     def __init__(self, parent, model, columns, id=wx.ID_ANY, title="Choose an item and the amount",
             pos=wx.DefaultPosition, size=(400, 400),
             style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Item Dialog"):
-
         super(RescaleToItemDialog, self).__init__(parent, id, title, pos, size, style, name)
 
         panel = wx.Panel(self)
@@ -1101,6 +1216,8 @@ class MainFrame(wx.Frame):
         # Database Menu
         dbm = wx.Menu()
         mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
+        maddchemicaldb = dbm.Append(wx.ID_ANY, "Add Chemical\t", "Add a chemical to the database")
+        maddcomponentdb = dbm.Append(wx.ID_ANY, "Add Component\t", "Add a zeolite component to the database")
         menubar.Append(dbm, "Database")
         # About Menu
         aboutm = wx.Menu()
@@ -1119,6 +1236,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
         self.Bind(wx.EVT_MENU, self.OnExportTex, metex)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
+        self.Bind(wx.EVT_MENU, self.OnAddChemicalToDB, maddchemicaldb)
+        self.Bind(wx.EVT_MENU, self.OnAddComponentToDB, maddcomponentdb)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
     # Menu Bindings ------------------------------------------------------------
@@ -1141,6 +1260,24 @@ class MainFrame(wx.Frame):
         info.Developers = ["Katarzyna Lukaszuk"]
         #info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
         wx.AboutBox(info)
+
+    def OnAddChemicalToDB(self, event):
+        '''
+        Add a Chemical to the Database
+        '''
+
+        dlg = AddChemicalToDatabaseDialog(self, self.model)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    def OnAddComponentToDB(self, event):
+        '''
+        Add a Zeolite Component to the Database
+        '''
+
+        dlg = AddComponentToDatabaseDialog(self, self.model)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def OnChangeDB(self, event):
         '''
