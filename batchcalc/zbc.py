@@ -331,7 +331,7 @@ class AddChemicalToDatabaseDialog(wx.Dialog):
 
 class AddComponentToDatabaseDialog(wx.Dialog):
 
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Chemical to the Database",
+    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Component to the Database",
             pos=wx.DefaultPosition, size=(400, 400),
             style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
 
@@ -368,6 +368,47 @@ class AddComponentToDatabaseDialog(wx.Dialog):
         sizer.Add(txtc_molwt,       pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
         sizer.Add(txtc_shname,      pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
         sizer.Add(self.ch_category, pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        sizer.AddGrowableCol(1)
+        panel.SetSizerAndFit(sizer)
+
+class AddBatchToDatabaseDialog(wx.Dialog):
+
+    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Batch record to the Database",
+            pos=wx.DefaultPosition, size=(400, 400),
+            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
+
+        super(AddBatchToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
+
+        panel = wx.Panel(self)
+
+        # attributes
+
+        lbl_chemical = wx.StaticText(panel, -1, "Chemical")
+        lbl_component = wx.StaticText(panel, -1, "Component")
+        lbl_coeff = wx.StaticText(panel, -1, "Coefficient")
+        lbl_reaction = wx.StaticText(panel, -1, "Reaction")
+
+        txtc_coeff = wx.TextCtrl(panel, -1, "")
+
+        chemicals = model.get_chemicals(showall=True)
+        components = model.get_components()
+        reactions = model.get_reactions()
+
+        self.ch_chemical  = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in chemicals])
+        self.ch_component = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in components])
+        self.ch_reaction  = wx.Choice(panel, -1, (100, 50), choices=[x.reaction for x in reactions])
+
+        sizer = wx.GridBagSizer(vgap=5, hgap=5)
+        sizer.Add(lbl_chemical,  pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_component, pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_coeff,     pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_reaction,  pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+
+        sizer.Add(self.ch_chemical,  pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_component, pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(txtc_coeff,        pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_reaction,  pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
 
         sizer.AddGrowableCol(1)
         panel.SetSizerAndFit(sizer)
@@ -1218,6 +1259,7 @@ class MainFrame(wx.Frame):
         mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
         maddchemicaldb = dbm.Append(wx.ID_ANY, "Add Chemical\t", "Add a chemical to the database")
         maddcomponentdb = dbm.Append(wx.ID_ANY, "Add Component\t", "Add a zeolite component to the database")
+        maddbatchdb = dbm.Append(wx.ID_ANY, "Add Batch\t", "Add a batch record to the database")
         menubar.Append(dbm, "Database")
         # About Menu
         aboutm = wx.Menu()
@@ -1238,6 +1280,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
         self.Bind(wx.EVT_MENU, self.OnAddChemicalToDB, maddchemicaldb)
         self.Bind(wx.EVT_MENU, self.OnAddComponentToDB, maddcomponentdb)
+        self.Bind(wx.EVT_MENU, self.OnAddBatchToDB, maddbatchdb)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
     # Menu Bindings ------------------------------------------------------------
@@ -1260,6 +1303,15 @@ class MainFrame(wx.Frame):
         info.Developers = ["Katarzyna Lukaszuk"]
         #info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
         wx.AboutBox(info)
+
+    def OnAddBatchToDB(self, event):
+        '''
+        Add a Chemical to the Database
+        '''
+
+        dlg = AddBatchToDatabaseDialog(self, self.model)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def OnAddChemicalToDB(self, event):
         '''

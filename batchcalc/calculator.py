@@ -392,13 +392,13 @@ class BatchCalculator(object):
 
     def get_components(self, category=None):
 
-        query = self.session.query(DBComponent, Category).\
+        query = self.session.query(DBComponent, Category.name).\
                 filter(DBComponent.category == Category.id).all()
 
         result = []
         for comp, cat in query:
             kwargs = {k : v for k, v in comp.__dict__.items() if not k.startswith('_')}
-            kwargs["category"] = cat.name
+            kwargs["category"] = cat
             kwargs["moles"] = 0.0
             result.append(Component(**kwargs))
         return result
@@ -446,6 +446,12 @@ class BatchCalculator(object):
         Return the list of `Types` objects from the database
         '''
         return self.session.query(Types).order_by(Types.id).all()
+
+    def get_reactions(self):
+        '''
+        Return the list of `Reaction` objects from the database
+        '''
+        return self.session.query(Reaction).order_by(Reaction.id).all()
 
     def get_physical_forms(self):
         '''
