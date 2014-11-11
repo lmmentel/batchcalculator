@@ -1287,6 +1287,8 @@ class MainFrame(wx.Frame):
         texwildcard =  "TeX Files (*.tex)|*tex|"     \
                        "All files (*.*)|*.*"
 
+        opts = "-halt-on-error"
+
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=os.getcwd(),
             defaultFile="", wildcard=texwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
@@ -1304,20 +1306,20 @@ class MainFrame(wx.Frame):
             if typeset:
                 if pdflatex is not None:
                     os.chdir(os.path.split(path)[0])
-                    p = subprocess.Popen([pdflatex, path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    out, err = p.communicate()
-                    if p.returncode != 0:
-                        dlg = wx.MessageDialog(None, "There were problems generating the pdf, check the log file:\n{0}".format(err),
+                    retcode = subprocess.call([pdflatex, opts, path])
+                    if retcode != 0:
+                        dlg = wx.MessageDialog(None, "There were problems generating the pdf, check the log file {l:s}, return code: {r:d}".format(l=path.replace(".tex", ".log"), r=retcode),
                                                 "", wx.OK | wx.ICON_WARNING)
                         dlg.ShowModal()
                         dlg.Destroy()
                     else:
                         # run again and clean the auxiliary files
-                        p = subprocess.Popen([pdflatex, path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                        out, err = p.communicate()
+                        retcode = subprocess.call([pdflatex, opts, path])
                         clean_tex(path)
+                        dlg = wx.MessageDialog(None, "Successfully generated the pdf",
+                                                "", wx.OK | wx.ICON_INFORMATION)
                 else:
-                    dlg = wx.MessageDialog(None, "pdflatex not foudn, pdf not generated",
+                    dlg = wx.MessageDialog(None, "pdflatex not found, pdf not generated",
                                             "", wx.OK | wx.ICON_WARNING)
                     dlg.ShowModal()
                     dlg.Destroy()
