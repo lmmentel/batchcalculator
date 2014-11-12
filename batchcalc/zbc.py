@@ -251,6 +251,8 @@ class RescaleToSampleDialog(wx.Dialog):
 
         self.olv.SetColumns(olv_cols)
         self.olv.CreateCheckStateColumn()
+        for item in model.reactants:
+            self.olv.Check(item)
         self.olv.SetObjects(model.reactants)
 
     def GetCurrentSelections(self):
