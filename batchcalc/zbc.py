@@ -42,27 +42,17 @@ import numpy as np
 import wx
 import wx.grid as gridlib
 from wx.lib.wordwrap import wordwrap
-import wx.lib.agw.genericmessagedialog as GMD
 # ObjectListView
 from ObjectListView import ObjectListView, ColumnDefn
-# uncomment for debugging
-#import wx.lib.inspection
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator
 
-def which(prog):
-    '''
-    Python equivalent of the unix which command, returns the absolute path of
-    the "prog" if it is found on the system PATH.
-    '''
+import dialogs
 
-    if sys.platform == "win32":
-        prog += ".exe"
-    for path in os.getenv('PATH').split(os.path.pathsep):
-        fprog = os.path.join(path, prog)
-        if os.path.exists(fprog) and os.access(fprog, os.X_OK):
-            return fprog
+# uncomment for debugging
+#import wx.lib.inspection
+
 
 def clean_tex(fname):
     '''
@@ -73,6 +63,95 @@ def clean_tex(fname):
     for fil in [fbase + ext for ext in exts]:
         if os.path.exists(fil):
             os.remove(fil)
+
+class AddEditDBFrame(wx.Frame):
+    def __init__(self, parent, log, id=wx.ID_ANY, title="Edit Database",
+            pos=wx.DefaultPosition, size=(500, 300),
+            style=wx.DEFAULT_FRAME_STYLE, name=""):
+
+        super(AddEditDBFrame, self).__init__(parent, id, title, pos, size, style, name)
+
+        panel = wx.Panel(self, -1, style=0)
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        searchSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+
+        # create the search related widgets
+        cat = ["Author", "Title", "ISBN", "Publisher"]
+        searchByLbl = wx.StaticText(self, label="Search By:")
+        searchByLbl.SetFont(font)
+        searchSizer.Add(searchByLbl, 0, wx.ALL, 5)
+
+        self.categories = wx.ComboBox(self, value="Author", choices=cat)
+        searchSizer.Add(self.categories, 0, wx.ALL, 5)
+
+        self.search = wx.SearchCtrl(self, style=wx.TE_PROCESS_ENTER)
+        self.search.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
+        searchSizer.Add(self.search, 0, wx.ALL, 5)
+
+        self.bookResultsOlv = ObjectListView(self, style=wx.LC_REPORT
+                                                        |wx.SUNKEN_BORDER)
+        self.bookResultsOlv.SetEmptyListMsg("No Records Found")
+        #self.setBooks()
+
+        # create the button row
+        addRecordBtn = wx.Button(self, label="Add")
+        addRecordBtn.Bind(wx.EVT_BUTTON, self.onAddRecord)
+        btnSizer.Add(addRecordBtn, 0, wx.ALL, 5)
+
+        editRecordBtn = wx.Button(self, label="Edit")
+        editRecordBtn.Bind(wx.EVT_BUTTON, self.onEditRecord)
+        btnSizer.Add(editRecordBtn, 0, wx.ALL, 5)
+
+        deleteRecordBtn = wx.Button(self, label="Delete")
+        deleteRecordBtn.Bind(wx.EVT_BUTTON, self.onDelete)
+        btnSizer.Add(deleteRecordBtn, 0, wx.ALL, 5)
+
+        showAllBtn = wx.Button(self, label="Show All")
+        showAllBtn.Bind(wx.EVT_BUTTON, self.onShowAllRecord)
+        btnSizer.Add(showAllBtn, 0, wx.ALL, 5)
+
+        mainSizer.Add(searchSizer)
+        mainSizer.Add(self.bookResultsOlv, 1, wx.ALL|wx.EXPAND, 5)
+        mainSizer.Add(btnSizer, 0, wx.CENTER)
+        self.SetSizer(mainSizer)
+
+    #----------------------------------------------------------------------
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+        print "adding"
+
+    #----------------------------------------------------------------------
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+        print "editing"
+
+    #----------------------------------------------------------------------
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting"
+
+    #----------------------------------------------------------------------
+    def onSearch(self, event):
+        """
+        Searches database based on the user's filter choice and keyword
+        """
+        print "searching"
+
+    #----------------------------------------------------------------------
+    def onShowAllRecord(self, event):
+        """
+        Updates the record list to show all of them
+        """
+        print "showing all"
 
 class ShowBFrame(wx.Frame):
     def __init__(self, parent, log, id=wx.ID_ANY, title="Batch Matrix",
@@ -208,507 +287,6 @@ class CustTableGrid(gridlib.Grid):
         if self.CanEnableCellControl():
             self.EnableCellEditControl()
 
-class RescaleToSampleDialog(wx.Dialog):
-
-    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="Choose compounds and sample size ...",
-                 pos=wx.DefaultPosition, size=(400, 400),
-                 style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Sample Dialog"):
-
-        super(RescaleToSampleDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        self.olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.olv.evenRowsBackColor="#DCF0C7"
-        self.olv.oddRowsBackColor="#FFFFFF"
-        self.SetReactants(model, columns)
-
-        scalelbl = wx.StaticText(panel, -1, "Sample size [g]:")
-        self.sample_size = wx.TextCtrl(panel, -1, str(model.sample_size))
-
-        buttonOK = wx.Button(panel, id=wx.ID_OK)
-        buttonOK.SetDefault()
-        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
-
-        # Layout
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW|wx.ALL, border=5)
-        sizer.Add(scalelbl,  pos=(1, 0), flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-        sizer.Add(self.sample_size, pos=(1, 1), span=(1, 2), flag=wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-        sizer.Add(buttonCancel, pos=(2, 2), flag=wx.BOTTOM, border=10)
-        sizer.Add(buttonOK, pos=(2, 3), flag=wx.BOTTOM|wx.RIGHT, border=10)
-        sizer.AddGrowableCol(1)
-        sizer.AddGrowableRow(0)
-        panel.SetSizer(sizer)
-
-    def SetReactants(self, model, columns):
-
-        olv_cols = []
-        for col in columns:
-            olv_cols.append(ColumnDefn(**col))
-
-        self.olv.SetColumns(olv_cols)
-        self.olv.CreateCheckStateColumn()
-        for item in model.reactants:
-            self.olv.Check(item)
-        self.olv.SetObjects(model.reactants)
-
-    def GetCurrentSelections(self):
-        return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
-
-class AddChemicalToDatabaseDialog(wx.Dialog):
-
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Chemical to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
-
-        super(AddChemicalToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        # attributes
-
-        lbl_name = wx.StaticText(panel, -1, "Name")
-        lbl_formula = wx.StaticText(panel, -1, "Formula")
-        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
-        lbl_shname = wx.StaticText(panel, -1, "Short Name")
-        lbl_conc = wx.StaticText(panel, -1, "Concentration")
-        lbl_cas = wx.StaticText(panel, -1, "CAS")
-        lbl_density = wx.StaticText(panel, -1, "Density")
-        lbl_pk = wx.StaticText(panel, -1, "pK")
-        lbl_smiles = wx.StaticText(panel, -1, "SMILES")
-        lbl_type = wx.StaticText(panel, -1, "Type")
-        lbl_form = wx.StaticText(panel, -1, "Physical Form")
-        lbl_elect = wx.StaticText(panel, -1, "Electrolyte")
-
-        txtc_name = wx.TextCtrl(panel, -1, "")
-        txtc_formula = wx.TextCtrl(panel, -1, "")
-        txtc_molwt = wx.TextCtrl(panel, -1, "")
-        txtc_shname = wx.TextCtrl(panel, -1, "")
-        txtc_conc = wx.TextCtrl(panel, -1, "")
-        txtc_cas = wx.TextCtrl(panel, -1, "")
-        txtc_density = wx.TextCtrl(panel, -1, "")
-        txtc_pk = wx.TextCtrl(panel, -1, "")
-        txtc_smiles = wx.TextCtrl(panel, -1, "")
-
-        types = model.get_types()
-        forms = model.get_physical_forms()
-        elects = model.get_electrolytes()
-
-        self.ch_type = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in types])
-        self.ch_form = wx.Choice(panel, -1, (100, 50), choices=[x.form for x in forms])
-        self.ch_elects = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in elects])
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_name,    pos=( 0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_formula, pos=( 1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_molwt,   pos=( 2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_shname,  pos=( 3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_conc,    pos=( 4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_cas,     pos=( 5, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_density, pos=( 6, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_pk,      pos=( 7, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_smiles,  pos=( 8, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_type,    pos=( 9, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_form,    pos=(10, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_elect,   pos=(11, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-
-        sizer.Add(txtc_name,      pos=( 0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_formula,   pos=( 1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_molwt,     pos=( 2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_shname,    pos=( 3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_conc,      pos=( 4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_cas,       pos=( 5, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_density,   pos=( 6, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_pk,        pos=( 7, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_smiles,    pos=( 8, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_type,   pos=( 9, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_form,   pos=(10, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_elects, pos=(11, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-
-        sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
-
-class AddComponentToDatabaseDialog(wx.Dialog):
-
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Component to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
-
-        super(AddComponentToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        # attributes
-
-        lbl_name = wx.StaticText(panel, -1, "Name")
-        lbl_formula = wx.StaticText(panel, -1, "Formula")
-        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
-        lbl_shname = wx.StaticText(panel, -1, "Short Name")
-        lbl_category = wx.StaticText(panel, -1, "Category")
-
-        txtc_name = wx.TextCtrl(panel, -1, "")
-        txtc_formula = wx.TextCtrl(panel, -1, "")
-        txtc_molwt = wx.TextCtrl(panel, -1, "")
-        txtc_shname = wx.TextCtrl(panel, -1, "")
-
-        categs = model.get_categories()
-
-        self.ch_category = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in categs])
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_name,     pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_formula,  pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_molwt,    pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_shname,   pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_category, pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-
-        sizer.Add(txtc_name,        pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_formula,     pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_molwt,       pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_shname,      pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_category, pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-
-        sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
-
-class AddBatchToDatabaseDialog(wx.Dialog):
-
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Batch record to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
-
-        super(AddBatchToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        # attributes
-
-        lbl_chemical = wx.StaticText(panel, -1, "Chemical")
-        lbl_component = wx.StaticText(panel, -1, "Component")
-        lbl_coeff = wx.StaticText(panel, -1, "Coefficient")
-        lbl_reaction = wx.StaticText(panel, -1, "Reaction")
-
-        txtc_coeff = wx.TextCtrl(panel, -1, "")
-
-        chemicals = model.get_chemicals(showall=True)
-        components = model.get_components()
-        reactions = model.get_reactions()
-
-        self.ch_chemical  = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in chemicals])
-        self.ch_component = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in components])
-        self.ch_reaction  = wx.Choice(panel, -1, (100, 50), choices=[x.reaction for x in reactions])
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_chemical,  pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_component, pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_coeff,     pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_reaction,  pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-
-        sizer.Add(self.ch_chemical,  pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_component, pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_coeff,        pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_reaction,  pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-
-        sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
-
-class RescaleToItemDialog(wx.Dialog):
-
-    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="Choose an item and the amount",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Item Dialog"):
-        super(RescaleToItemDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        self.olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.olv.evenRowsBackColor="#DCF0C7"
-        self.olv.oddRowsBackColor="#FFFFFF"
-        self.SetComponents(model, columns)
-        scalelbl = wx.StaticText(panel, -1, "Amount:")
-        self.amount = wx.TextCtrl(panel, -1, "{0:6.2f}".format(1.0))
-
-        buttonOK = wx.Button(panel, id=wx.ID_OK)
-        buttonOK.SetDefault()
-        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
-
-        # Layout
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW|wx.ALL, border=5)
-        sizer.Add(scalelbl,  pos=(1, 0), flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-        sizer.Add(self.amount, pos=(1, 1), span=(1, 2), flag=wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-        sizer.Add(buttonCancel, pos=(2, 2), flag=wx.BOTTOM, border=10)
-        sizer.Add(buttonOK, pos=(2, 3), flag=wx.BOTTOM|wx.RIGHT, border=10)
-        sizer.AddGrowableCol(1)
-        sizer.AddGrowableRow(0)
-        panel.SetSizer(sizer)
-
-    def SetComponents(self, model, columns):
-
-        olv_cols = []
-        for col in columns:
-            olv_cols.append(ColumnDefn(**col))
-
-        self.olv.SetColumns(olv_cols)
-        self.olv.CreateCheckStateColumn()
-        self.olv.SetObjects(model.components)
-
-    def GetCurrentSelections(self):
-        return self.amount.GetValue(), self.olv.GetCheckedObjects()
-
-class ComponentDialog(wx.Dialog):
-
-    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(730, 500),
-            style=wx.DEFAULT_FRAME_STYLE, name="Component Dialog"):
-
-        dlgwidth = sum([c["width"] for c in columns]) + 50
-        super(ComponentDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
-
-        panel = wx.Panel(self)
-
-        self.compsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.compsOlv.evenRowsBackColor="#DCF0C7"
-        self.compsOlv.oddRowsBackColor="#FFFFFF"
-        self.compsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-
-        self.SetComponents(model, columns)
-
-        sizer = wx.FlexGridSizer(rows=2, cols=1, hgap=10, vgap=10)
-
-        sizer.AddGrowableCol(0)
-        sizer.AddGrowableRow(0)
-        sizer.Add(self.compsOlv, flag=wx.GROW | wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
-
-        buttonOK = wx.Button(panel, id=wx.ID_OK)
-        buttonOK.SetDefault()
-        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
-        hbox.Add(buttonOK)
-        sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.BOTTOM|wx.RIGHT, border=10)
-
-        panel.SetSizer(sizer)
-        panel.Fit()
-
-    def SetComponents(self, model, columns):
-
-        olv_cols = []
-        for col in columns:
-            olv_cols.append(ColumnDefn(**col))
-
-        self.compsOlv.SetColumns(olv_cols)
-        self.compsOlv.CreateCheckStateColumn()
-        data = model.get_components()
-        for item in data:
-            if item.id in [r.id for r in model.components]:
-                self.compsOlv.SetCheckState(item, True)
-                comp = model.select_item("components", "id", item.id)
-                item.moles = comp.moles
-        self.compsOlv.SetObjects(data)
-
-    def GetCurrentSelections(self):
-        return self.compsOlv.GetCheckedObjects()
-
-class ReactantDialog(wx.Dialog):
-
-    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(850, 520),
-            style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
-
-        dlgwidth = sum([c["width"] for c in columns]) + 60
-        super(ReactantDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
-
-        panel = wx.Panel(self)
-
-        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.reacsOlv.evenRowsBackColor="#DCF0C7"
-        self.reacsOlv.oddRowsBackColor="#FFFFFF"
-        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-
-        self.SetReactants(model, columns)
-
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-
-        buttonOK = wx.Button(panel, id=wx.ID_OK)
-        buttonOK.SetDefault()
-        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
-        hbox.Add(buttonOK)
-        self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
-
-        panel.SetSizerAndFit(self.sizer)
-
-    def SetReactants(self, model, columns):
-
-        olv_cols = []
-        for col in columns:
-            olv_cols.append(ColumnDefn(**col))
-
-        self.reacsOlv.SetColumns(olv_cols)
-        self.reacsOlv.CreateCheckStateColumn()
-        data = model.get_chemicals(showall=(len(model.components) == 0))
-        for item in data:
-            if item.id in [r.id for r in model.reactants]:
-                self.reacsOlv.SetCheckState(item, True)
-                reac = model.select_item("reactants", "id", item.id)
-                item.mass = reac.mass
-                item.concentration = reac.concentration
-        self.reacsOlv.SetObjects(data)
-
-    def GetCurrentSelections(self):
-        return self.reacsOlv.GetCheckedObjects()
-
-class ExportTexDialog(wx.Dialog):
-    '''
-    A dialog for setting the options of the tex report.
-    '''
-
-    def __init__(self, parent, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(400, 550),
-            style=wx.DEFAULT_FRAME_STYLE, name="Export Tex Dialog"):
-
-        super(ExportTexDialog, self).__init__(parent, id, title, pos, size,
-                                              style, name)
-
-        panel = wx.Panel(self)
-
-        top_lbl = wx.StaticText(panel, -1, "TeX document options")
-        top_lbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
-        title_lbl = wx.StaticText(panel, -1, "Title:")
-        title = wx.TextCtrl(panel, -1, "")
-        author_lbl = wx.StaticText(panel, -1, "Author:")
-        author = wx.TextCtrl(panel, -1, "")
-        email_lbl = wx.StaticText(panel, -1, "Email:")
-        email = wx.TextCtrl(panel, -1, "")
-
-        export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
-        cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
-
-        cb_cmpm = wx.CheckBox(panel, label="Composition Matrix")
-        cb_bmat = wx.CheckBox(panel, label="Batch Matrix")
-        cb_rescaleAll = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
-        cb_rescaleTo = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
-
-        cb_cmpm.SetValue(True)
-        cb_bmat.SetValue(True)
-        cb_rescaleAll.SetValue(True)
-        cb_rescaleTo.SetValue(True)
-
-        cb_calo = wx.CheckBox(panel, label="Calcination I")
-        cb_ione = wx.CheckBox(panel, label="Ion Exchange")
-        cb_calt = wx.CheckBox(panel, label="Calcination II")
-
-        cb_xrd = wx.CheckBox(panel, label="XRD")
-        cb_sem = wx.CheckBox(panel, label="SEM")
-
-        cb_pdf = wx.CheckBox(panel, label="Typeset PDF")
-        pdflatex_path = which("pdflatex")
-        if pdflatex_path is None:
-            pdflatex_path = ""
-        self.pdflatex = wx.TextCtrl(panel, -1, pdflatex_path)
-        self.pdflatex.Enable(False)
-
-        sb_calculation = wx.StaticBox(panel, label="Include")
-        sbc_bs = wx.StaticBoxSizer(sb_calculation, wx.VERTICAL)
-        sbc_bs.Add(cb_cmpm, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_bmat, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT|wx.TOP, border=5)
-
-        sb_synthesis = wx.StaticBox(panel, label="Synthesis")
-        sbs_bs = wx.StaticBoxSizer(sb_synthesis, wx.VERTICAL)
-        sbs_bs.Add(cb_calo, flag=wx.LEFT|wx.TOP, border=5)
-        sbs_bs.Add(cb_ione, flag=wx.LEFT|wx.TOP, border=5)
-        sbs_bs.Add(cb_calt, flag=wx.LEFT|wx.TOP, border=5)
-
-        sb_analysis = wx.StaticBox(panel, label="Analysis")
-        sba_bs = wx.StaticBoxSizer(sb_analysis, wx.VERTICAL)
-        sba_bs.Add(cb_xrd, flag=wx.LEFT|wx.TOP, border=5)
-        sba_bs.Add(cb_sem, flag=wx.LEFT|wx.TOP, border=5)
-
-        self.widgets = {
-            "title" : title,
-            "author" : author,
-            "email" : email,
-            "composition" : cb_cmpm,
-            "batch" : cb_bmat,
-            "rescale_all" : cb_rescaleAll,
-            "rescale_to" : cb_rescaleTo,
-            "calcination_i" : cb_calo,
-            "ion_exchange" : cb_ione,
-            "calcination_ii" : cb_calt,
-            "xrd" : cb_xrd,
-            "sem" : cb_sem,
-            "typeset" : cb_pdf,
-            "pdflatex" : self.pdflatex,
-        }
-
-        # Layout
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(top_lbl, 0, wx.ALL, 5)
-        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
-        fgs_title = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
-        fgs_title.AddGrowableCol(1)
-        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        fgs_title.Add(title, 0, wx.EXPAND)
-        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        fgs_title.Add(author, 0, wx.EXPAND)
-        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        fgs_title.Add(email, 0, wx.EXPAND)
-
-        main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
-        main_sizer.Add(sbc_bs, 0, wx.EXPAND|wx.ALL, 10)
-
-        gbs = wx.GridBagSizer(hgap=5, vgap=5)
-        gbs.Add(sbs_bs, pos=(0, 0), flag=wx.ALIGN_RIGHT|wx.GROW|wx.ALL, border=10)
-        gbs.Add(sba_bs, pos=(0, 1), flag=wx.ALIGN_LEFT|wx.EXPAND|wx.ALL, border=10)
-        gbs.AddGrowableCol(0)
-        gbs.AddGrowableCol(1)
-
-        main_sizer.Add(gbs, 0, wx.EXPAND|wx.ALL, border=10)
-
-        fgs0 = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
-        fgs0.AddGrowableCol(1)
-        fgs0.Add(cb_pdf, flag=wx.ALIGN_LEFT|wx.LEFT|wx.BOTTOM, border=10)
-        fgs0.Add(self.pdflatex, flag=wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, border=10)
-        main_sizer.Add(fgs0, flag=wx.EXPAND|wx.ALL, border=5)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(cancel_btn, 0, wx.LEFT|wx.RIGHT, 10)
-        hbox.Add(export_btn, 0, wx.LEFT|wx.RIGHT, 10)
-
-        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, 10)
-        panel.SetSizerAndFit(main_sizer)
-
-        # Events
-
-        cb_pdf.Bind(wx.EVT_CHECKBOX, self.EvtCheckBox)
-
-    def EvtCheckBox(self, event):
-        cb = event.GetEventObject()
-        if cb.IsChecked():
-            self.pdflatex.Enable(True)
-
-    def GetData(self):
-
-        res = dict()
-        for name, attr in self.widgets.items():
-            res[name] = attr.GetValue()
-        return res
-
 def compRowFormatter(listItem, Component):
     red    = "#FF6B66"
     yellow = "#FFDE66"
@@ -756,21 +334,23 @@ class InputPanel(wx.Panel):
 
         # Layout
 
-        fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
+        #fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
+        gbs = wx.GridBagSizer(hgap=10, vgap=10)
 
-        fgs.AddGrowableCol(0)
-        fgs.AddGrowableCol(1)
-        fgs.AddGrowableRow(1)
+        gbs.Add(cmptxt, pos=(0,0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        gbs.Add(rcttxt, pos=(0,1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
 
-        fgs.Add(cmptxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-        fgs.Add(rcttxt, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        gbs.Add(self.compOlv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        gbs.Add(self.reacOlv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
 
-        fgs.Add(self.compOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        fgs.Add(self.reacOlv, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+        gbs.Add(zeobtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
+        gbs.Add(rctbtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
 
-        fgs.Add(zeobtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-        fgs.Add(rctbtn, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-        self.SetSizer(fgs)
+        gbs.AddGrowableCol(0)
+        gbs.AddGrowableCol(1)
+        gbs.AddGrowableRow(1)
+
+        self.SetSizer(gbs)
         self.Fit()
 
         # Event Handlers
@@ -792,7 +372,7 @@ class InputPanel(wx.Panel):
         database.
         '''
 
-        self.dlg = ComponentDialog(self, self.model, self.get_component_cols(),
+        self.dlg = dialogs.ComponentDialog(self, self.model, self.get_component_cols(),
                                    id=-1, title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
@@ -805,7 +385,7 @@ class InputPanel(wx.Panel):
         Show the dialog with the reactants retrieved from the database.
         '''
 
-        self.dlg = ReactantDialog(self, self.model, self.get_reactant_cols(),
+        self.dlg = dialogs.ReactantDialog(self, self.model, self.get_reactant_cols(),
                                   id=-1, title="Choose Reactants...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
@@ -950,7 +530,7 @@ class OutputPanel(wx.Panel):
         items and print them to the ListCtrl.
         '''
 
-        rto = RescaleToSampleDialog(self, self.model, self.get_rescale_columns(), title="Choose reactants and sample size")
+        rto = dialogs.RescaleToSampleDialog(self, self.model, self.get_rescale_columns(), title="Choose reactants and sample size")
         result = rto.ShowModal()
         if result == wx.ID_OK:
             # get the sample size and sample selections
@@ -1061,7 +641,7 @@ class MolesOutputPanel(wx.Panel):
         them.
         '''
 
-        rtsd = RescaleToItemDialog(self, self.model, self.get_rescale_columns(), title="Choose item and target amount")
+        rtsd = dialogs.RescaleToItemDialog(self, self.model, self.get_rescale_columns(), title="Choose item and target amount")
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
             amount, item = rtsd.GetCurrentSelections()
@@ -1311,7 +891,7 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        dlg = AddBatchToDatabaseDialog(self, self.model)
+        dlg = dialogs.AddBatchToDatabaseDialog(self, self.model)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -1320,16 +900,15 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        dlg = AddChemicalToDatabaseDialog(self, self.model)
-        dlg.ShowModal()
-        dlg.Destroy()
+        frame = AddEditDBFrame(self, sys.stdout)
+        frame.Show(True)
 
     def OnAddComponentToDB(self, event):
         '''
         Add a Zeolite Component to the Database
         '''
 
-        dlg = AddComponentToDatabaseDialog(self, self.model)
+        dlg = dialogs.AddComponentToDatabaseDialog(self, self.model)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -1362,7 +941,7 @@ class MainFrame(wx.Frame):
         '''
         Open the dialog with options about the TeX document tobe written.
         '''
-        etexdialog = ExportTexDialog(parent=self, id=-1)
+        etexdialog = dialogs.ExportTexDialog(parent=self, id=-1)
         result = etexdialog.ShowModal()
         if result == wx.ID_OK:
             flags = etexdialog.GetData()
@@ -1538,12 +1117,6 @@ class MainFrame(wx.Frame):
         self.outpanel.resultOlv.SetObjects(self.model.reactants)
         self.outpanel.scaledOlv.SetObjects(self.model.reactants)
 
-class ExceptionDialog(GMD.GenericMessageDialog):
-    def __init__(self, msg):
-        '''Constructor'''
-        GMD.GenericMessageDialog.__init__(self, None, msg, "Exception!",
-                                              wx.OK|wx.ICON_ERROR)
-
 def ExceptionHook(exctype, value, trace):
     '''
     Handler for all unhandled exceptions
@@ -1560,7 +1133,7 @@ def ExceptionHook(exctype, value, trace):
     ftrace = "".join(exc)
     app = wx.GetApp()
     msg = "An unexpected error has occurred: %s" % ftrace
-    dlg = ExceptionDialog(msg)
+    dlg = dialogs.ExceptionDialog(msg)
     dlg.ShowModal()
     dlg.Destroy()
 
