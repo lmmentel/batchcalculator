@@ -11,7 +11,6 @@ TO DO
 * add an option to calculate the pH of the batch
 * rewrite the basic classes used in the calculator so that the interface and
   manipulation become simpler
-* make a default to select all reactants for scaling to sample
 
 DONE
 ====
@@ -22,3 +21,4 @@ DONE
   output panels,
 * add an option to calculate the molar ratios of the components based on the
   masses of the reactants (for reconstructing the values from old papers)
+* make a default to select all reactants for scaling to sample
