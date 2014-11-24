@@ -47,12 +47,11 @@ from ObjectListView import ObjectListView, ColumnDefn
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator
-
-import dialogs
+from batchcalc import dialogs, calculator
+from batchcalc import controller
 
 # uncomment for debugging
 #import wx.lib.inspection
-
 
 def clean_tex(fname):
     '''
@@ -64,37 +63,23 @@ def clean_tex(fname):
         if os.path.exists(fil):
             os.remove(fil)
 
-class AddEditDBFrame(wx.Frame):
-    def __init__(self, parent, log, id=wx.ID_ANY, title="Edit Database",
+class AddModifyDBBaseFrame(wx.Frame):
+    def __init__(self, parent, id=wx.ID_ANY, title="Edit Database",
             pos=wx.DefaultPosition, size=(500, 300),
             style=wx.DEFAULT_FRAME_STYLE, name=""):
 
-        super(AddEditDBFrame, self).__init__(parent, id, title, pos, size, style, name)
+        super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos, size, style, name)
 
-        panel = wx.Panel(self, -1, style=0)
+        panel = wx.Panel(self, -1, style=wx.SUNKEN_BORDER)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
-        searchSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
-        # create the search related widgets
-        cat = ["Author", "Title", "ISBN", "Publisher"]
-        searchByLbl = wx.StaticText(self, label="Search By:")
-        searchByLbl.SetFont(font)
-        searchSizer.Add(searchByLbl, 0, wx.ALL, 5)
-
-        self.categories = wx.ComboBox(self, value="Author", choices=cat)
-        searchSizer.Add(self.categories, 0, wx.ALL, 5)
-
-        self.search = wx.SearchCtrl(self, style=wx.TE_PROCESS_ENTER)
-        self.search.Bind(wx.EVT_TEXT_ENTER, self.onSearch)
-        searchSizer.Add(self.search, 0, wx.ALL, 5)
-
-        self.bookResultsOlv = ObjectListView(self, style=wx.LC_REPORT
-                                                        |wx.SUNKEN_BORDER)
-        self.bookResultsOlv.SetEmptyListMsg("No Records Found")
-        #self.setBooks()
+        self.olv = ObjectListView(self, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.olv.evenRowsBackColor="#DCF0C7"
+        self.olv.oddRowsBackColor="#FFFFFF"
+        self.olv.SetEmptyListMsg("No Records Found")
 
         # create the button row
         addRecordBtn = wx.Button(self, label="Add")
@@ -110,48 +95,137 @@ class AddEditDBFrame(wx.Frame):
         btnSizer.Add(deleteRecordBtn, 0, wx.ALL, 5)
 
         showAllBtn = wx.Button(self, label="Show All")
-        showAllBtn.Bind(wx.EVT_BUTTON, self.onShowAllRecord)
+        showAllBtn.Bind(wx.EVT_BUTTON, self.onShowAllRecords)
         btnSizer.Add(showAllBtn, 0, wx.ALL, 5)
 
-        mainSizer.Add(searchSizer)
-        mainSizer.Add(self.bookResultsOlv, 1, wx.ALL|wx.EXPAND, 5)
+        mainSizer.Add(self.olv, 1, wx.ALL|wx.EXPAND, 5)
         mainSizer.Add(btnSizer, 0, wx.CENTER)
         self.SetSizer(mainSizer)
 
-    #----------------------------------------------------------------------
     def onAddRecord(self, event):
         """
         Add a record to the database
         """
         print "adding"
 
-    #----------------------------------------------------------------------
     def onEditRecord(self, event):
         """
         Edit a record
         """
         print "editing"
 
-    #----------------------------------------------------------------------
     def onDelete(self, event):
         """
         Delete a record
         """
         print "deleting"
 
-    #----------------------------------------------------------------------
     def onSearch(self, event):
         """
         Searches database based on the user's filter choice and keyword
         """
         print "searching"
 
-    #----------------------------------------------------------------------
-    def onShowAllRecord(self, event):
+    def onShowAllRecords(self, event):
         """
         Updates the record list to show all of them
         """
         print "showing all"
+
+class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
+
+    def __init__(self, parent, **kwargs):
+
+        super(AddModifyChemicalTableFrame, self).__init__(parent, **kwargs)
+        self.model = parent.model
+
+        self.show_all()
+
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+        print "adding chemical"
+        dlg = controller.AddModifyChemicalRecordDialog(self,
+                                                    session=self.model.session,
+                                                    title="Add",
+                                                    add_record=True)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.show_all()
+
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+        print "editing chemical"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        dlg = controller.AddModifyChemicalRecordDialog(self,
+                                                    session=self.model.session,
+                                                    record=sel_row,
+                                                    title="Modify",
+                                                    add_record=False)
+        result = dlg.ShowModal()
+        if result == wx.ID_SAVE:
+            print "saving result"
+            print dlg.get_data()
+        dlg.Destroy()
+        self.show_all()
+
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting chemical"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        controller.delete_chemical_record(self.model.session, sel_row.id)
+        self.show_all()
+
+    def onSearch(self, event):
+        """
+        Searches database based on the user's filter choice and keyword
+        """
+        print "searching chemical"
+
+    def onShowAllRecords(self, event):
+        """
+        Updates the record list to show all of them
+        """
+        self.show_all()
+
+    def set_olv(self, chemicals):
+
+        self.olv.SetColumns([
+            ColumnDefn(title="Id",               minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
+            ColumnDefn(title="Name",             minimumWidth=200, width=200, align="left",  valueGetter="name", isEditable=False, isSpaceFilling=True),
+            ColumnDefn(title="Formula",          minimumWidth=120, width=120, align="left",  valueGetter="formula", isEditable=False, isSpaceFilling=True),
+            ColumnDefn(title="Concentration",    minimumWidth=100, width=100, align="right", valueGetter="concentration", isEditable=False, stringConverter="%.2f"),
+            ColumnDefn(title="Molecular Weight", minimumWidth=120, width=120, align="right", valueGetter="molwt", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn(title="Short name",       minimumWidth=120, width=120, align="left",  valueGetter="short_name", isEditable=False),
+            ColumnDefn(title="Kind",             minimumWidth=120, width=120, align="left",  valueGetter="kind", isEditable=False),
+            ColumnDefn(title="Physical Form",    minimumWidth=120, width=120, align="left",  valueGetter="physical_form", isEditable=False),
+            ColumnDefn(title="Electrolyte",      minimumWidth=120, width=120, align="left",  valueGetter="electrolyte", isEditable=False),
+            ColumnDefn(title="CAS No.",          minimumWidth=120, width=120, align="left",  valueGetter="cas", isEditable=False),
+            ColumnDefn(title="pK",               minimumWidth=120, width=120, align="right", valueGetter="pk", isEditable=False),
+            ColumnDefn(title="SMILES",           minimumWidth=150, width=120, align="left",  valueGetter="smiles", isEditable=False),
+        ])
+        self.olv.SetObjects(chemicals)
+
+    def show_all(self):
+
+        chemicals = self.model.get_chemicals(showall=True)
+        print "\nChemicals in show_all\n"
+        for chem in chemicals:
+            print chem
+        self.set_olv(chemicals)
 
 class ShowBFrame(wx.Frame):
     def __init__(self, parent, log, id=wx.ID_ANY, title="Batch Matrix",
@@ -360,11 +434,11 @@ class InputPanel(wx.Panel):
 
     def get_component_cols(self):
         fields = ["name", "formula", "molwt", "short", "category"]
-        return [self.columns[k] for k in self.columns.keys() if k in fields]
+        return [self.columns[k] for k in fields]
 
-    def get_reactant_cols(self):
-        fields = ["name", "formula", "conc", "molwt", "short", "typ", "cas"]
-        return [self.columns[k] for k in self.columns.keys() if k in fields]
+    def get_chemicals_cols(self):
+        fields = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
+        return [self.columns[k] for k in fields]
 
     def OnAddRemoveComponents(self, event):
         '''
@@ -372,7 +446,7 @@ class InputPanel(wx.Panel):
         database.
         '''
 
-        self.dlg = dialogs.ComponentDialog(self, self.model, self.get_component_cols(),
+        self.dlg = dialogs.ComponentsDialog(self, self.model, self.get_component_cols(),
                                    id=-1, title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
@@ -385,8 +459,8 @@ class InputPanel(wx.Panel):
         Show the dialog with the reactants retrieved from the database.
         '''
 
-        self.dlg = dialogs.ReactantDialog(self, self.model, self.get_reactant_cols(),
-                                  id=-1, title="Choose Reactants...")
+        self.dlg = dialogs.ChemicalsDialog(self, self.model, self.get_chemicals_cols(),
+                                  id=-1, title="Choose Chemicals...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.reactants = self.dlg.GetCurrentSelections()
@@ -781,20 +855,25 @@ class MainFrame(wx.Frame):
         self.gray = "#939393"
 
         self.columns = OrderedDict([
-            ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
-            ("name"    , {"title" : "Name",             "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False, "isSpaceFilling" : True}),
-            ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
-            ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False, "isSpaceFilling" : True}),
-            ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
-            ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("mass"    , {"title" : "Mass [g]",         "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
-            ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
-            ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
-            ("typ"     , {"title" : "Type",             "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "typ", "isEditable" : False}),
-            ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
             ("cas"     , {"title" : "CAS No.",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
+            ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
+            ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
+            ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
+            ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
+            ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
+            ("kind"    , {"title" : "Kind",             "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "kind", "isEditable" : False}),
+            ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False, "isSpaceFilling" : True}),
+            ("mass"    , {"title" : "Mass [g]",         "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
+            ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("name"    , {"title" : "Name",             "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False, "isSpaceFilling" : True}),
+            ("pk"      , {"title" : "pK",               "minimumWidth" : 100, "width" : 120, "align" : "right", "valueGetter" : "pk", "isEditable" : False, "stringConverter" : "%.2f"}),
+            ("physform", {"title" : "Physical Form",    "minimumWidth" : 150, "width" : 150, "align" : "left",  "valueGetter" : "physical_form", "isEditable" : False}),
+            ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
+            ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
+            ("smiles"  , {"title" : "SMILES",           "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "smiles", "isEditable" : False}),
         ])
 
         self.model = BatchCalculator()
@@ -839,9 +918,10 @@ class MainFrame(wx.Frame):
         # Database Menu
         dbm = wx.Menu()
         mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
-        maddchemicaldb = dbm.Append(wx.ID_ANY, "Add Chemical\t", "Add a chemical to the database")
-        maddcomponentdb = dbm.Append(wx.ID_ANY, "Add Component\t", "Add a zeolite component to the database")
-        maddbatchdb = dbm.Append(wx.ID_ANY, "Add Batch\t", "Add a batch record to the database")
+        dbm.AppendSeparator()
+        maddchemicaldb = dbm.Append(wx.ID_ANY, "Edit Chemicals\t", "Edit chemicals records in the database")
+        maddcomponentdb = dbm.Append(wx.ID_ANY, "Edit Components\t", "Edit zeolite component records in the database")
+        maddbatchdb = dbm.Append(wx.ID_ANY, "Edit Batch\t", "Edit batch records in the database")
         menubar.Append(dbm, "Database")
         # About Menu
         aboutm = wx.Menu()
@@ -900,7 +980,7 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        frame = AddEditDBFrame(self, sys.stdout)
+        frame = AddModifyChemicalTableFrame(parent=self, size=(1000, 600))
         frame.Show(True)
 
     def OnAddComponentToDB(self, event):
@@ -908,7 +988,7 @@ class MainFrame(wx.Frame):
         Add a Zeolite Component to the Database
         '''
 
-        dlg = dialogs.AddComponentToDatabaseDialog(self, self.model)
+        dlg = dialogs.AddComponentTableDialog(self, self.model)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -1144,7 +1224,7 @@ class ZeoGui(wx.App):
         self.frame = MainFrame(None, title="Zeolite Batch Calculator",
                                size=(860, 600))
         # change the default exception handling
-        sys.excepthook = ExceptionHook
+        #sys.excepthook = ExceptionHook
         self.SetTopWindow(self.frame)
         self.frame.Show()
 

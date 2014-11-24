@@ -50,187 +50,14 @@ def which(prog):
         if os.path.exists(fprog) and os.access(fprog, os.X_OK):
             return fprog
 
-class AddBatchToDatabaseDialog(wx.Dialog):
-
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Batch record to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
-
-        super(AddBatchToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        # attributes
-
-        lbl_chemical = wx.StaticText(panel, -1, "Chemical")
-        lbl_component = wx.StaticText(panel, -1, "Component")
-        lbl_coeff = wx.StaticText(panel, -1, "Coefficient")
-        lbl_reaction = wx.StaticText(panel, -1, "Reaction")
-
-        txtc_coeff = wx.TextCtrl(panel, -1, "")
-
-        chemicals = model.get_chemicals(showall=True)
-        components = model.get_components()
-        reactions = model.get_reactions()
-
-        self.ch_chemical  = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in chemicals])
-        self.ch_component = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in components])
-        self.ch_reaction  = wx.Choice(panel, -1, (100, 50), choices=[x.reaction for x in reactions])
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_chemical,  pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_component, pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_coeff,     pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_reaction,  pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-
-        sizer.Add(self.ch_chemical,  pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_component, pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_coeff,        pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_reaction,  pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-
-        sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
-
-class AddModifyChemicalDialog(wx.Dialog):
-
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Chemical to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
-
-        super(AddModifyChemicalDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        # attributes
-
-        lbl_name = wx.StaticText(panel, -1, "Name")
-        lbl_formula = wx.StaticText(panel, -1, "Formula")
-        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
-        lbl_shname = wx.StaticText(panel, -1, "Short Name")
-        lbl_conc = wx.StaticText(panel, -1, "Concentration")
-        lbl_cas = wx.StaticText(panel, -1, "CAS")
-        lbl_density = wx.StaticText(panel, -1, "Density")
-        lbl_pk = wx.StaticText(panel, -1, "pK")
-        lbl_smiles = wx.StaticText(panel, -1, "SMILES")
-        lbl_type = wx.StaticText(panel, -1, "Type")
-        lbl_form = wx.StaticText(panel, -1, "Physical Form")
-        lbl_elect = wx.StaticText(panel, -1, "Electrolyte")
-
-        self.txtc_name = wx.TextCtrl(panel, -1, "")
-        self.txtc_formula = wx.TextCtrl(panel, -1, "")
-        self.txtc_molwt = wx.TextCtrl(panel, -1, "")
-        self.txtc_shname = wx.TextCtrl(panel, -1, "")
-        self.txtc_conc = wx.TextCtrl(panel, -1, "")
-        self.txtc_cas = wx.TextCtrl(panel, -1, "")
-        self.txtc_density = wx.TextCtrl(panel, -1, "")
-        self.txtc_pk = wx.TextCtrl(panel, -1, "")
-        self.txtc_smiles = wx.TextCtrl(panel, -1, "")
-
-        types = model.get_types()
-        forms = model.get_physical_forms()
-        elects = model.get_electrolytes()
-
-        self.ch_type = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in types])
-        self.ch_form = wx.Choice(panel, -1, (100, 50), choices=[x.form for x in forms])
-        self.ch_elects = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in elects])
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_name,    pos=( 0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_formula, pos=( 1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_molwt,   pos=( 2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_shname,  pos=( 3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_conc,    pos=( 4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_cas,     pos=( 5, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_density, pos=( 6, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_pk,      pos=( 7, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_smiles,  pos=( 8, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_type,    pos=( 9, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_form,    pos=(10, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_elect,   pos=(11, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-
-        sizer.Add(self.txtc_name,    pos=( 0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_formula, pos=( 1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_molwt,   pos=( 2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_shname,  pos=( 3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_conc,    pos=( 4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_cas,     pos=( 5, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_density, pos=( 6, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_pk,      pos=( 7, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_smiles,  pos=( 8, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_type,      pos=( 9, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_form,      pos=(10, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_elects,    pos=(11, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-
-        sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
-
-    def get_data(self):
-
-        chem_dict = {
-            "name"       : self.txtc_name.GetValue(),
-            "formula"    : self.txtc_formula.GetValue(),
-            "molwt"      : self.txtc_molwt.GetValue(),
-            "short_name" : self.txtc_shname.GetValue(),
-            "concentration" : self.txtc_conc.GetValue(),
-            "cas" : self.txtc_cas.GetValue(),
-            "density" : self.txtc_density.GetValue(),
-            "pk" : self.txtc_pk.GetValue(),
-            "smiles" : self.txtc_smiles.GetValue(),
-        }
-
-        return chem_dict
-
-class AddComponentToDatabaseDialog(wx.Dialog):
-
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Component to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
-
-        super(AddComponentToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
-
-        panel = wx.Panel(self)
-
-        # attributes
-
-        lbl_name = wx.StaticText(panel, -1, "Name")
-        lbl_formula = wx.StaticText(panel, -1, "Formula")
-        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
-        lbl_shname = wx.StaticText(panel, -1, "Short Name")
-        lbl_category = wx.StaticText(panel, -1, "Category")
-
-        txtc_name = wx.TextCtrl(panel, -1, "")
-        txtc_formula = wx.TextCtrl(panel, -1, "")
-        txtc_molwt = wx.TextCtrl(panel, -1, "")
-        txtc_shname = wx.TextCtrl(panel, -1, "")
-
-        categs = model.get_categories()
-
-        self.ch_category = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in categs])
-
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_name,     pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_formula,  pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_molwt,    pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_shname,   pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_category, pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-
-        sizer.Add(txtc_name,        pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_formula,     pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_molwt,       pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_shname,      pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_category, pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-
-        sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
-
-class ComponentDialog(wx.Dialog):
+class ComponentsDialog(wx.Dialog):
 
     def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(730, 500),
             style=wx.DEFAULT_FRAME_STYLE, name="Component Dialog"):
 
         dlgwidth = sum([c["width"] for c in columns]) + 50
-        super(ComponentDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
+        super(ComponentsDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
 
         panel = wx.Panel(self)
 
@@ -279,7 +106,7 @@ class ComponentDialog(wx.Dialog):
     def GetCurrentSelections(self):
         return self.compsOlv.GetCheckedObjects()
 
-class Exceptiondialog(GMD.GenericMessageDialog):
+class ExceptionDialog(GMD.GenericMessageDialog):
     def __init__(self, msg):
         '''constructor'''
         GMD.GenericMessageDialog.__init__(self, None, msg, "Exception!",
@@ -424,14 +251,14 @@ class ExportTexDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
-class ReactantDialog(wx.Dialog):
+class ChemicalsDialog(wx.Dialog):
 
     def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(850, 520),
             style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
 
         dlgwidth = sum([c["width"] for c in columns]) + 60
-        super(ReactantDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
+        super(ChemicalsDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
 
         panel = wx.Panel(self)
 
@@ -572,3 +399,133 @@ class RescaleToSampleDialog(wx.Dialog):
 
     def GetCurrentSelections(self):
         return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
+
+
+def show_message_dlg(message, caption, flag=wx.ICON_ERROR|wx.OK):
+    """"""
+    msg = wx.MessageDialog(None, message=message,
+                           caption=caption, style=flag)
+    msg.ShowModal()
+    msg.Destroy()
+
+class NumberValidator(wx.PyValidator):
+
+    def __init__(self):
+        wx.PyValidator.__init__(self)
+
+    def Clone(self):
+        """
+        Note that every validator must implement the Clone() method.
+        """
+        return NumberValidator()
+
+    def Validate(self, win):
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
+        if len(text) == 0:
+            wx.MessageBox("This field must contain some text!", "Error")
+            textCtrl.SetBackgroundColour("pink")
+            textCtrl.SetFocus()
+            textCtrl.Refresh()
+            return False
+        else:
+            textCtrl.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            textCtrl.Refresh()
+        return True
+
+    def TransferToWindow(self):
+        return True
+
+    def TransferFromWindow(self):
+        return True
+
+class NonEmptyValidator(wx.PyValidator):
+
+    def __init__(self):
+        wx.PyValidator.__init__(self)
+        print "called validator"
+
+    def Clone(self):
+        """
+        Note that every validator must implement the Clone() method.
+        """
+        return NonEmptyValidator()
+
+    def Validate(self, win):
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
+        print "len(text) = ", len(text)
+        if len(text) == 0:
+            wx.MessageBox("This field must contain some text!", "Error")
+            textCtrl.SetBackgroundColour("pink")
+            textCtrl.SetFocus()
+            textCtrl.Refresh()
+            return False
+        else:
+            textCtrl.SetBackgroundColour(
+            wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            textCtrl.Refresh()
+        return True
+
+    def TransferToWindow(self):
+        return True
+
+    def TransferFromWindow(self):
+        return True
+
+class TextObjectValidator(wx.PyValidator):
+     """ This validator is used to ensure that the user has entered something
+         into the text object editor dialog's text field.
+     """
+     def __init__(self):
+         """ Standard constructor.
+         """
+         wx.PyValidator.__init__(self)
+
+
+
+     def Clone(self):
+         """ Standard cloner.
+
+             Note that every validator must implement the Clone() method.
+         """
+         return TextObjectValidator()
+
+
+     def Validate(self, win):
+         """ Validate the contents of the given text control.
+         """
+         textCtrl = self.GetWindow()
+         text = textCtrl.GetValue()
+
+         if len(text) == 0:
+             wx.MessageBox("A text object must contain some text!", "Error")
+             textCtrl.SetBackgroundColour("pink")
+             textCtrl.SetFocus()
+             textCtrl.Refresh()
+             return False
+         else:
+             textCtrl.SetBackgroundColour(
+                 wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+             textCtrl.Refresh()
+             return True
+
+
+     def TransferToWindow(self):
+         """ Transfer data from validator to window.
+
+             The default implementation returns False, indicating that an error
+             occurred.  We simply return True, as we don't do any data transfer.
+         """
+         return True # Prevent wxDialog from complaining.
+
+
+     def TransferFromWindow(self):
+         """ Transfer data from window to validator.
+
+             The default implementation returns False, indicating that an error
+             occurred.  We simply return True, as we don't do any data transfer.
+         """
+         return True # Prevent wxDialog from complaining.
+
