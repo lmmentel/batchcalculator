@@ -132,6 +132,91 @@ class AddModifyDBBaseFrame(wx.Frame):
         """
         print "showing all"
 
+class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
+
+    def __init__(self, parent, **kwargs):
+
+        super(AddModifyBatchTableFrame, self).__init__(parent, **kwargs)
+        self.model = parent.model
+
+        self.show_all()
+
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+        print "adding batch record"
+        dlg = controller.AddModifyBatchRecordDialog(self,
+                                                    session=self.model.session,
+                                                    title="Add",
+                                                    add_record=True)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.show_all()
+
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+        print "editing batch record"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        dlg = controller.AddModifyBatchRecordDialog(self,
+                                                    session=self.model.session,
+                                                    record=sel_row,
+                                                    title="Modify",
+                                                    add_record=False)
+        result = dlg.ShowModal()
+        if result == wx.ID_SAVE:
+            print "saving batch result"
+            print dlg.get_data()
+        dlg.Destroy()
+        self.show_all()
+
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting batch reord"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        controller.delete_batch_record(self.model.session, sel_row.id)
+        self.show_all()
+
+    def onSearch(self, event):
+        """
+        Searches database based on the user's filter choice and keyword
+        """
+        print "searching chemical"
+
+    def onShowAllRecords(self, event):
+        """
+        Updates the record list to show all of them
+        """
+        self.show_all()
+
+    def set_olv(self, batches):
+
+        self.olv.SetColumns([
+            ColumnDefn(title="Id",          minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
+            ColumnDefn(title="Chemical",    minimumWidth=150, width=200, align="left",  valueGetter="chemical", isEditable=False, isSpaceFilling=True),
+            ColumnDefn(title="Component",   minimumWidth=150, width=200, align="left",  valueGetter="component", isEditable=False, isSpaceFilling=True),
+            ColumnDefn(title="Coefficient", minimumWidth=100, width=100, align="right", valueGetter="coefficient", isEditable=False, stringConverter="%.2f"),
+            ColumnDefn(title="Reaction",    minimumWidth=200, width=200, align="left",  valueGetter="reaction", isEditable=False, isSpaceFilling=True),
+        ])
+        self.olv.SetObjects(batches)
+
+    def show_all(self):
+
+        batches= self.model.get_batch_records()
+        self.set_olv(batches)
+
 class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
     def __init__(self, parent, **kwargs):
@@ -222,10 +307,93 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
 
         chemicals = self.model.get_chemicals(showall=True)
-        print "\nChemicals in show_all\n"
-        for chem in chemicals:
-            print chem
         self.set_olv(chemicals)
+
+class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
+
+    def __init__(self, parent, **kwargs):
+
+        super(AddModifyComponentTableFrame, self).__init__(parent, **kwargs)
+        self.model = parent.model
+
+        self.show_all()
+
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+        print "adding component"
+        dlg = controller.AddModifyComponentRecordDialog(self,
+                                                        session=self.model.session,
+                                                        title="Add",
+                                                        add_record=True)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.show_all()
+
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+        print "editing component"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        dlg = controller.AddModifyComponentRecordDialog(self,
+                                                        session=self.model.session,
+                                                        record=sel_row,
+                                                        title="Modify",
+                                                        add_record=False)
+        result = dlg.ShowModal()
+        if result == wx.ID_SAVE:
+            print "saving result"
+            print dlg.get_data()
+        dlg.Destroy()
+        self.show_all()
+
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting component"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        controller.delete_component_record(self.model.session, sel_row.id)
+        self.show_all()
+
+    def onSearch(self, event):
+        """
+        Searches database based on the user's filter choice and keyword
+        """
+        print "searching chemical"
+
+    def onShowAllRecords(self, event):
+        """
+        Updates the record list to show all of them
+        """
+        self.show_all()
+
+    def set_olv(self, components):
+
+        self.olv.SetColumns([
+            ColumnDefn(title="Id",               minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
+            ColumnDefn(title="Name",             minimumWidth=200, width=200, align="left",  valueGetter="name", isEditable=False, isSpaceFilling=True),
+            ColumnDefn(title="Formula",          minimumWidth=120, width=120, align="left",  valueGetter="formula", isEditable=False, isSpaceFilling=True),
+            ColumnDefn(title="Molecular Weight", minimumWidth=120, width=120, align="right", valueGetter="molwt", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn(title="Short name",       minimumWidth=120, width=120, align="left",  valueGetter="short_name", isEditable=False),
+            ColumnDefn(title="Category",         minimumWidth=120, width=120, align="left",  valueGetter="category", isEditable=False),
+        ])
+        self.olv.SetObjects(components)
+
+    def show_all(self):
+
+        components = self.model.get_components()
+        self.set_olv(components)
 
 class ShowBFrame(wx.Frame):
     def __init__(self, parent, log, id=wx.ID_ANY, title="Batch Matrix",
@@ -386,7 +554,7 @@ class InputPanel(wx.Panel):
         self.columns = columns
 
         cmptxt = wx.StaticText(self, -1, label="Components")
-        rcttxt = wx.StaticText(self, -1, label="Reactants")
+        rcttxt = wx.StaticText(self, -1, label="Chemicals")
         cmptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         rcttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
@@ -971,9 +1139,8 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        dlg = dialogs.AddBatchToDatabaseDialog(self, self.model)
-        dlg.ShowModal()
-        dlg.Destroy()
+        frame = AddModifyBatchTableFrame(parent=self, size=(800, 600))
+        frame.Show(True)
 
     def OnAddChemicalToDB(self, event):
         '''
@@ -988,9 +1155,8 @@ class MainFrame(wx.Frame):
         Add a Zeolite Component to the Database
         '''
 
-        dlg = dialogs.AddComponentTableDialog(self, self.model)
-        dlg.ShowModal()
-        dlg.Destroy()
+        frame = AddModifyComponentTableFrame(parent=self, size=(800, 600))
+        frame.Show(True)
 
     def OnChangeDB(self, event):
         '''

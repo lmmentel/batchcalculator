@@ -144,9 +144,12 @@ class Batch(Base):
     reaction_id  = Column(Integer, ForeignKey('reactions.id'), nullable=True)
     coefficient  = Column(Float, nullable=True)
 
-    chemical = relationship("Chemical")
-    component = relationship("Component")
-    reaction= relationship("Reaction")
+    _chemical = relationship("Chemical")
+    chemical = association_proxy("_chemical", "name")
+    _component = relationship("Component")
+    component = association_proxy("_component", "name")
+    _reaction= relationship("Reaction")
+    reaction = association_proxy("_reaction", "reaction")
 
     def __repr__(self):
         return "<Batch(id={i:>2d}, chemical_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
@@ -300,6 +303,11 @@ class BatchCalculator(object):
         self.sample_scale = 1.0
         self.sample_size = 5.0
         self.selections = []
+
+    def get_batch_records(self):
+
+        query = self.session.query(Batch).order_by(Batch.id).all()
+        return query
 
     def get_components(self, category=None):
 

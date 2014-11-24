@@ -273,6 +273,14 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
             if not self.is_number(self.txtc_conc, "Concentration must be a number"):
                 return
 
+        if self.txtc_density.GetValue() != "":
+            if not self.is_number(self.txtc_density, "Density must be a number"):
+                return
+
+        if self.txtc_pk.GetValue() != "":
+            if not self.is_number(self.txtc_pk, "pK must be a number"):
+                return
+
         if self.ch_kind.GetStringSelection() == "Undefined":
             wx.MessageBox("Please select the Kind", "Error")
             return
@@ -281,7 +289,7 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
         add_chemical_record(self.session, data)
 
-        dialogs.show_message_dlg("Book added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Chemical added", "Success!", wx.OK|wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
