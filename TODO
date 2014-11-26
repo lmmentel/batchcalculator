@@ -16,6 +16,8 @@ TODO
     - check for duplicate entries in chemicals, components, and batch,
     - check if all the components have sources,
     - check if all the chemicals are sources for existing components
+* add an option to print a report form the inverse calculation,
+  masses -> molar ratios
 
 DONE
 ====
