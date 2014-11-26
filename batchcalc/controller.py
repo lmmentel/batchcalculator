@@ -38,13 +38,12 @@ from batchcalc import dialogs
 
 
 
-class AddModifyBatchTableDialog(wx.Dialog):
+class AddModifyBatchRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Batch record to the Database",
-            pos=wx.DefaultPosition, size=(800, 300),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
+    def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
+            pos=wx.DefaultPosition, size=(800, 300)):
 
-        super(AddBatchToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
+        super(AddModifyBatchRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Batch Record".format(title), size=size)
 
         panel = wx.Panel(self)
 
@@ -61,9 +60,9 @@ class AddModifyBatchTableDialog(wx.Dialog):
 
         txtc_coeff = wx.TextCtrl(panel, -1, "")
 
-        chemicals = model.get_chemicals(showall=True)
-        components = model.get_components()
-        reactions = model.get_reactions()
+        chemicals = parent.model.get_chemicals(showall=True)
+        components = parent.model.get_components()
+        reactions = parent.model.get_reactions()
 
         self.ch_chemical  = wx.Choice(panel, -1, (50, 20), choices=[x.name for x in chemicals])
         self.ch_component = wx.Choice(panel, -1, (50, 20), choices=[x.name for x in components])
@@ -369,13 +368,13 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
         return chem_dict
 
-class AddModifyComponentTableDialog(wx.Dialog):
+class AddModifyComponentRecordDialog(wx.Dialog):
 
     def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Component to the Database",
             pos=wx.DefaultPosition, size=(400, 400),
             style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
 
-        super(AddComponentToDatabaseDialog, self).__init__(parent, id, title, pos, size, style, name)
+        super(AddModifyComponentRecordDialog, self).__init__(parent, id, title, pos, size, style, name)
 
         panel = wx.Panel(self)
 
@@ -523,9 +522,18 @@ def modify_chemical_record(session, id_num, data):
     session.add(chemical)
     session.commit()
 
+def delete_batch_record(session, id_num):
+    """
+    Delete a Batch record.
+    """
+
+    batch = session.query(Batch).get(id_num)
+    session.delete(batch)
+    session.commit()
+
 def delete_chemical_record(session, id_num):
     """
-    Delete a Chemicals record.
+    Delete a Chemical record.
     """
 
     chemical = session.query(Chemical).get(id_num)
