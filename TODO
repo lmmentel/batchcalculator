@@ -1,4 +1,4 @@
-TO DO
+TODO
 =====
 
 * add options (either from the edit dialog or a new menu in the menu bar) to
@@ -12,6 +12,10 @@ TO DO
 * rewrite the basic classes used in the calculator so that the interface and
   manipulation become simpler
 * add a button to rescale to the mass of one on the reactants
+* add consistency check to the database:
+    - check for duplicate entries in chemicals, components, and batch,
+    - check if all the components have sources,
+    - check if all the chemicals are sources for existing components
 
 DONE
 ====
