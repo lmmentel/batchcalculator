@@ -11,6 +11,7 @@ TO DO
 * add an option to calculate the pH of the batch
 * rewrite the basic classes used in the calculator so that the interface and
   manipulation become simpler
+* add a button to rescale to the mass of one on the reactants
 
 DONE
 ====
