@@ -37,36 +37,54 @@ from batchcalc.calculator import Chemical, Component, Electrolyte, Kind, Categor
 from batchcalc import dialogs
 
 
-
 class AddModifyBatchRecordDialog(wx.Dialog):
 
     def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(800, 300)):
+            pos=wx.DefaultPosition, size=(800, 230)):
 
         super(AddModifyBatchRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Batch Record".format(title), size=size)
 
-        panel = wx.Panel(self)
+        self.panel = wx.Panel(self)
 
         # attributes
+        self.session = session
+        self.record = record
+        self.add_record = add_record
+        if record is not None:
+            v_coeff = "{0:6.2f}".format(record.coefficient)
+        else:
+            v_coeff = ""
 
         font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
-        lbl_title = wx.StaticText(panel, -1, "Add/Modify Batch Record")
+        lbl_title = wx.StaticText(self.panel, -1, "{0:s} Batch Record".format(title))
         lbl_title.SetFont(font)
-        lbl_chemical = wx.StaticText(panel, -1, "Chemical")
-        lbl_component = wx.StaticText(panel, -1, "Component")
-        lbl_coeff = wx.StaticText(panel, -1, "Coefficient")
-        lbl_reaction = wx.StaticText(panel, -1, "Reaction")
+        lbl_chemical = wx.StaticText(self.panel, -1, "Chemical")
+        lbl_component = wx.StaticText(self.panel, -1, "Component")
+        lbl_coeff = wx.StaticText(self.panel, -1, "Coefficient")
+        lbl_reaction = wx.StaticText(self.panel, -1, "Reaction")
 
-        txtc_coeff = wx.TextCtrl(panel, -1, "")
+        self.txtc_coeff = wx.TextCtrl(self.panel, -1, v_coeff)
 
         chemicals = parent.model.get_chemicals(showall=True)
         components = parent.model.get_components()
         reactions = parent.model.get_reactions()
 
-        self.ch_chemical  = wx.Choice(panel, -1, (50, 20), choices=[x.name for x in chemicals])
-        self.ch_component = wx.Choice(panel, -1, (50, 20), choices=[x.name for x in components])
-        self.ch_reaction  = wx.Choice(panel, -1, (50, 20), choices=[x.reaction for x in reactions])
+        self.chemicals  = {i:c for i,c in zip(range(len(chemicals)), chemicals)}
+        self.components = {i:c for i,c in zip(range(len(components)), components)}
+        self.reactions  = {i:c for i,c in zip(range(len(reactions)), reactions)}
+
+        self.ch_chemical  = wx.Choice(self.panel, -1, (50, 20), choices=[x.name for x in chemicals])
+        self.ch_component = wx.Choice(self.panel, -1, (50, 20), choices=[x.name for x in components])
+        self.ch_reaction  = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction for x in reactions])
+
+        if record is not None:
+            if self.record.chemical is not None:
+                self.ch_chemical.SetStringSelection(self.record.chemical)
+            if self.record.component is not None:
+                self.ch_component.SetStringSelection(self.record.component)
+            if self.record.reaction is not None:
+                self.ch_reaction.SetStringSelection(self.record.reaction)
 
         sizer = wx.GridBagSizer(vgap=5, hgap=5)
         sizer.Add(lbl_title,     pos=(0, 0), span=(1, 3), flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, border=10)
@@ -77,13 +95,116 @@ class AddModifyBatchRecordDialog(wx.Dialog):
 
         sizer.Add(self.ch_chemical,  pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
         sizer.Add(self.ch_component, pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_coeff,        pos=(2, 2), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_reaction,  pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_coeff,   pos=(2, 2), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_reaction,  pos=(4, 0), span=(1, 2), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
+        buttonOk.SetDefault()
+        buttonOk.Bind(wx.EVT_BUTTON, self.OnSaveRecord)
+        buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
+        buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
+        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
+        sizer.Add(hbox, pos=(5, 0), span=(1, 3), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=10)
 
         sizer.AddGrowableCol(0)
         sizer.AddGrowableCol(1)
         sizer.AddGrowableCol(2)
-        panel.SetSizerAndFit(sizer)
+        self.panel.SetSizerAndFit(sizer)
+
+    def OnSaveRecord(self, event):
+
+        if self.add_record:
+            print "saving a new record"
+            self.add_batch()
+        else:
+            print "saving an existing record"
+            self.edit_batch()
+
+    def add_batch(self):
+        """
+        Add a new Batch record to the database.
+        """
+
+        data = self.get_data()
+        add_batch_record(self.session, data)
+        dialogs.show_message_dlg("Batch record added", "Success!", wx.OK|wx.ICON_INFORMATION)
+
+        # clear the TextCtrls to add a new record
+        for child in self.panel.GetChildren():
+            if isinstance(child, wx.TextCtrl):
+                child.SetValue("")
+            if isinstance(child, wx.Choice):
+                child.SetSelection(-1)
+
+    def edit_batch(self):
+        """
+        Edit/Modify an existing Batch record in the database.
+        """
+
+        data = self.get_data()
+        modify_batch_record(self.session, self.record.id, data)
+        dialogs.show_message_dlg("Batch record modified", "Success!", wx.OK|wx.ICON_INFORMATION)
+        self.Destroy()
+
+
+    def get_data(self):
+
+        print "Chemical     Sel: ", self.ch_chemical.GetStringSelection()
+        print "Chemical str Sel: ", self.ch_chemical.GetSelection()
+        print "Componen     Sel: ", self.ch_component.GetStringSelection()
+        print "Componen str Sel: ", self.ch_component.GetSelection()
+        print "Reaction     Sel: ", self.ch_reaction.GetStringSelection()
+        print "Reaction str Sel: ", self.ch_reaction.GetSelection()
+
+        if self.ch_chemical.GetSelection() < 0:
+            wx.MessageBox("No Chemical selected", "Error!", style=wx.ICON_ERROR)
+            return
+        else:
+            chemical_id = self.chemicals[self.ch_chemical.GetSelection()].id
+        if self.ch_component.GetSelection() < 0:
+            wx.MessageBox("No Component selected", "Error!", style=wx.ICON_ERROR)
+            return
+        else:
+            component_id = self.components[self.ch_component.GetSelection()].id
+
+        coefficient = self.txtc_coeff.GetValue()
+        if coefficient != "":
+            try:
+                coefficient = float(coefficient)
+            except:
+                wx.MessageBox("Coefficient must be a number", "Error!", style=wx.ICON_ERROR)
+                self.txtc_coeff.SetBackgroundColour("pink")
+                self.txtc_coeff.SetFocus()
+                self.txtc_coeff.Refresh()
+                return
+            self.txtc_coeff.SetBackgroundColour("white")
+            self.txtc_coeff.Refresh()
+        else:
+            wx.MessageBox("No coefficient entered", "Error!", style=wx.ICON_ERROR)
+            self.txtc_coeff.SetBackgroundColour("pink")
+            self.txtc_coeff.SetFocus()
+            self.txtc_coeff.Refresh()
+            return
+
+        if self.ch_reaction.GetSelection() < 0:
+            reaction_id = None
+        else:
+            reaction_id = self.reactions[self.ch_reaction.GetSelection()].id
+
+        data = {
+            "chemical_id"  : chemical_id,
+            "component_id" : component_id,
+            "coefficient"  : coefficient,
+            "reaction_id"  : reaction_id,
+        }
+
+        return data
+
+    def OnClose(self, event):
+        self.Destroy()
 
 class AddModifyChemicalRecordDialog(wx.Dialog):
 
@@ -328,7 +449,6 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
         self.Destroy()
 
-
     def OnSaveRecord(self, event):
 
         if self.add_record:
@@ -370,50 +490,203 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
 class AddModifyComponentRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, model, id=wx.ID_ANY, title="Add a Component to the Database",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="add chemical"):
+    def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
+            pos=wx.DefaultPosition, size=(400, 270)):
 
-        super(AddModifyComponentRecordDialog, self).__init__(parent, id, title, pos, size, style, name)
+        super(AddModifyComponentRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Component Record".format(title), size=size)
 
-        panel = wx.Panel(self)
+        self.panel = wx.Panel(self)
 
         # attributes
+        self.session = session
+        self.record = record
+        self.add_record = add_record
+        if record is not None:
+            v_name = record.name
+            v_formula = record.formula
+            v_molwt = "{0:8.4f}".format(record.molwt)
+            v_shname = record.short_name
+        else:
+            v_name = v_formula = v_molwt = v_shname = ""
+
         font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
-        lbl_title = wx.StaticText(panel, -1, "Add/Modify Component Record")
+        lbl_title = wx.StaticText(self.panel, -1, "{0:s} Component Record".format(title))
         lbl_title.SetFont(font)
-        lbl_name = wx.StaticText(panel, -1, "Name")
-        lbl_formula = wx.StaticText(panel, -1, "Formula")
-        lbl_molwt = wx.StaticText(panel, -1, "Molecular Weight")
-        lbl_shname = wx.StaticText(panel, -1, "Short Name")
-        lbl_category = wx.StaticText(panel, -1, "Category")
+        lbl_name = wx.StaticText(self.panel, -1, "Name")
+        lbl_formula = wx.StaticText(self.panel, -1, "Formula")
+        lbl_molwt = wx.StaticText(self.panel, -1, "Molecular Weight")
+        lbl_shname = wx.StaticText(self.panel, -1, "Short Name")
+        lbl_category = wx.StaticText(self.panel, -1, "Category")
 
-        txtc_name = wx.TextCtrl(panel, -1, "")
-        txtc_formula = wx.TextCtrl(panel, -1, "")
-        txtc_molwt = wx.TextCtrl(panel, -1, "")
-        txtc_shname = wx.TextCtrl(panel, -1, "")
+        self.txtc_name = wx.TextCtrl(self.panel, -1, v_name)
+        self.txtc_formula = wx.TextCtrl(self.panel, -1, v_formula)
+        self.txtc_molwt = wx.TextCtrl(self.panel, -1, v_molwt)
+        self.txtc_shname = wx.TextCtrl(self.panel, -1, v_shname)
 
-        categs = model.get_categories()
+        categ = parent.model.get_categories()
+        categ_choices = ["Undefined"] + [x.name for x in categ]
 
-        self.ch_category = wx.Choice(panel, -1, (100, 50), choices=[x.name for x in categs])
+        self.ch_category = wx.Choice(self.panel, -1, (100, 50), choices=categ_choices)
+
+        if record is not None:
+            if self.record.category is not None:
+                self.ch_category.SetStringSelection(self.record.category)
+            else:
+                self.ch_category.SetSelection(0)
+        else:
+            self.ch_category.SetSelection(0)
 
         sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_name,     pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_formula,  pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_molwt,    pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_shname,   pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_category, pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_title,    pos=(0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
+        sizer.Add(lbl_name,     pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_formula,  pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_molwt,    pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_shname,   pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_category, pos=(5, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
 
-        sizer.Add(txtc_name,        pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_formula,     pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_molwt,       pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(txtc_shname,      pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_category, pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_name,    pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_formula, pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_molwt,   pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_shname,  pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.ch_category,  pos=(5, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
+        buttonOk.SetDefault()
+        buttonOk.Bind(wx.EVT_BUTTON, self.OnSaveRecord)
+        buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
+        buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
+        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
+        sizer.Add(hbox, pos=(6, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=5)
 
         sizer.AddGrowableCol(1)
-        panel.SetSizerAndFit(sizer)
+        self.panel.SetSizerAndFit(sizer)
 
+    def is_empty(self, textctrl, message):
+
+        if len(textctrl.GetValue()) == 0:
+            wx.MessageBox(message, "Error")
+            textctrl.SetBackgroundColour("pink")
+            textctrl.SetFocus()
+            textctrl.Refresh()
+            return True
+        else:
+            textctrl.SetBackgroundColour("white")
+            textctrl.Refresh()
+
+    def is_number(self, textctrl, message):
+
+        try:
+            float(textctrl.GetValue())
+            textctrl.SetBackgroundColour("white")
+            textctrl.Refresh()
+            return True
+        except:
+            wx.MessageBox(message, "Error")
+            textctrl.SetBackgroundColour("pink")
+            textctrl.SetFocus()
+            textctrl.Refresh()
+            return False
+
+    def OnSaveRecord(self, event):
+
+        if self.add_record:
+            print "saving a new component record"
+            self.add_component()
+        else:
+            print "saving an existing component record"
+            self.edit_component()
+
+    def add_component(self):
+
+        if self.is_empty(self.txtc_name, "Name of the Component is required"):
+            return
+
+        if self.is_empty(self.txtc_formula, "Formula of the Component is required"):
+            return
+
+        if self.is_empty(self.txtc_molwt, "Molecular weight of the Component is required"):
+            return
+        else:
+            if not self.is_number(self.txtc_molwt, "Molecular weight must be a number"):
+                return
+
+        if self.ch_category.GetStringSelection() == "Undefined":
+            wx.MessageBox("Please select the Category", "Error")
+            return
+
+        data = self.get_data()
+
+        add_component_record(self.session, data)
+
+        dialogs.show_message_dlg("Component added", "Success!", wx.OK|wx.ICON_INFORMATION)
+
+        # clear the TextCtrls to add a new record
+        for child in self.panel.GetChildren():
+            if isinstance(child, wx.TextCtrl):
+                child.SetValue("")
+            if isinstance(child, wx.Choice):
+                child.SetSelection(0)
+
+    def edit_component(self):
+
+        if self.is_empty(self.txtc_name, "Name of the Component is required"):
+            return
+
+        if self.is_empty(self.txtc_formula, "Formula of the Component is required"):
+            return
+
+        if self.is_empty(self.txtc_molwt, "Molecular weight of the Component is required"):
+            return
+        else:
+            if not self.is_number(self.txtc_molwt, "Molecular weight must be a number"):
+                return
+
+        if self.ch_category.GetStringSelection() == "Undefined":
+            wx.MessageBox("Please select the Category", "Error")
+            return
+
+        data = self.get_data()
+
+        modify_component_record(self.session, self.record.id, data)
+        dialogs.show_message_dlg("Component modified", "Success!", wx.OK|wx.ICON_INFORMATION)
+
+        self.Destroy()
+
+    def OnClose(self, event):
+        print "closing the dialog"
+        self.Destroy()
+
+    def get_data(self):
+
+        print "Category selection: ", self.ch_category.GetSelection()
+        print "Category sel value: ", self.ch_category.GetStringSelection()
+
+        comp_dict = {
+            "name"          : self.txtc_name.GetValue(),
+            "formula"       : self.txtc_formula.GetValue(),
+            "molwt"         : self.txtc_molwt.GetValue(),
+            "short_name"    : self.txtc_shname.GetValue(),
+            "category"      : self.ch_category.GetStringSelection(),
+        }
+
+        return comp_dict
+
+def print_attrs(inst):
+
+    print "Class {0}".format(inst.__class__.__name__)
+    for key in sorted(inst.__dict__.keys()):
+        if not key.startswith("_"):
+            print "{0:s} : {1:s}".format(key, str(getattr(inst, key)))
+
+################################################################################
+# controller methods
+################################################################################
+
+########## Batch controller methods
 
 def add_batch_record(session, data):
     """
@@ -424,9 +697,31 @@ def add_batch_record(session, data):
     """
 
     batch = Batch(**data)
+    session.add(batch)
+    session.commit()
+
+def delete_batch_record(session, id_num):
+    """
+    Delete an exisitng Batch record.
+    """
+
+    batch = session.query(Batch).get(id_num)
+    session.delete(batch)
+    session.commit()
+
+def modify_batch_record(session, id_num, data):
+    """
+    Edit/Modify an existing Batch record.
+    """
+
+    batch = session.query(Batch).get(id_num)
+    for k in data.keys():
+        setattr(batch, k, data[k])
 
     session.add(batch)
     session.commit()
+
+########## Chemical controller methods
 
 def add_chemical_record(session, data):
     """
@@ -460,31 +755,16 @@ def add_chemical_record(session, data):
         chemical._electrolyte = session.query(Electrolyte).filter(Electrolyte.name == electrolyte).one()
 
     print_attrs(chemical)
-
     session.add(chemical)
     session.commit()
 
-def print_attrs(inst):
-
-    print "Class {0}".format(inst.__class__.__name__)
-    for key in sorted(inst.__dict__.keys()):
-        if not key.startswith("_"):
-            print "{0:s} : {1:s}".format(key, str(getattr(inst, key)))
-
-def add_component_record(session, data):
+def delete_chemical_record(session, id_num):
     """
-    Add a Component record to the database, the data should be in the form of a dictionary:
-
-    data = {'name' : 'water', 'formula' : 'H2O', 'molwt' : 18.0152,
-            '_catgory_id' : 3, 'short_name' : ''}
+    Delete a Chemical record.
     """
 
-    component = Component(**data)
-
-    if data.get("_category_id", None) is not None:
-        component._category = session.query(Category).get(data["_category_id"])
-
-    session.add(component)
+    chemical = session.query(Chemical).get(id_num)
+    session.delete(chemical)
     session.commit()
 
 def modify_chemical_record(session, id_num, data):
@@ -522,20 +802,108 @@ def modify_chemical_record(session, id_num, data):
     session.add(chemical)
     session.commit()
 
-def delete_batch_record(session, id_num):
+########## Compoment controller methods
+
+def add_component_record(session, data):
     """
-    Delete a Batch record.
+    Add a Component record to the database, the data should be in the form of a dictionary:
+
+    data = {'name' : 'water', 'formula' : 'H2O', 'molwt' : 18.0152,
+            '_catgory_id' : 3, 'short_name' : ''}
     """
 
-    batch = session.query(Batch).get(id_num)
-    session.delete(batch)
+    category = data.pop("category", None)
+    if category == "Undefined":
+        category = None
+
+    component = Component(**data)
+
+    if category is not None:
+        component._category = session.query(Category).filter(Category.name == category).one()
+
+    session.add(component)
     session.commit()
 
-def delete_chemical_record(session, id_num):
+def delete_component_record(session, id_num):
     """
-    Delete a Chemical record.
+    Delete a Component record.
     """
 
-    chemical = session.query(Chemical).get(id_num)
-    session.delete(chemical)
+    component = session.query(Component).get(id_num)
+    session.delete(component)
+    session.commit()
+
+def modify_component_record(session, id_num, data):
+    """
+    Edit/Modify Component record in the database,
+    """
+
+    print "editing the component"
+    category = data.pop("category", None)
+    if category == "Undefined":
+        category = None
+
+    component = session.query(Component).get(id_num)
+
+    for k in data.keys():
+        setattr(component, k, data[k])
+
+    if category is not None:
+        component._category = session.query(Category).filter(Category.name == category).one()
+
+    session.add(component)
+    session.commit()
+
+########## Reaction controller methods
+
+def add_reaction_record(session, data):
+
+    reaction = Reaction(reaction=data)
+    session.add(reaction)
+    session.commit()
+
+def delete_reaction_record(session, id_num):
+    """
+    Delete a Reaction record.
+    """
+
+    reaction = session.query(Reaction).get(id_num)
+    session.delete(reaction)
+    session.commit()
+
+def modify_reaction_record(session, id_num, data):
+    """
+    Modify/Edit an existing Reaction record in the database
+    """
+
+    reaction = session.query(Reaction).get(id_num)
+    reaction.reaction = data
+    session.add(reaction)
+    session.commit()
+
+########## Category controller methods
+
+def add_category_record(session, data):
+
+    category = Category(name=data)
+    session.add(category)
+    session.commit()
+
+def delete_category_record(session, id_num):
+    """
+    Delete a category record.
+    """
+
+    category = session.query(Category).get(id_num)
+    session.delete(category)
+    session.commit()
+
+def modify_category_record(session, id_num, data):
+    """
+    Modify/Edit an existing Category record in the database
+    """
+
+    category = session.query(Category).get(id_num)
+    category.name = data
+    session.add(category)
     session.commit()

@@ -214,7 +214,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
     def show_all(self):
 
-        batches= self.model.get_batch_records()
+        batches = self.model.get_batch_records()
         self.set_olv(batches)
 
 class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
@@ -394,6 +394,186 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
         components = self.model.get_components()
         self.set_olv(components)
+
+class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
+
+    def __init__(self, parent, **kwargs):
+
+        super(AddModifyCategoryTableFrame, self).__init__(parent, **kwargs)
+        self.model = parent.model
+
+        self.show_all()
+
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+
+        dlg = wx.TextEntryDialog(None,
+            "Enter new category",
+            "Enter new category", "", style=wx.OK|wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            category = dlg.GetValue()
+            if category != "":
+                controller.add_category_record(self.model.session, category)
+            else:
+                ed = wx.MessageDialog(None, "Nothing entered",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+        dlg.Destroy()
+        self.show_all()
+
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+
+        dlg = wx.TextEntryDialog(None,
+            "Enter the category",
+            "Enter the category", sel_row.name, style=wx.OK|wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            category = dlg.GetValue()
+            if category != "":
+                controller.modify_category_record(self.model.session, sel_row.id, category)
+            else:
+                ed = wx.MessageDialog(None, "Nothing entered",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+        dlg.Destroy()
+        self.show_all()
+
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting reaction record"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        controller.delete_category_record(self.model.session, sel_row.id)
+        self.show_all()
+
+    def onShowAllRecords(self, event):
+        """
+        Updates the record list to show all of them
+        """
+        self.show_all()
+
+    def set_olv(self, categories):
+
+        self.olv.SetColumns([
+            ColumnDefn(title="Id",          minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
+            ColumnDefn(title="Category",    minimumWidth=150, width=200, align="left",  valueGetter="name", isEditable=False, isSpaceFilling=True),
+        ])
+        self.olv.SetObjects(categories)
+
+    def show_all(self):
+
+        categories = self.model.get_categories()
+        self.set_olv(categories)
+
+class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
+
+    def __init__(self, parent, **kwargs):
+
+        super(AddModifyReactionTableFrame, self).__init__(parent, **kwargs)
+        self.model = parent.model
+
+        self.show_all()
+
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+        print "adding reaction record"
+        dlg = wx.TextEntryDialog(None,
+            "Enter the reaction",
+            "Enter the reaction", "", style=wx.OK|wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            reaction = dlg.GetValue()
+            if reaction != "":
+                controller.add_reaction_record(self.model.session, reaction)
+            else:
+                ed = wx.MessageDialog(None, "Nothing entered",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+        dlg.Destroy()
+        self.show_all()
+
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+        print "editing reaction record"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+
+        dlg = wx.TextEntryDialog(None,
+            "Enter the reaction",
+            "Enter the reaction", sel_row.reaction, style=wx.OK|wx.CANCEL)
+        if dlg.ShowModal() == wx.ID_OK:
+            reaction = dlg.GetValue()
+            if reaction != "":
+                controller.modify_reaction_record(self.model.session, sel_row.id, reaction)
+            else:
+                ed = wx.MessageDialog(None, "Nothing entered",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+        dlg.Destroy()
+        self.show_all()
+
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting reaction record"
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        print sel_row
+        controller.delete_reaction_record(self.model.session, sel_row.id)
+        self.show_all()
+
+    def onSearch(self, event):
+        """
+        Searches database based on the user's filter choice and keyword
+        """
+        print "searching chemical"
+
+    def onShowAllRecords(self, event):
+        """
+        Updates the record list to show all of them
+        """
+        self.show_all()
+
+    def set_olv(self, reactions):
+
+        self.olv.SetColumns([
+            ColumnDefn(title="Id",          minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
+            ColumnDefn(title="Reaction",    minimumWidth=250, width=300, align="left",  valueGetter="reaction", isEditable=False, isSpaceFilling=True),
+        ])
+        self.olv.SetObjects(reactions)
+
+    def show_all(self):
+
+        reactions = self.model.get_reactions()
+        self.set_olv(reactions)
 
 class ShowBFrame(wx.Frame):
     def __init__(self, parent, log, id=wx.ID_ANY, title="Batch Matrix",
@@ -1090,6 +1270,8 @@ class MainFrame(wx.Frame):
         maddchemicaldb = dbm.Append(wx.ID_ANY, "Edit Chemicals\t", "Edit chemicals records in the database")
         maddcomponentdb = dbm.Append(wx.ID_ANY, "Edit Components\t", "Edit zeolite component records in the database")
         maddbatchdb = dbm.Append(wx.ID_ANY, "Edit Batch\t", "Edit batch records in the database")
+        maddreactiondb = dbm.Append(wx.ID_ANY, "Edit Reactions\t", "Edit reaction records in the database")
+        maddcategorydb = dbm.Append(wx.ID_ANY, "Edit Categories\t", "Edit category records in the database")
         menubar.Append(dbm, "Database")
         # About Menu
         aboutm = wx.Menu()
@@ -1111,6 +1293,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAddChemicalToDB, maddchemicaldb)
         self.Bind(wx.EVT_MENU, self.OnAddComponentToDB, maddcomponentdb)
         self.Bind(wx.EVT_MENU, self.OnAddBatchToDB, maddbatchdb)
+        self.Bind(wx.EVT_MENU, self.OnAddReactionToDB, maddreactiondb)
+        self.Bind(wx.EVT_MENU, self.OnAddCategoryToDB, maddcategorydb)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
     # Menu Bindings ------------------------------------------------------------
@@ -1142,6 +1326,14 @@ class MainFrame(wx.Frame):
         frame = AddModifyBatchTableFrame(parent=self, size=(800, 600))
         frame.Show(True)
 
+    def OnAddCategoryToDB(self, event):
+        '''
+        Add a Category to the Database
+        '''
+
+        frame = AddModifyCategoryTableFrame(parent=self, size=(400, 400))
+        frame.Show(True)
+
     def OnAddChemicalToDB(self, event):
         '''
         Add a Chemical to the Database
@@ -1156,6 +1348,14 @@ class MainFrame(wx.Frame):
         '''
 
         frame = AddModifyComponentTableFrame(parent=self, size=(800, 600))
+        frame.Show(True)
+
+    def OnAddReactionToDB(self, event):
+        '''
+        Add a Reaction to the Database
+        '''
+
+        frame = AddModifyReactionTableFrame(parent=self, size=(600, 600))
         frame.Show(True)
 
     def OnChangeDB(self, event):
