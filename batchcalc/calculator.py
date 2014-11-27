@@ -41,7 +41,7 @@ from sqlalchemy import orm, Column, Integer, String, Float, create_engine, Forei
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+from sqlalchemy.ext.hybrid import hybrid_property
 
 _minwidth = 15
 
@@ -76,9 +76,9 @@ class BaseChemical(object):
         Return a label to be used in printable tables (tex, html).
         '''
         if self.is_undefined(self.short_name):
-            res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
+            res = self.formula_to_tex()
         else:
-            res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
+            res = self.short_name
         return res
 
     @staticmethod
@@ -228,6 +228,16 @@ class Chemical(BaseChemical, Base):
     def volume(self):
         return self.mass/self.density
 
+    def label(self):
+        '''
+        Return a label to be used in printable tables (tex, html).
+        '''
+        if self.is_undefined(self.short_name):
+            res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
+        else:
+            res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
+        return res
+
     def __repr__(self):
         #return "<Chemical(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
         #        i=self.id, n=self.name, f=self.formula)
@@ -245,7 +255,7 @@ class BatchCalculator(object):
         dbpath = self.get_dbpath()
         self.new_dbsession(dbpath)
 
-        self.lists = ["components", "reactants"]
+        self.lists = ["components", "chemicals"]
 
         # create lists for different categories of
         for lst in self.lists:
@@ -293,7 +303,7 @@ class BatchCalculator(object):
         '''
 
         self.components = []
-        self.reactants = []
+        self.chemicals = []
 
         self.A = []
         self.B = []
@@ -309,7 +319,7 @@ class BatchCalculator(object):
         query = self.session.query(Batch).order_by(Batch.id).all()
         return query
 
-    def get_components(self, category=None):
+    def get_components(self):
 
         query = self.session.query(Component).order_by(Component.id).all()
         return query
@@ -323,15 +333,12 @@ class BatchCalculator(object):
         if showall:
             query =  self.session.query(Chemical).order_by(Chemical.id).all()
         else:
-            comps = set()
-            for item in self.components:
-                raise NotImplementedError("should be fixed soon")
-                #temp = self.session.query(Chemical, Types.name, PhysicalForm.form).join(Batch).\
-                        #           filter(Chemical.typ == Types.id).\
-                        #   filter(Chemical.physical_form_id == PhysicalForm.id).\
-                        #   filter(Batch.component_id == item.id).all()
-                #comps.update(temp)
-            query = list(comps)
+            compset = set()
+            for comp in self.components:
+                temp = self.session.query(Chemical).join(Batch).\
+                            filter(Batch.component_id == comp.id).all()
+                compset.update(temp)
+                query = sorted(list(compset), key=lambda x: x.id)
         return query
 
     def get_categories(self):
@@ -395,12 +402,12 @@ class BatchCalculator(object):
         if len(self.components) == 0:
             raise ValueError("No Zeolite components selected")
 
-        if len(self.reactants) == 0:
-            raise ValueError("No Reactants selected")
+        if len(self.chemicals) == 0:
+            raise ValueError("No chemicals selected")
 
         for comp in self.components:
             tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
-            if len(set([t.id for t in tempr]) & set([r.id for r in self.reactants])) == 0:
+            if len(set([t.id for t in tempr]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some components need their sources: {0:s}".format(comp.name))
 
         self.A = self.get_A_matrix()
@@ -411,12 +418,12 @@ class BatchCalculator(object):
                 self.X = solve(np.transpose(self.B), self.A)
             else:
                 self.X, resid, rank, s = lstsq(np.transpose(self.B), self.A)
-            # assign calculated masses to the reactants
-            for reac, x in zip(self.reactants, self.X):
-                if reac.typ == "reactant":
-                    reac.mass = x/reac.concentration
+            # assign calculated masses to the chemicals
+            for chemical, x in zip(self.chemicals, self.X):
+                if chemical.kind == "reactant":
+                    chemical.mass = x/chemical.concentration
                 else:
-                    reac.mass = x
+                    chemical.mass = x
         except Exception as e:
             raise e
 
@@ -428,16 +435,16 @@ class BatchCalculator(object):
         if len(self.components) == 0:
             raise ValueError("No Zeolite components selected")
 
-        if len(self.reactants) == 0:
-            raise ValueError("No Reactants selected")
+        if len(self.chemicals) == 0:
+            raise ValueError("No chemicals selected")
 
         for comp in self.components:
             tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
-            if len(set([t.id for t in tempr]) & set([r.id for r in self.reactants])) == 0:
+            if len(set([t.id for t in tempr]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some compoennts need their sources: {0:s}".format(comp.name))
 
         masses = []
-        for reac in self.reactants:
+        for reac in self.chemicals:
             if reac.typ == "reactant":
                 masses.append(reac.mass*reac.concentration)
             else:
@@ -465,12 +472,12 @@ class BatchCalculator(object):
         Construct and return the batch matrix [B].
         '''
 
-        B = np.zeros((len(self.reactants), len(self.components)), dtype=float)
+        B = np.zeros((len(self.chemicals), len(self.components)), dtype=float)
 
-        for i, reactant in enumerate(self.reactants):
-            comps = self.session.query(Batch,DBComponent).\
-                    filter(Batch.chemical_id == reactant.id).\
-                    filter(DBComponent.id==Batch.component_id).all()
+        for i, chemical in enumerate(self.chemicals):
+            comps = self.session.query(Batch, Component).\
+                    filter(Batch.chemical_id == chemical.id).\
+                    filter(Component.id == Batch.component_id).all()
             wfs = self.get_weight_fractions(i, comps)
             for j, comp in enumerate(self.components):
                 for cid, wf in wfs:
@@ -489,16 +496,16 @@ class BatchCalculator(object):
 
         res = []
 
-        if self.reactants[rindex].typ == "mixture":
+        if self.chemicals[rindex].kind == "mixture":
             for batch, comp in comps:
                 res.append((comp.id, batch.coefficient))
             return res
 
-        elif self.reactants[rindex].typ == "solution":
+        elif self.chemicals[rindex].kind == "solution":
             if len(comps) > 2:
                 raise ValueError("cannot handle cases of zeoindexes > 2")
 
-            rct = self.reactants[rindex]
+            rct = self.chemicals[rindex]
 
             h2o = self.session.query(Chemical).filter(Chemical.formula=="H2O").one()
             M_solv = h2o.molwt
@@ -528,7 +535,7 @@ class BatchCalculator(object):
                     res.append((comp.id, (batch.coefficient*n_solu + n_solv)*comp.molwt/tot_mass))
             return res
 
-        elif self.reactants[rindex].typ == "reactant":
+        elif self.chemicals[rindex].kind == "reactant":
             if len(comps) > 1:
                 tot_mass = sum([b.coefficient*c.molwt for b, c in comps])
                 for batch, comp in comps:
@@ -538,35 +545,45 @@ class BatchCalculator(object):
             return res
 
         else:
-            raise ValueError("Unknown reactant typ: {}".format(self.reactants[rindex].typ))
+            raise ValueError("Unknown chemical kind: {}".format(self.chemicals[rindex].kind))
 
     def rescale_all(self):
         '''
-        Rescale all masses of reactants by a `scale_all` factor.
+        Rescale all masses of chemicals by a `scale_all` factor.
         '''
 
-        res = [s.mass/self.scale_all for s in self.reactants]
+        res = [s.mass/self.scale_all for s in self.chemicals]
         return res
+
+    def rescale_to_chemical(self, chemical, mass):
+        '''
+        Rescale all masses by a factor, so that the selected item has the mass
+        specified by the user.
+        '''
+
+        item_scale = chemical.mass/float(mass)
+        res = [s.mass/item_scale for s in self.chemicals]
+        return res
+
 
     def rescale_to_sample(self, selected):
         '''
         Rescale all masses by a factor chosen in such a way that the sum of
-        masses of a selected subset of chemicals is equal to the chose sample
+        masses of a selected subset of chemicals is equal to the chosen sample
         size.
         '''
 
-        masses = [s.mass for s in self.reactants]
         self.sample_scale = sum([s.mass for s in selected])/float(self.sample_size)
-        res = [s.mass/self.sample_scale for s in self.reactants]
+        res = [s.mass/self.sample_scale for s in self.chemicals]
         return res
 
-    def rescale_to_item(self, item, amount):
+    def rescale_to_item(self, component, amount):
         '''
         Rescale all mole numbers by a factor chosen in such a way that the
         selected *item* has th number of moles equal to *amount*.
         '''
 
-        factor = amount/item.moles
+        factor = amount/component.moles
         res = [s.moles*factor for s in self.components]
         return res
 
@@ -580,7 +597,7 @@ class BatchCalculator(object):
         print " "*5 + "{l:^{wl}}  |{v:^15s}".format(
                     l="Formula", wl=width, v="Mass [g]")
         print " "*5 + "-"*(width+3+15)
-        for reac in self.reactants:
+        for reac in self.chemicals:
             print " "*5+"{l:>{wl}}  |{v:>15.4f}".format(
                     l=reac.listctrl_label(), wl=width, v=reac.mass)
 
@@ -589,15 +606,15 @@ class BatchCalculator(object):
         Print the batch matrix in a readable form.
         '''
 
-        lr = len(self.reactants)
+        lr = len(self.chemicals)
 
         rowwidth = max([len(c.listctrl_label()) for c in self.components] + [_minwidth])
-        colwidth = max([len(r.listctrl_label()) for r in self.reactants] + [_minwidth])
+        colwidth = max([len(r.listctrl_label()) for r in self.chemicals] + [_minwidth])
 
         print "\n{0}{1:*^{w}s}\n".format(" "*7, "  Batch Matrix [B]  ", w=(colwidth+1)*lr+rowwidth)
         print "{}".format(" "*(8+rowwidth))+"|".join(["{0:^{cw}s}".format(c.listctrl_label(), cw=colwidth) for c in self.components])
         print "{}".format(" "*(7+rowwidth))+"{}".format("-"*(colwidth+1)*lr)
-        for reac, row in zip(self.reactants, self.B):
+        for reac, row in zip(self.chemicals, self.B):
             print "     {0:>{w}s}  |".format(reac.listctrl_label(), w=rowwidth)+"|".join("{0:>{w}.4f}    ".format(x, w=colwidth-4) for x in row)
 
     def parse_formulas(self, string, delimiter=':'):

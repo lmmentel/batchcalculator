@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+# file: zbc.py
+#
+# -* -coding: utf-8 -*-
 #
 #    Zeolite Batch Calculator
 #
@@ -47,8 +49,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.calculator import BatchCalculator
-from batchcalc import dialogs, calculator
-from batchcalc import controller
+from batchcalc import dialogs, controller
 
 # uncomment for debugging
 #import wx.lib.inspection
@@ -605,9 +606,9 @@ class CustomDataTable(gridlib.PyGridTableBase):
         gridlib.PyGridTableBase.__init__(self)
 
         self.col_labels = [x.listctrl_label() for x in model.components]
-        self.row_labels = [x.listctrl_label() for x in model.reactants]
+        self.row_labels = [x.listctrl_label() for x in model.chemicals]
 
-        self.data_types = [gridlib.GRID_VALUE_FLOAT]*len(model.reactants)
+        self.data_types = [gridlib.GRID_VALUE_FLOAT]*len(model.chemicals)
 
         self.data = model.B.tolist()
 
@@ -750,7 +751,7 @@ class InputPanel(wx.Panel):
         self.reacOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetComponents()
-        self.SetReactants()
+        self.SetChemicals()
         zeobtn = wx.Button(self, -1, label="Add/Remove")
         rctbtn = wx.Button(self, -1, label="Add/Remove")
 
@@ -778,7 +779,7 @@ class InputPanel(wx.Panel):
         # Event Handlers
 
         zeobtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveComponents)
-        rctbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveReactants)
+        rctbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveChemicals)
 
     def get_component_cols(self):
         fields = ["name", "formula", "molwt", "short", "category"]
@@ -802,17 +803,17 @@ class InputPanel(wx.Panel):
         self.compOlv.SetObjects(self.model.components)
         self.dlg.Destroy()
 
-    def OnAddRemoveReactants(self, event):
+    def OnAddRemoveChemicals(self, event):
         '''
-        Show the dialog with the reactants retrieved from the database.
+        Show the dialog with the chemicals retrieved from the database.
         '''
 
         self.dlg = dialogs.ChemicalsDialog(self, self.model, self.get_chemicals_cols(),
                                   id=-1, title="Choose Chemicals...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            self.model.reactants = self.dlg.GetCurrentSelections()
-        self.reacOlv.SetObjects(self.model.reactants)
+            self.model.chemicals = self.dlg.GetCurrentSelections()
+        self.reacOlv.SetObjects(self.model.chemicals)
         self.dlg.Destroy()
 
     def SetComponents(self, columns=None):
@@ -823,13 +824,13 @@ class InputPanel(wx.Panel):
         ])
         self.compOlv.SetObjects(self.model.components)
 
-    def SetReactants(self, columns=None):
+    def SetChemicals(self, columns=None):
 
         self.reacOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.3f"),
         ])
-        self.reacOlv.SetObjects(self.model.reactants)
+        self.reacOlv.SetObjects(self.model.chemicals)
 
 class MolesInputPanel(InputPanel):
 
@@ -843,14 +844,14 @@ class MolesInputPanel(InputPanel):
         ])
         self.compOlv.SetObjects(self.model.components)
 
-    def SetReactants(self):
+    def SetChemicals(self):
 
         self.reacOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Mass", "right", 150, "mass", isEditable=True, stringConverter="%.4f"),
             ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
         ])
-        self.reacOlv.SetObjects(self.model.reactants)
+        self.reacOlv.SetObjects(self.model.chemicals)
 
 class OutputPanel(wx.Panel):
 
@@ -878,9 +879,10 @@ class OutputPanel(wx.Panel):
         self.resultOlv.evenRowsBackColor="#DCF0C7"
         self.resultOlv.oddRowsBackColor="#FFFFFF"
 
-        calculatebtn = wx.Button(self, label="Calculate")
-        rescaleAllbtn = wx.Button(self, label="Rescale All")
-        rescaleTobtn = wx.Button(self, label="Rescale To")
+        calculateBtn = wx.Button(self, label="Calculate")
+        rescaleAllBtn = wx.Button(self, label="Rescale All")
+        rescaleToSampleBtn = wx.Button(self, label="Rescale To Sample")
+        rescaleToItemBtn = wx.Button(self, label="Rescale To Item")
 
         self.SetResults()
         self.SetScaled()
@@ -899,10 +901,11 @@ class OutputPanel(wx.Panel):
         fgs.Add(self.resultOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
         fgs.Add(self.scaledOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
 
-        fgs.Add(calculatebtn, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
+        fgs.Add(calculateBtn, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(rescaleAllbtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
-        hbox.Add(rescaleTobtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
+        hbox.Add(rescaleAllBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
+        hbox.Add(rescaleToSampleBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
+        hbox.Add(rescaleToItemBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
         fgs.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
 
         self.SetSizer(fgs)
@@ -910,9 +913,10 @@ class OutputPanel(wx.Panel):
 
         # Event Handlers
 
-        calculatebtn.Bind(wx.EVT_BUTTON, self.OnCalculate)
-        rescaleAllbtn.Bind(wx.EVT_BUTTON, self.OnRescaleAll)
-        rescaleTobtn.Bind(wx.EVT_BUTTON, self.OnRescaleTo)
+        calculateBtn.Bind(wx.EVT_BUTTON, self.OnCalculate)
+        rescaleAllBtn.Bind(wx.EVT_BUTTON, self.OnRescaleAll)
+        rescaleToSampleBtn.Bind(wx.EVT_BUTTON, self.OnRescaleToSample)
+        rescaleToItemBtn.Bind(wx.EVT_BUTTON, self.OnRescaleToItem)
 
     def get_rescale_columns(self):
         fields = ["label", "mass"]
@@ -921,7 +925,7 @@ class OutputPanel(wx.Panel):
     def OnCalculate(self, event):
 
         self.model.calculate()
-        self.resultOlv.SetObjects(self.model.reactants)
+        self.resultOlv.SetObjects(self.model.chemicals)
 
     def OnRescaleAll(self, event):
         '''
@@ -944,7 +948,44 @@ class OutputPanel(wx.Panel):
                 ed.Destroy()
         dialog.Destroy()
 
-    def OnRescaleTo(self, event):
+    def get_rescale_columns(self):
+        fields = ["label", "mass"]
+        return [self.columns[k] for k in self.columns.keys() if k in fields]
+
+    def OnRescaleToItem(self, event):
+        '''
+        Retrieve the selected item and the mass for that item to which it
+        should be scaled, then rescale all the components and display them.
+        '''
+
+        rtsd = dialogs.RescaleToItemDialog(self, self.model.chemicals, self.get_rescale_columns(), title="Choose chemical and desired mass")
+        result = rtsd.ShowModal()
+        if result == wx.ID_OK:
+            mass, item = rtsd.GetCurrentSelections()
+            try:
+                mass = float(mass)
+            except:
+                mass = 1.0
+                ed = wx.MessageDialog(None, "Mass must be a number",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                ed.ShowModal()
+                ed.Destroy()
+
+            if len(item) == 0 or len(item) > 1:
+                dlg = wx.MessageDialog(None, "Precisely one item has to be selected.",
+                                      "", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+            else:
+                chemicals = copy.deepcopy(self.model.chemicals)
+                newmasses = self.model.rescale_to_chemical(item[0], mass)
+                for c, m  in zip(chemicals, newmasses):
+                    c.mass = m
+                self.scaledOlv.SetObjects(chemicals)
+                self.rescaledtxt.SetLabel("Rescaled to {0:6.2f}g of {1:s}".format(mass, item[0].formula))
+                self.Layout()
+
+    def OnRescaleToSample(self, event):
         '''
         Retrieve the scaling factor and selections from a custom dialog, then
         calculate the scaling factor so that the selected item after rescaling
@@ -952,7 +993,7 @@ class OutputPanel(wx.Panel):
         items and print them to the ListCtrl.
         '''
 
-        rto = dialogs.RescaleToSampleDialog(self, self.model, self.get_rescale_columns(), title="Choose reactants and sample size")
+        rto = dialogs.RescaleToSampleDialog(self, self.model, self.get_rescale_columns(), title="Choose chemicals and sample size")
         result = rto.ShowModal()
         if result == wx.ID_OK:
             # get the sample size and sample selections
@@ -973,21 +1014,21 @@ class OutputPanel(wx.Panel):
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
-                reactants = copy.deepcopy(self.model.reactants)
+                chemicals = copy.deepcopy(self.model.chemicals)
                 newmasses = self.model.rescale_to_sample(selections)
-                for reac, newmass in zip(reactants, newmasses):
+                for reac, newmass in zip(chemicals, newmasses):
                     reac.mass = newmass
-                self.scaledOlv.SetObjects(reactants)
+                self.scaledOlv.SetObjects(chemicals)
                 self.rescaledtxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
                 self.Layout()
 
     def RescaleAll(self):
 
-        reactants = copy.deepcopy(self.model.reactants)
+        chemicals = copy.deepcopy(self.model.chemicals)
         newmasses = self.model.rescale_all()
-        for reac, newmass in zip(reactants, newmasses):
-            reac.mass = newmass
-        self.scaledOlv.SetObjects(reactants)
+        for chemical, newmass in zip(chemicals, newmasses):
+            chemical.mass = newmass
+        self.scaledOlv.SetObjects(chemicals)
         self.rescaledtxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
 
     def SetResults(self):
@@ -997,7 +1038,7 @@ class OutputPanel(wx.Panel):
             ColumnDefn("Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
             ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter="%.4f"),
         ])
-        self.resultOlv.SetObjects(self.model.reactants)
+        self.resultOlv.SetObjects(self.model.chemicals)
 
     def SetScaled(self):
 
@@ -1006,7 +1047,7 @@ class OutputPanel(wx.Panel):
             ColumnDefn("Scaled Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
             ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter="%.4f"),
         ])
-        self.scaledOlv.SetObjects(self.model.reactants)
+        self.scaledOlv.SetObjects(self.model.chemicals)
 
 class MolesOutputPanel(wx.Panel):
 
@@ -1063,7 +1104,7 @@ class MolesOutputPanel(wx.Panel):
         them.
         '''
 
-        rtsd = dialogs.RescaleToItemDialog(self, self.model, self.get_rescale_columns(), title="Choose item and target amount")
+        rtsd = dialogs.RescaleToItemDialog(self, self.model.components, self.get_rescale_columns(), title="Choose chemical and desired mass")
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
             amount, item = rtsd.GetCurrentSelections()
@@ -1173,7 +1214,7 @@ class InverseBatch(wx.Frame):
     def OnNew(self, event):
         self.model.reset()
         self.inppanel.SetComponents()
-        self.inppanel.SetReactants()
+        self.inppanel.SetChemicals()
         self.outpanel.SetResults()
 
     def OnShowB(self, event):
@@ -1390,7 +1431,7 @@ class MainFrame(wx.Frame):
         etexdialog = dialogs.ExportTexDialog(parent=self, id=-1)
         result = etexdialog.ShowModal()
         if result == wx.ID_OK:
-            flags = etexdialog.GetData()
+            flags = etexdialog.get_data()
             # get the string with contents of the TeX report
             tex = get_report_as_string(flags, self.model)
             self.OnSaveTeX(tex, flags['typeset'], flags['pdflatex'])
@@ -1407,7 +1448,7 @@ class MainFrame(wx.Frame):
 
         # check if there is some results that might need saving
         if any(len(x) != 0 for x in [self.model.components,
-                                     self.model.reactants]):
+                                     self.model.chemicals]):
             dlg = wx.MessageDialog(self, 'There are unsaved changes, Save now?',
                                 'Save',
                                 wx.YES_NO | wx.CANCEL | wx.ICON_WARNING
@@ -1451,7 +1492,7 @@ class MainFrame(wx.Frame):
 
             # open the file and read the actual data
             fp = open(path, 'rb')
-            (self.model.components, self.model.reactants,\
+            (self.model.components, self.model.chemicals,\
             self.model.A, self.model.B, self.model.X,\
             self.model.scale_all, self.model.sample_scale,\
             self.model.sample_size, self.model.selections) = pickle.load(fp)
@@ -1487,7 +1528,7 @@ class MainFrame(wx.Frame):
                 path += '.zbc'
 
             data = (self.model.components,
-                    self.model.reactants,
+                    self.model.chemicals,
                     self.model.A, self.model.B, self.model.X,
                     self.model.scale_all, self.model.sample_scale,
                     self.model.sample_size, self.model.selections)
@@ -1496,7 +1537,6 @@ class MainFrame(wx.Frame):
             fp.close()
 
         dlg.Destroy()
-
 
     def OnSaveTeX(self, texdata, typeset, pdflatex):
 
@@ -1559,9 +1599,9 @@ class MainFrame(wx.Frame):
         '''
 
         self.inppanel.compOlv.SetObjects(self.model.components)
-        self.inppanel.reacOlv.SetObjects(self.model.reactants)
-        self.outpanel.resultOlv.SetObjects(self.model.reactants)
-        self.outpanel.scaledOlv.SetObjects(self.model.reactants)
+        self.inppanel.reacOlv.SetObjects(self.model.chemicals)
+        self.outpanel.resultOlv.SetObjects(self.model.chemicals)
+        self.outpanel.scaledOlv.SetObjects(self.model.chemicals)
 
 def ExceptionHook(exctype, value, trace):
     '''

@@ -29,12 +29,10 @@
 
 __version__ = "0.1.2"
 
-import re
 import os
 import sys
 import datetime
-import numpy as np
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 
 def get_temppath():
     '''
@@ -93,22 +91,22 @@ def tex_B(model):
     tshape = u'{l'+u'C'*len(model.components)+u'}'
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}'+tshape+ur'\toprule'+u'\n'
     table += u'Compound' + u' & ' + u' & '.join([z.label() for z in model.components]) + ur'\\ \midrule' + u'\n'
-    for reactant, row in zip(model.reactants, model.B):
+    for reactant, row in zip(model.chemicals, model.B):
         table += reactant.label() + u' & ' + u' & '.join(["{0:10.4f}".format(x) for x in row]) + ur'\\' + u'\n'
     return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
 
 def tex_X(model):
 
-    masssum = sum([s.mass for s in model.reactants])
+    masssum = sum([s.mass for s in model.chemicals])
 
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
     table += " & ".join([ur'Substance', ur'\multicolumn{1}{c}{Mass [g]}',
                          ur'Scaled Mass [g]',
                          ur'Weighted mass [g]']) + ur'\\ \midrule' + u'\n'
-    for i, subs in enumerate(model.reactants, start=1):
+    for i, subs in enumerate(model.chemicals, start=1):
         table += ur"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(
                     l=subs.label(), v=subs.mass, s=subs.mass/model.scale_all)
-        if i < len(model.reactants):
+        if i < len(model.chemicals):
             table += ur'\cline{4-4}' + u'\n'
         else:
             table += u'\n'
@@ -119,7 +117,7 @@ def tex_X(model):
 def tex_X_rescale(model):
 
     masspar = sum([s.mass for s in model.selections])
-    masssum = sum([s.mass for s in model.reactants])
+    masssum = sum([s.mass for s in model.chemicals])
 
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
     table += " & ".join([ur'Substance', ur'\multicolumn{1}{c}{Mass [g]}',
@@ -132,8 +130,8 @@ def tex_X_rescale(model):
         else:
             table += u'\n'
     table += ur'\midrule Sum & '+ "{0:>15.4f}".format(masspar) + ' & ' + "{0:>15.4f}".format(masspar/model.sample_scale) + ur' & \\ '
-    nsel_ids = set([x.id for x in model.reactants]).difference(set([x.id for x in model.selections]))
-    not_selected = [x for x in model.reactants if x.id in nsel_ids]
+    nsel_ids = set([x.id for x in model.chemicals]).difference(set([x.id for x in model.selections]))
+    not_selected = [x for x in model.chemicals if x.id in nsel_ids]
     if len(not_selected) > 0:
         table += ur'\midrule' + u'\n'
     for i, subs in enumerate(not_selected, start=1):

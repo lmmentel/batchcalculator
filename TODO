@@ -6,10 +6,11 @@ TODO
 * add an option to print volumes instead of masses for liquids
 * add an option to select a tex template in the export tex dialog
 * add an option to export to HTML, and plain text
-* add an option to calculate the pH of the batch
+* add an option to calculate the pH of the batch (this onw is tricky since
+  first the equilibrium concentrations of all the species in the solution need
+  to be calculated)
 * rewrite the basic classes used in the calculator so that the interface and
   manipulation become simpler
-* add a button to rescale to the mass of one on the reactants
 * add consistency check to the database:
     - check for duplicate entries in chemicals, components, and batch,
     - check if all the components have sources,
@@ -29,4 +30,5 @@ DONE
 * make a default to select all reactants for scaling to sample
 * add options (either from the edit dialog or a new menu in the menu bar) to
   extend (add/remove/modify) entries in the database from the GUI
+* add a button to rescale to the mass of one on the reactants
 

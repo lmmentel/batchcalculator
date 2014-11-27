@@ -140,8 +140,8 @@ class ExportTexDialog(wx.Dialog):
 
         cb_cmpm = wx.CheckBox(panel, label="Composition Matrix")
         cb_bmat = wx.CheckBox(panel, label="Batch Matrix")
-        cb_rescaleall = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
-        cb_rescaleto = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
+        cb_rescaleAll = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
+        cb_rescaleTo = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
 
         cb_cmpm.SetValue(True)
         cb_bmat.SetValue(True)
@@ -241,10 +241,10 @@ class ExportTexDialog(wx.Dialog):
 
     def EvtCheckBox(self, event):
         cb = event.GetEventObject()
-        if cb.isChecked():
+        if cb.IsChecked():
             self.pdflatex.Enable(True)
 
-    def getdata(self):
+    def get_data(self):
 
         res = dict()
         for name, attr in self.widgets.items():
@@ -268,7 +268,7 @@ class ChemicalsDialog(wx.Dialog):
         self.reacsOlv.oddRowsBackColor="#FFFFFF"
         self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        self.SetReactants(model, columns)
+        self.SetChemicals(model, columns)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -284,7 +284,7 @@ class ChemicalsDialog(wx.Dialog):
 
         panel.SetSizerAndFit(self.sizer)
 
-    def SetReactants(self, model, columns):
+    def SetChemicals(self, model, columns):
 
         olv_cols = []
         for col in columns:
@@ -294,9 +294,9 @@ class ChemicalsDialog(wx.Dialog):
         self.reacsOlv.CreateCheckStateColumn()
         data = model.get_chemicals(showall=(len(model.components) == 0))
         for item in data:
-            if item.id in [r.id for r in model.reactants]:
+            if item.id in [r.id for r in model.chemicals]:
                 self.reacsOlv.SetCheckState(item, True)
-                reac = model.select_item("reactants", "id", item.id)
+                reac = model.select_item("chemicals", "id", item.id)
                 item.mass = reac.mass
                 item.concentration = reac.concentration
         self.reacsOlv.SetObjects(data)
@@ -306,7 +306,7 @@ class ChemicalsDialog(wx.Dialog):
 
 class RescaleToItemDialog(wx.Dialog):
 
-    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="Choose an item and the amount",
+    def __init__(self, parent, objects, columns, id=wx.ID_ANY, title="Choose an item and the amount",
             pos=wx.DefaultPosition, size=(400, 400),
             style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Item Dialog"):
         super(RescaleToItemDialog, self).__init__(parent, id, title, pos, size, style, name)
@@ -317,9 +317,9 @@ class RescaleToItemDialog(wx.Dialog):
                 useAlternateBackColors=True)
         self.olv.evenRowsBackColor="#DCF0C7"
         self.olv.oddRowsBackColor="#FFFFFF"
-        self.SetComponents(model, columns)
+        self.SetComponents(objects, columns)
         scalelbl = wx.StaticText(panel, -1, "Amount:")
-        self.amount = wx.TextCtrl(panel, -1, "{0:6.2f}".format(1.0))
+        self.amount = wx.TextCtrl(panel, -1, "{0:6.2f}".format(1.0).strip())
 
         buttonOk = wx.Button(panel, id=wx.ID_OK)
         buttonOk.SetDefault()
@@ -337,7 +337,7 @@ class RescaleToItemDialog(wx.Dialog):
         sizer.AddGrowableRow(0)
         panel.SetSizer(sizer)
 
-    def SetComponents(self, model, columns):
+    def SetComponents(self, objects, columns):
 
         olv_cols = []
         for col in columns:
@@ -345,7 +345,7 @@ class RescaleToItemDialog(wx.Dialog):
 
         self.olv.SetColumns(olv_cols)
         self.olv.CreateCheckStateColumn()
-        self.olv.SetObjects(model.components)
+        self.olv.SetObjects(objects)
 
     def GetCurrentSelections(self):
         return self.amount.GetValue(), self.olv.GetCheckedObjects()
@@ -364,7 +364,7 @@ class RescaleToSampleDialog(wx.Dialog):
                 useAlternateBackColors=True)
         self.olv.evenRowsBackColor="#DCF0C7"
         self.olv.oddRowsBackColor="#FFFFFF"
-        self.SetReactants(model, columns)
+        self.SetChemicals(model, columns)
 
         scalelbl = wx.StaticText(panel, -1, "Sample size [g]:")
         self.sample_size = wx.TextCtrl(panel, -1, str(model.sample_size))
@@ -385,7 +385,7 @@ class RescaleToSampleDialog(wx.Dialog):
         sizer.AddGrowableRow(0)
         panel.SetSizer(sizer)
 
-    def SetReactants(self, model, columns):
+    def SetChemicals(self, model, columns):
 
         olv_cols = []
         for col in columns:
@@ -393,9 +393,9 @@ class RescaleToSampleDialog(wx.Dialog):
 
         self.olv.SetColumns(olv_cols)
         self.olv.CreateCheckStateColumn()
-        for item in model.reactants:
+        for item in model.chemicals:
             self.olv.Check(item)
-        self.olv.SetObjects(model.reactants)
+        self.olv.SetObjects(model.chemicals)
 
     def GetCurrentSelections(self):
         return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
