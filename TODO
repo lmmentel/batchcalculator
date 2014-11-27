@@ -3,7 +3,6 @@ TODO
 
 * write a django app to expose the calculator functionality through a
   web form
-* add an option to print volumes instead of masses for liquids
 * add an option to select a tex template in the export tex dialog
 * add an option to export to HTML, and plain text
 * add an option to calculate the pH of the batch (this onw is tricky since
@@ -31,4 +30,5 @@ DONE
 * add options (either from the edit dialog or a new menu in the menu bar) to
   extend (add/remove/modify) entries in the database from the GUI
 * add a button to rescale to the mass of one on the reactants
+* add an option to print volumes instead of masses for liquids
 
