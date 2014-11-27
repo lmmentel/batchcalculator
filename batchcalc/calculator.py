@@ -444,11 +444,11 @@ class BatchCalculator(object):
                 raise ValueError("some compoennts need their sources: {0:s}".format(comp.name))
 
         masses = []
-        for reac in self.chemicals:
-            if reac.typ == "reactant":
-                masses.append(reac.mass*reac.concentration)
+        for chemical in self.chemicals:
+            if chemical.kind == "reactant":
+                masses.append(chemical.mass*chemical.concentration)
             else:
-                masses.append(reac.mass)
+                masses.append(chemical.mass)
 
         self.X = np.array(masses, dtype=float)
         self.B = self.get_B_matrix()
