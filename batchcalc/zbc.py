@@ -64,6 +64,13 @@ def clean_tex(fname):
         if os.path.exists(fil):
             os.remove(fil)
 
+def format_float(item):
+
+    if item is not None:
+        return "{0:7.3f}".format(item)
+    else:
+        return ""
+
 class AddModifyDBBaseFrame(wx.Frame):
     def __init__(self, parent, id=wx.ID_ANY, title="Edit Database",
             pos=wx.DefaultPosition, size=(500, 300),
@@ -300,7 +307,8 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
             ColumnDefn(title="Physical Form",    minimumWidth=120, width=120, align="left",  valueGetter="physical_form", isEditable=False),
             ColumnDefn(title="Electrolyte",      minimumWidth=120, width=120, align="left",  valueGetter="electrolyte", isEditable=False),
             ColumnDefn(title="CAS No.",          minimumWidth=120, width=120, align="left",  valueGetter="cas", isEditable=False),
-            ColumnDefn(title="pK",               minimumWidth=120, width=120, align="right", valueGetter="pk", isEditable=False),
+            ColumnDefn(title="pK",               minimumWidth=120, width=120, align="right", valueGetter="pk", isEditable=False, stringConverter=format_float),
+            ColumnDefn(title="Density",          minimumWidth=120, width=120, align="right", valueGetter="density", isEditable=False, stringConverter=format_float),
             ColumnDefn(title="SMILES",           minimumWidth=150, width=120, align="left",  valueGetter="smiles", isEditable=False),
         ])
         self.olv.SetObjects(chemicals)
@@ -1036,7 +1044,7 @@ class OutputPanel(wx.Panel):
         self.resultOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter=format_float),
         ])
         self.resultOlv.SetObjects(self.model.chemicals)
 
@@ -1045,7 +1053,7 @@ class OutputPanel(wx.Panel):
         self.scaledOlv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
             ColumnDefn("Scaled Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter="%.4f"),
+            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter=format_float),
         ])
         self.scaledOlv.SetObjects(self.model.chemicals)
 

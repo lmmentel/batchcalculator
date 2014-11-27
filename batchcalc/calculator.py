@@ -226,7 +226,10 @@ class Chemical(BaseChemical, Base):
 
     @hybrid_property
     def volume(self):
-        return self.mass/self.density
+        if self.density is not None and self.physical_form == "liquid":
+            return self.mass/self.density
+        else:
+            return None
 
     def label(self):
         '''
