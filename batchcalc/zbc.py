@@ -707,7 +707,7 @@ class CustTableGrid(gridlib.Grid):
         self.AutoSizeColumns(True)
         for i in range(self.GetNumberRows()):
             self.SetColFormatFloat(i, width=10, precision=4)
-        self.SetRowLabelSize(100)
+        self.SetRowLabelSize(200)
 
         gridlib.EVT_GRID_CELL_LEFT_DCLICK(self, self.OnLeftDClick)
 
