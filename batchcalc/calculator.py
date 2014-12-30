@@ -600,9 +600,9 @@ class BatchCalculator(object):
         print " "*5 + "{l:^{wl}}  |{v:^15s}".format(
                     l="Formula", wl=width, v="Mass [g]")
         print " "*5 + "-"*(width+3+15)
-        for reac in self.chemicals:
+        for comp in self.components:
             print " "*5+"{l:>{wl}}  |{v:>15.4f}".format(
-                    l=reac.listctrl_label(), wl=width, v=reac.mass)
+                    l=comp.listctrl_label(), wl=width, v=reac.mass)
 
     def print_batch_matrix(self):
         '''
