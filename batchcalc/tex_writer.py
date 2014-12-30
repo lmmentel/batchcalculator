@@ -78,7 +78,7 @@ def get_report_as_string(flags, model):
 
 def tex_A(model):
 
-    tshape = u'{l|'+u'R'*len(model.components)+u'}'
+    tshape = u'{l'+u'R'*len(model.components)+u'}'
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}'+tshape+ur'\toprule'+u'\n'
     table += u'Compound &' + ' & '.join([ur'\multicolumn{1}{c}{'+c.label()+ur'}' for c in model.components]) + ur'\\ \midrule' + u'\n'
     table += u'Mole ratio &' + ' & '.join(["{0:10.3f}".format(c.moles) for c in model.components]) + ur'\\ ' + u'\n'
