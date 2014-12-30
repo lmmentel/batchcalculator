@@ -596,13 +596,13 @@ class BatchCalculator(object):
         '''
 
         width = max([len(c.listctrl_label()) for c in self.components] + [_minwidth])
-        print "\n     {0:*^{w}s}\n".format("  "+ "Composition Vector [C]" +"  ", w=width+21)
-        print " "*5 + "{l:^{wl}}  |{v:^15s}".format(
-                    l="Formula", wl=width, v="Mass [g]")
-        print " "*5 + "-"*(width+3+15)
+        print "\n     {0:*^{w}s}\n".format("  "+ "Composition Vector [C]" +"  ", w=width+34)
+        print " "*5 + "{l:^{wl}}  |{mol:^15s}|{mas:^15s}".format(
+                    l="Formula", wl=width, mol="Moles", mas="Mass [g]")
+        print " "*5 + "-"*(width+4+30)
         for comp in self.components:
-            print " "*5+"{l:>{wl}}  |{v:>15.4f}".format(
-                    l=comp.listctrl_label(), wl=width, v=reac.mass)
+            print " "*5+"{l:>{wl}}  |{mol:>15.4f}|{mas:>15.4f}".format(
+                    l=comp.listctrl_label(), wl=width, mol=comp.moles, mas=comp.mass)
 
     def print_batch_matrix(self):
         '''
