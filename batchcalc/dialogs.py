@@ -111,6 +111,161 @@ class ExceptionDialog(GMD.GenericMessageDialog):
         '''constructor'''
         GMD.GenericMessageDialog.__init__(self, None, msg, "Exception!",
                                               wx.OK|wx.ICON_ERROR)
+class ExportPdfMinimalDialog(wx.Dialog):
+    '''
+    A dialog for setting the options of the pdf report.
+    '''
+
+    def __init__(self, parent, id=wx.ID_ANY, title="",
+            pos=wx.DefaultPosition, size=(400, 550),
+            style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
+
+        super(ExportPdfMinimalDialog, self).__init__(parent, id, title, pos, size,
+                                              style, name)
+
+        panel = wx.Panel(self)
+
+        top_lbl = wx.StaticText(panel, -1, "PDF document options")
+        top_lbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+        title_lbl = wx.StaticText(panel, -1, "Title:")
+        title = wx.TextCtrl(panel, -1, "")
+        author_lbl = wx.StaticText(panel, -1, "Author:")
+        author = wx.TextCtrl(panel, -1, "")
+        email_lbl = wx.StaticText(panel, -1, "Email:")
+        email = wx.TextCtrl(panel, -1, "")
+        comment_lbl = wx.StaticText(panel, -1, "Comment:")
+        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+
+        export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
+        cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
+
+        self.widgets = {
+            "title"   : title,
+            "author"  : author,
+            "email"   : email,
+            "comment" : comment,
+        }
+
+        # layout
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(top_lbl, 0, wx.ALL, 5)
+        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        fgs_title = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        fgs_title.AddGrowableCol(1)
+        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(title, 0, wx.EXPAND)
+        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(author, 0, wx.EXPAND)
+        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(email, 0, wx.EXPAND)
+        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(comment, 0, wx.GROW)
+
+        main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(cancel_btn, 0, wx.LEFT|wx.RIGHT, 10)
+        hbox.Add(export_btn, 0, wx.LEFT|wx.RIGHT, 10)
+
+        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, 10)
+        panel.SetSizerAndFit(main_sizer)
+
+    def get_data(self):
+
+        res = dict()
+        for name, attr in self.widgets.items():
+            res[name] = attr.GetValue()
+        return res
+
+class ExportPdfDialog(wx.Dialog):
+    '''
+    A dialog for setting the options of the pdf report.
+    '''
+
+    def __init__(self, parent, id=wx.ID_ANY, title="",
+            pos=wx.DefaultPosition, size=(400, 550),
+            style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
+
+        super(ExportPdfDialog, self).__init__(parent, id, title, pos, size,
+                                              style, name)
+
+        panel = wx.Panel(self)
+
+        top_lbl = wx.StaticText(panel, -1, "PDF document options")
+        top_lbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+        title_lbl = wx.StaticText(panel, -1, "Title:")
+        title = wx.TextCtrl(panel, -1, "")
+        author_lbl = wx.StaticText(panel, -1, "Author:")
+        author = wx.TextCtrl(panel, -1, "")
+        email_lbl = wx.StaticText(panel, -1, "Email:")
+        email = wx.TextCtrl(panel, -1, "")
+        comment_lbl = wx.StaticText(panel, -1, "Comment:")
+        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+
+        export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
+        cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
+
+        cb_cmpm = wx.CheckBox(panel, label="Composition Matrix")
+        cb_bmat = wx.CheckBox(panel, label="Batch Matrix")
+        cb_rescaleAll = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
+        cb_rescaleTo = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
+
+        cb_cmpm.SetValue(True)
+        cb_bmat.SetValue(True)
+        cb_rescaleAll.SetValue(True)
+        cb_rescaleTo.SetValue(True)
+
+        sb_calculation = wx.StaticBox(panel, label="Include")
+        sbc_bs = wx.StaticBoxSizer(sb_calculation, wx.VERTICAL)
+        sbc_bs.Add(cb_cmpm, flag=wx.LEFT|wx.TOP, border=5)
+        sbc_bs.Add(cb_bmat, flag=wx.LEFT|wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT|wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT|wx.TOP, border=5)
+
+        self.widgets = {
+            "title" : title,
+            "author" : author,
+            "email" : email,
+            "comment" : comment,
+            "composition" : cb_cmpm,
+            "batch" : cb_bmat,
+            "rescale_all" : cb_rescaleAll,
+            "rescale_to" : cb_rescaleTo,
+        }
+
+        # layout
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(top_lbl, 0, wx.ALL, 5)
+        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        fgs_title = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        fgs_title.AddGrowableCol(1)
+        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(title, 0, wx.EXPAND)
+        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(author, 0, wx.EXPAND)
+        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(email, 0, wx.EXPAND)
+        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(comment, 0, wx.GROW)
+
+        main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
+        main_sizer.Add(sbc_bs, 0, wx.EXPAND|wx.ALL, 10)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(cancel_btn, 0, wx.LEFT|wx.RIGHT, 10)
+        hbox.Add(export_btn, 0, wx.LEFT|wx.RIGHT, 10)
+
+        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, 10)
+        panel.SetSizerAndFit(main_sizer)
+
+    def get_data(self):
+
+        res = dict()
+        for name, attr in self.widgets.items():
+            res[name] = attr.GetValue()
+        return res
 
 class ExportTexDialog(wx.Dialog):
     '''

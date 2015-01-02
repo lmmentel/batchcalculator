@@ -48,6 +48,7 @@ from wx.lib.wordwrap import wordwrap
 from ObjectListView import ObjectListView, ColumnDefn
 
 from batchcalc.tex_writer import get_report_as_string
+from batchcalc.pdf_writer import create_pdf, create_pdf_composition
 from batchcalc.calculator import BatchCalculator
 from batchcalc import dialogs, controller
 
@@ -58,7 +59,7 @@ def clean_tex(fname):
     '''
     Clean the auxiliary tex files.
     '''
-    exts = [".out", ".aux", ".log", ".tex"]
+    exts = [".out", ".aux", ".log"]
     fbase = os.path.splitext(fname)[0]
     for fil in [fbase + ext for ext in exts]:
         if os.path.exists(fil):
@@ -932,7 +933,7 @@ class OutputPanel(wx.Panel):
 
     def OnCalculate(self, event):
 
-        self.model.calculate()
+        self.model.calculate_masses()
         self.resultOlv.SetObjects(self.model.chemicals)
 
     def OnRescaleAll(self, event):
@@ -1072,7 +1073,7 @@ class MolesOutputPanel(wx.Panel):
         self.resultOlv.evenRowsBackColor="#DCF0C7"
         self.resultOlv.oddRowsBackColor="#FFFFFF"
         calculatebtn = wx.Button(self, label="Calculate")
-        rescalebtn = wx.Button(self, label="Rescale All")
+        rescalebtn = wx.Button(self, label="Rescale")
 
         self.SetResults()
 
@@ -1112,7 +1113,7 @@ class MolesOutputPanel(wx.Panel):
         them.
         '''
 
-        rtsd = dialogs.RescaleToItemDialog(self, self.model.components, self.get_rescale_columns(), title="Choose chemical and desired mass")
+        rtsd = dialogs.RescaleToItemDialog(self, self.model.components, self.get_rescale_columns(), title="Choose one component and enter moles")
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
             amount, item = rtsd.GetCurrentSelections()
@@ -1173,6 +1174,8 @@ class InverseBatch(wx.Frame):
         filem = wx.Menu()
         mnew  = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
         filem.AppendSeparator()
+        mepdf = filem.Append(wx.ID_ANY, "Export pdf")
+        filem.AppendSeparator()
         mexit = filem.Append(wx.ID_CLOSE, "Exit\tAlt+F4")
         menubar.Append(filem, "&File")
         viewm = wx.Menu()
@@ -1189,6 +1192,7 @@ class InverseBatch(wx.Frame):
         # Bind Menu Handlers
         self.Bind(wx.EVT_MENU, self.OnNew, mnew)
         self.Bind(wx.EVT_MENU, self.OnExit, mexit)
+        self.Bind(wx.EVT_MENU, self.OnExportPdf, mepdf)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
 
@@ -1219,11 +1223,56 @@ class InverseBatch(wx.Frame):
     def OnExit(self, event):
         self.Close()
 
+    def OnExportPdf(self, event):
+        '''
+        Open the dialog with options about the pdf document to be written.
+        '''
+        dlg = dialogs.ExportPdfMinimalDialog(parent=self, id=-1, size=(400, 330))
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            flags = dlg.get_data()
+            path = self.OnSavePdf()
+            try:
+                create_pdf_composition(path, self.model, flags)
+            except:
+                dlg = wx.MessageDialog(None, "An error occured while generating pdf",
+                                        "", wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                raise
+            else:
+                dlg = wx.MessageDialog(None, "Successfully generated pdf",
+                                        "", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+
     def OnNew(self, event):
         self.model.reset()
         self.inppanel.SetComponents()
         self.inppanel.SetChemicals()
         self.outpanel.SetResults()
+
+    def OnSavePdf(self):
+        '''
+        Open the file dialog to choose the name of the pdf file.
+        '''
+
+        pdfwildcard =  "pdf Files (*.pdf)|*pdf|"     \
+                       "All files (*.*)|*.*"
+
+
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=os.getcwd(),
+            defaultFile="", wildcard=pdfwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
+            )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            if not os.path.splitext(path)[1] == '.pdf':
+                path += '.pdf'
+            return path
+        else:
+            return
 
     def OnShowB(self, event):
 
@@ -1296,6 +1345,7 @@ class MainFrame(wx.Frame):
         msave = filem.Append(wx.ID_SAVE, "&Save\tCtrl+S", "Save")
         filem.AppendSeparator()
         metex = filem.Append(wx.ID_ANY, "Export TeX\t", "Export to a TeX file")
+        mepdf = filem.Append(wx.ID_ANY, "Export pdf\t", "Export to a pdf file")
         filem.AppendSeparator()
         mexit = filem.Append(wx.ID_CLOSE, "Exit\tAlt+F4")
         menubar.Append(filem, "&File")
@@ -1338,6 +1388,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnInverseCalculation, minvcalc)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
         self.Bind(wx.EVT_MENU, self.OnExportTex, metex)
+        self.Bind(wx.EVT_MENU, self.OnExportPdf, mepdf)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
         self.Bind(wx.EVT_MENU, self.OnAddChemicalToDB, maddchemicaldb)
         self.Bind(wx.EVT_MENU, self.OnAddComponentToDB, maddcomponentdb)
@@ -1434,7 +1485,7 @@ class MainFrame(wx.Frame):
 
     def OnExportTex(self, event):
         '''
-        Open the dialog with options about the TeX document tobe written.
+        Open the dialog with options about the TeX document to be written.
         '''
         etexdialog = dialogs.ExportTexDialog(parent=self, id=-1)
         result = etexdialog.ShowModal()
@@ -1443,6 +1494,31 @@ class MainFrame(wx.Frame):
             # get the string with contents of the TeX report
             tex = get_report_as_string(flags, self.model)
             self.OnSaveTeX(tex, flags['typeset'], flags['pdflatex'])
+
+    def OnExportPdf(self, event):
+        '''
+        Open the dialog with options about the pdf document to be written.
+        '''
+        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, size=(400, 470))
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            flags = dlg.get_data()
+            print flags
+            path = self.OnSavePdf()
+            print path
+            try:
+                create_pdf(path, self.model, flags)
+            except:
+                dlg = wx.MessageDialog(None, "An error occured while generating pdf",
+                                        "", wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                raise
+            else:
+                dlg = wx.MessageDialog(None, "Successfully generated pdf",
+                                        "", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
 
     def OnInverseCalculation(self, event):
 
@@ -1545,6 +1621,28 @@ class MainFrame(wx.Frame):
             fp.close()
 
         dlg.Destroy()
+
+    def OnSavePdf(self):
+        '''
+        Open the file dialog to choose the name of the pdf file.
+        '''
+
+        pdfwildcard =  "pdf Files (*.pdf)|*pdf|"     \
+                       "All files (*.*)|*.*"
+
+
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=os.getcwd(),
+            defaultFile="", wildcard=pdfwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
+            )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            if not os.path.splitext(path)[1] == '.pdf':
+                path += '.pdf'
+            return path
+        else:
+            return
 
     def OnSaveTeX(self, texdata, typeset, pdflatex):
 

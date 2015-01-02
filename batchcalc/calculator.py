@@ -71,9 +71,19 @@ class BaseChemical(object):
             res = self.short_name
         return res
 
-    def label(self):
+    def html_label(self):
         '''
-        Return a label to be used in printable tables (tex, html).
+        Return a label to be used in printable tables in html format.
+        '''
+        if self.is_undefined(self.short_name):
+            res = self.formula_to_html()
+        else:
+            res = self.short_name
+        return res
+
+    def tex_label(self):
+        '''
+        Return a label to be used in printable tables in tex format.
         '''
         if self.is_undefined(self.short_name):
             res = self.formula_to_tex()
@@ -231,9 +241,19 @@ class Chemical(BaseChemical, Base):
         else:
             return None
 
-    def label(self):
+    def html_label(self):
         '''
-        Return a label to be used in printable tables (tex, html).
+        Return a label to be used in printable tables in html format.
+        '''
+        if self.is_undefined(self.short_name):
+            res = self.formula_to_html() + u" ({0:>4.1f}%)".format(100*self.concentration)
+        else:
+            res = self.short_name + u" ({0:>4.1f}%)".format(100*self.concentration)
+        return res
+
+    def tex_label(self):
+        '''
+        Return a label to be used in printable tables in tex format.
         '''
         if self.is_undefined(self.short_name):
             res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
@@ -264,6 +284,8 @@ class BatchCalculator(object):
         for lst in self.lists:
             setattr(self, lst, list())
 
+        self.calculated = False
+
         self.A = list()
         self.B = list()
         self.X = list()
@@ -271,6 +293,7 @@ class BatchCalculator(object):
         self.scale_all = 100.0
         self.sample_scale = 1.0
         self.sample_size = 5.0
+        self.item_scale = None
         self.selections = []
 
     def get_dbpath(self):
@@ -305,6 +328,8 @@ class BatchCalculator(object):
         variables.
         '''
 
+        self.calculated = False
+
         self.components = []
         self.chemicals = []
 
@@ -315,6 +340,7 @@ class BatchCalculator(object):
         self.scale_all = 100.0
         self.sample_scale = 1.0
         self.sample_size = 5.0
+        self.item_scale = None
         self.selections = []
 
     def get_batch_records(self):
@@ -397,7 +423,7 @@ class BatchCalculator(object):
         else:
             return None
 
-    def calculate(self):
+    def calculate_masses(self):
         '''
         Solve the linear system of equations  B * X = C
         '''
@@ -429,6 +455,8 @@ class BatchCalculator(object):
                     chemical.mass = x
         except Exception as e:
             raise e
+        else:
+            self.calculated = True
 
     def calculate_moles(self):
         '''
@@ -462,6 +490,8 @@ class BatchCalculator(object):
                 comp.moles = a/comp.molwt
         except Exception as e:
             raise e
+        else:
+            self.calculated = True
 
     def get_A_matrix(self):
         '''
@@ -558,13 +588,13 @@ class BatchCalculator(object):
         res = [s.mass/self.scale_all for s in self.chemicals]
         return res
 
-    def rescale_to_chemical(self, chemical, mass):
+    def rescale_to_chemical(self, chemical, desired_mass):
         '''
         Rescale all masses by a factor, so that the selected item has the mass
         specified by the user.
         '''
 
-        item_scale = chemical.mass/float(mass)
+        item_scale = chemical.mass/float(desired_mass)
         res = [s.mass/item_scale for s in self.chemicals]
         return res
 
@@ -580,14 +610,14 @@ class BatchCalculator(object):
         res = [s.mass/self.sample_scale for s in self.chemicals]
         return res
 
-    def rescale_to_item(self, component, amount):
+    def rescale_to_item(self, component, desired_moles):
         '''
         Rescale all mole numbers by a factor chosen in such a way that the
         selected *item* has th number of moles equal to *amount*.
         '''
 
-        factor = amount/component.moles
-        res = [s.moles*factor for s in self.components]
+        self.item_scale = desired_moles/component.moles
+        res = [s.moles*self.item_scale for s in self.components]
         return res
 
     def print_A(self):
