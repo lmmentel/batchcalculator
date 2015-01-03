@@ -72,6 +72,9 @@ def get_report_as_string(flags, model):
     if flags["rescale_to"]:
         flags['rescale_to_factor'] = u'{0:8.4f}'.format(model.sample_scale)
         flags['x_matrix_scaled'] = tex_X_rescale(model)
+    if flags['comment'] != "":
+        flags['comment_on'] = True
+
 
     tex = template.render(flags)
     return tex

@@ -1503,9 +1503,7 @@ class MainFrame(wx.Frame):
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()
-            print flags
             path = self.OnSavePdf()
-            print path
             try:
                 create_pdf(path, self.model, flags)
             except:
@@ -1736,7 +1734,7 @@ class ZeoGui(wx.App):
         self.frame = MainFrame(None, title="Zeolite Batch Calculator",
                                size=(860, 600))
         # change the default exception handling
-        #sys.excepthook = ExceptionHook
+        sys.excepthook = ExceptionHook
         self.SetTopWindow(self.frame)
         self.frame.Show()
 

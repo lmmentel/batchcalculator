@@ -67,13 +67,16 @@ res_tab_style = TableStyle([
     ('LINEBELOW', (-1, 1), (-1, -1), 0.5, colors.black),
     ])
 
-def create_header(model, title, author, email):
+def create_header(model, title, author, email, no_moles=False):
     story = []
     date = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
     story.append(Paragraph(date, styles['RightJ']))
     story.append(Paragraph(title, styles['BlueTitle']))
     story.append(Spacer(1, 16))
-    story.append(Paragraph(ur':'.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
+    if no_moles:
+        story.append(Paragraph(ur':'.join(['{0}'.format(x.html_label()) for x in model.components]), styles['Compo']))
+    else:
+        story.append(Paragraph(ur':'.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
     story.append(Spacer(1, 12))
     story.append(Paragraph(author, styles['CenterJ']))
     story.append(Paragraph(email, styles['CenterJ']))
@@ -120,7 +123,7 @@ def batch_table(model):
     temp = np.array(map(lambda x: "{0:8.4f}".format(x), model.get_B_matrix().reshape(model.B.size)))
     data = temp.reshape(model.get_B_matrix().shape).tolist()
     for row, chemical in zip(data, model.chemicals):
-        row.insert(0, chemical.html_label())
+        row.insert(0, chemical.formula + " ({0:6.2f}%)".format(chemical.concentration*100))
     data.insert(0, ['Compound']+[c.formula for c in model.components])
     tab = Table(data)
     tab.setStyle(tab_style)
@@ -163,26 +166,30 @@ def create_pdf(path, model, flags):
     rescaled_result = rescaled_results_table(model)
 
     story.extend(header)
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 15))
     if flags['composition']:
         story.append(Paragraph("Composition Matrix [C]", styles['Section']))
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 15))
         story.append(comps)
         story.append(Spacer(1, 10))
     if flags['batch']:
         story.append(Paragraph("Batch Matrix [B]", styles['Section']))
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 15))
         story.append(batch)
         story.append(Spacer(1, 10))
     if flags['rescale_all']:
         story.append(Paragraph("Results [X] (SF={0:8.4f})".format(model.scale_all), styles['Section']))
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 15))
         story.append(result)
         story.append(Spacer(1, 10))
     if flags['rescale_to']:
         story.append(Paragraph("Results [X] (SF={0:8.4f})".format(model.sample_scale), styles['Section']))
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 15))
         story.append(rescaled_result)
+    if flags['comment'] != "":
+        story.append(Paragraph("Comments", styles['Section']))
+        story.append(Spacer(1, 12))
+        story.append(Paragraph(flags['comment'], styles['Normal']))
     doc.build(story)
 
 def create_pdf_composition(path, model, flags):
@@ -194,7 +201,7 @@ def create_pdf_composition(path, model, flags):
     doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25,leftMargin=25, topMargin=25, bottomMargin=25)
 
     story = []
-    header = create_header(model, flags['title'], flags['author'], flags['email'])
+    header = create_header(model, flags['title'], flags['author'], flags['email'], no_moles=True)
     chems = chemicals_table(model)
     batch = batch_table(model)
     result = composition_results_table(model)
@@ -209,7 +216,10 @@ def create_pdf_composition(path, model, flags):
     story.append(Spacer(1, 20))
     story.append(batch)
     story.append(Spacer(1, 10))
-    story.append(Paragraph("Results (SF={0:8.4f})".format(model.item_scale), styles['Section']))
+    if model.item_scale is not None:
+        story.append(Paragraph("Results (SF={0:8.4f})".format(model.item_scale), styles['Section']))
+    else:
+        story.append(Paragraph("Results", styles['Section']))
     story.append(Spacer(1, 20))
     story.append(result)
     doc.build(story)

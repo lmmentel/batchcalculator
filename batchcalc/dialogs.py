@@ -273,7 +273,7 @@ class ExportTexDialog(wx.Dialog):
     '''
 
     def __init__(self, parent, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(400, 550),
+            pos=wx.DefaultPosition, size=(400, 650),
             style=wx.DEFAULT_FRAME_STYLE, name="Export Tex Dialog"):
 
         super(ExportTexDialog, self).__init__(parent, id, title, pos, size,
@@ -289,6 +289,8 @@ class ExportTexDialog(wx.Dialog):
         author = wx.TextCtrl(panel, -1, "")
         email_lbl = wx.StaticText(panel, -1, "Email:")
         email = wx.TextCtrl(panel, -1, "")
+        comment_lbl = wx.StaticText(panel, -1, "Comment:")
+        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
 
         export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
         cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
@@ -339,6 +341,7 @@ class ExportTexDialog(wx.Dialog):
             "title" : title,
             "author" : author,
             "email" : email,
+            "comment" : comment,
             "composition" : cb_cmpm,
             "batch" : cb_bmat,
             "rescale_all" : cb_rescaleAll,
@@ -365,6 +368,8 @@ class ExportTexDialog(wx.Dialog):
         fgs_title.Add(author, 0, wx.EXPAND)
         fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(email, 0, wx.EXPAND)
+        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(comment, 0, wx.GROW)
 
         main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
         main_sizer.Add(sbc_bs, 0, wx.EXPAND|wx.ALL, 10)
