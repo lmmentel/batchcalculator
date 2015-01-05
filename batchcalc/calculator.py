@@ -316,7 +316,7 @@ class BatchCalculator(object):
 
         if hasattr(self, "session"):
             self.session.close()
-        engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=True)
+        engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
         DBSession  = sessionmaker(bind=engine)
         self.session = DBSession()
 
@@ -328,11 +328,10 @@ class BatchCalculator(object):
         if hasattr(self, "session"):
             self.session.close()
 
-        engine = create_engine("sqlite:///{path:s}".format(path=path), echo=True)
+        engine = create_engine("sqlite:///{path:s}".format(path=path), echo=False)
         Base.metadata.create_all(engine)
         DBSession  = sessionmaker(bind=engine)
         self.session = DBSession()
-
 
     def reset(self):
         '''

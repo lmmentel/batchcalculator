@@ -154,7 +154,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         """
         Add a record to the database
         """
-        print "adding batch record"
+
         dlg = controller.AddModifyBatchRecordDialog(self,
                                                     session=self.model.session,
                                                     title="Add",
@@ -167,21 +167,17 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         """
         Edit a record
         """
-        print "editing batch record"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         dlg = controller.AddModifyBatchRecordDialog(self,
                                                     session=self.model.session,
                                                     record=sel_row,
                                                     title="Modify",
                                                     add_record=False)
         result = dlg.ShowModal()
-        if result == wx.ID_SAVE:
-            print "saving batch result"
-            print dlg.get_data()
         dlg.Destroy()
         self.show_all()
 
@@ -189,12 +185,11 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         """
         Delete a record
         """
-        print "deleting batch reord"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         controller.delete_batch_record(self.model.session, sel_row.id)
         self.show_all()
 
@@ -202,7 +197,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         """
         Searches database based on the user's filter choice and keyword
         """
-        print "searching chemical"
+        pass
 
     def onShowAllRecords(self, event):
         """
@@ -239,7 +234,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         """
         Add a record to the database
         """
-        print "adding chemical"
+
         dlg = controller.AddModifyChemicalRecordDialog(self,
                                                     session=self.model.session,
                                                     title="Add",
@@ -252,34 +247,29 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         """
         Edit a record
         """
-        print "editing chemical"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         dlg = controller.AddModifyChemicalRecordDialog(self,
                                                     session=self.model.session,
                                                     record=sel_row,
                                                     title="Modify",
                                                     add_record=False)
         result = dlg.ShowModal()
-        if result == wx.ID_SAVE:
-            print "saving result"
-            print dlg.get_data()
         dlg.Destroy()
         self.show_all()
 
     def onDelete(self, event):
         """
         Delete a record
+
         """
-        print "deleting chemical"
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         controller.delete_chemical_record(self.model.session, sel_row.id)
         self.show_all()
 
@@ -287,7 +277,8 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         """
         Searches database based on the user's filter choice and keyword
         """
-        print "searching chemical"
+
+        pass
 
     def onShowAllRecords(self, event):
         """
@@ -332,7 +323,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         """
         Add a record to the database
         """
-        print "adding component"
+
         dlg = controller.AddModifyComponentRecordDialog(self,
                                                         session=self.model.session,
                                                         title="Add",
@@ -345,34 +336,30 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         """
         Edit a record
         """
-        print "editing component"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
+
             return
-        print sel_row
         dlg = controller.AddModifyComponentRecordDialog(self,
                                                         session=self.model.session,
                                                         record=sel_row,
                                                         title="Modify",
                                                         add_record=False)
         result = dlg.ShowModal()
-        if result == wx.ID_SAVE:
-            print "saving result"
-            print dlg.get_data()
         dlg.Destroy()
         self.show_all()
 
     def onDelete(self, event):
         """
         Delete a record
+
         """
-        print "deleting component"
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         controller.delete_component_record(self.model.session, sel_row.id)
         self.show_all()
 
@@ -380,7 +367,8 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         """
         Searches database based on the user's filter choice and keyword
         """
-        print "searching chemical"
+
+        pass
 
     def onShowAllRecords(self, event):
         """
@@ -443,7 +431,6 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
 
         dlg = wx.TextEntryDialog(None,
             "Enter the category",
@@ -464,12 +451,11 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         """
         Delete a record
         """
-        print "deleting reaction record"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         controller.delete_category_record(self.model.session, sel_row.id)
         self.show_all()
 
@@ -505,7 +491,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         """
         Add a record to the database
         """
-        print "adding reaction record"
+
         dlg = wx.TextEntryDialog(None,
             "Enter the reaction",
             "Enter the reaction", "", style=wx.OK|wx.CANCEL)
@@ -525,12 +511,11 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         """
         Edit a record
         """
-        print "editing reaction record"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
 
         dlg = wx.TextEntryDialog(None,
             "Enter the reaction",
@@ -551,12 +536,11 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         """
         Delete a record
         """
-        print "deleting reaction record"
+
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        print sel_row
         controller.delete_reaction_record(self.model.session, sel_row.id)
         self.show_all()
 
@@ -564,7 +548,8 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         """
         Searches database based on the user's filter choice and keyword
         """
-        print "searching chemical"
+
+        pass
 
     def onShowAllRecords(self, event):
         """
@@ -608,7 +593,7 @@ class ShowBFrame(wx.Frame):
         self.Close()
 
     def OnButtonFocus(self, evt):
-        print "button focus"
+        pass
 
 class CustomDataTable(gridlib.PyGridTableBase):
     def __init__(self, model):
@@ -1567,7 +1552,18 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+            if os.path.exists(path):
+                os.remove(path)
             self.model.new_db(path)
+            # fill the tables
+            controller.fill_kinds_table(self.model.session)
+            controller.fill_physical_forms_table(self.model.session)
+            controller.fill_electrolytes_table(self.model.session)
+            dlg = wx.MessageDialog(None, "Successfully created new database",
+                                    "", wx.OK | wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+
         dlg.Destroy()
 
     def OnOpen(self, evt):

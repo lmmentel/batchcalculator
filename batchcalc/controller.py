@@ -434,22 +434,17 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
             return
 
         data = self.get_data()
-
         modify_chemical_record(self.session, self.record.id, data)
-
         self.Destroy()
 
     def OnSaveRecord(self, event):
 
         if self.add_record:
-            print "saving a new record"
             self.add_chemical()
         else:
-            print "saving an existing record"
             self.edit_chemical()
 
     def OnClose(self, event):
-        print "closing the dialog"
         self.Destroy()
 
     def get_data(self):
@@ -723,7 +718,6 @@ def add_chemical_record(session, data):
             data[k] = None
 
     chemical = Chemical(**data)
-
     chemical._kind = session.query(Kind).filter(Kind.name == kind).one()
 
     if physical_form is not None:
@@ -731,51 +725,6 @@ def add_chemical_record(session, data):
 
     if electrolyte is not None:
         chemical._electrolyte = session.query(Electrolyte).filter(Electrolyte.name == electrolyte).one()
-
-    print_attrs(chemical)
-    session.add(chemical)
-    session.commit()
-
-def delete_chemical_record(session, id_num):
-    """
-    Delete a Chemical record.
-    """
-
-    chemical = session.query(Chemical).get(id_num)
-    session.delete(chemical)
-    session.commit()
-
-def modify_chemical_record(session, id_num, data):
-    """
-    Modify/Edit an existing record in the database
-    """
-
-    kind = data.pop("kind", None)
-    electrolyte = data.pop("electrolyte", None)
-    if electrolyte == "Undefined":
-        electrolyte = None
-    physical_form = data.pop("physical_form", None)
-    if physical_form == "Undefined":
-        physical_form = None
-
-    for k, v in data.items():
-        if v == "":
-            data[k] = None
-
-    chemical = session.query(Chemical).get(id_num)
-
-    for k in data.keys():
-        setattr(chemical, k, data[k])
-
-    chemical._kind = session.query(Kind).filter(Kind.name == kind).one()
-
-    if physical_form is not None:
-        chemical._physical_form = session.query(PhysicalForm).filter(PhysicalForm.form == physical_form).one()
-
-    if electrolyte is not None:
-        chemical._electrolyte = session.query(Electrolyte).filter(Electrolyte.name == electrolyte).one()
-
-    print_attrs(chemical)
 
     session.add(chemical)
     session.commit()
@@ -883,4 +832,124 @@ def modify_category_record(session, id_num, data):
     category = session.query(Category).get(id_num)
     category.name = data
     session.add(category)
+    session.commit()
+
+########## Kinds controller methods
+
+def fill_kinds_table(session):
+    """
+    Fill the kinds table with allowed values
+    """
+
+    kinds = ["mixture", "solution", "reactant"]
+
+    for kind in kinds:
+        add_kind_record(session, kind)
+
+def add_kind_record(session, data):
+    """
+    Add a Kind record.
+    """
+
+    kind = Kind(name=data)
+    session.add(kind)
+    session.commit()
+
+def delete_kind_record(session, id_num):
+    """
+    Delete a Kind record.
+    """
+
+    kind = session.query(Kind).get(id_num)
+    session.delete(kind)
+    session.commit()
+
+def modify_kind_record(session, id_num, data):
+    """
+    Modify/Edit an existing Kind record in the database
+    """
+
+    kind = session.query(Kind).get(id_num)
+    kind.name = data
+    session.add(kind)
+    session.commit()
+
+########## Physical_forms controller methods
+
+def fill_physical_forms_table(session):
+    """
+    Fill the physical_forms table with allowed values
+    """
+
+    phfs = ["crystals", "solid", "liquid", "gas"]
+
+    for phf in phfs:
+        add_physical_form_record(session, phf)
+
+def add_physical_form_record(session, data):
+    """
+    Add a PhysicalForm record.
+    """
+
+    phf = PhysicalForm(form=data)
+    session.add(phf)
+    session.commit()
+
+def delete_physical_form_record(session, id_num):
+    """
+    Delete a PhysicalForm record.
+    """
+
+    phf = session.query(PhysicalForm).get(id_num)
+    session.delete(phf)
+    session.commit()
+
+def modify_physical_form_record(session, id_num, data):
+    """
+    Modify/Edit an existing PhysicalForm record in the database
+    """
+
+    phf = session.query(PhysicalForm).get(id_num)
+    phf.form = data
+    session.add(phf)
+    session.commit()
+
+########## Electrolyte controller methods
+
+def fill_electrolytes_table(session):
+    """
+    Fill the electrolyte table with allowed values
+    """
+
+    elecs = ["nonelectrolyte", "strong acid", "strong base", "weak acid", "weak base"]
+
+    for elec in elecs:
+        add_electrolyte_record(session, elec)
+
+def add_electrolyte_record(session, data):
+    """
+    Add a Electrolyte record.
+    """
+
+    elec = Electrolyte(name=data)
+    session.add(elec)
+    session.commit()
+
+def delete_electrolyte_record(session, id_num):
+    """
+    Delete a Electrolyte record.
+    """
+
+    elec = session.query(Electrolyte).get(id_num)
+    session.delete(elec)
+    session.commit()
+
+def modify_electrolyte_record(session, id_num, data):
+    """
+    Modify/Edit an existing Eelectrolyte record in the database
+    """
+
+    elec = session.query(Electrolyte).get(id_num)
+    elec.name = data
+    session.add(elec)
     session.commit()
