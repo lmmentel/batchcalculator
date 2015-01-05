@@ -117,10 +117,8 @@ class AddModifyBatchRecordDialog(wx.Dialog):
     def OnSaveRecord(self, event):
 
         if self.add_record:
-            print "saving a new record"
             self.add_batch()
         else:
-            print "saving an existing record"
             self.edit_batch()
 
     def add_batch(self):
@@ -151,13 +149,6 @@ class AddModifyBatchRecordDialog(wx.Dialog):
 
 
     def get_data(self):
-
-        print "Chemical     Sel: ", self.ch_chemical.GetStringSelection()
-        print "Chemical str Sel: ", self.ch_chemical.GetSelection()
-        print "Componen     Sel: ", self.ch_component.GetStringSelection()
-        print "Componen str Sel: ", self.ch_component.GetSelection()
-        print "Reaction     Sel: ", self.ch_reaction.GetStringSelection()
-        print "Reaction str Sel: ", self.ch_reaction.GetSelection()
 
         if self.ch_chemical.GetSelection() < 0:
             wx.MessageBox("No Chemical selected", "Error!", style=wx.ICON_ERROR)
@@ -442,7 +433,6 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
             wx.MessageBox("Please select the Kind", "Error")
             return
 
-
         data = self.get_data()
 
         modify_chemical_record(self.session, self.record.id, data)
@@ -463,13 +453,10 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
         self.Destroy()
 
     def get_data(self):
-
-        print "Kind selection: ", self.ch_kind.GetSelection()
-        print "Kind sel value: ", self.ch_kind.GetStringSelection()
-        print "Electrolyte selection: ", self.ch_elects.GetSelection()
-        print "Electrolyte sel value: ", self.ch_elects.GetStringSelection()
-        print "Physical Form selection: ", self.ch_form.GetSelection()
-        print "Physical Form sel value: ", self.ch_form.GetStringSelection()
+        '''
+        Retrieve the data from the dialogs' TextCtrls and ChoiceBoxes
+        and return as a dictionary.
+        '''
 
         chem_dict = {
             "name"          : self.txtc_name.GetValue(),
@@ -594,10 +581,8 @@ class AddModifyComponentRecordDialog(wx.Dialog):
     def OnSaveRecord(self, event):
 
         if self.add_record:
-            print "saving a new component record"
             self.add_component()
         else:
-            print "saving an existing component record"
             self.edit_component()
 
     def add_component(self):
@@ -657,13 +642,9 @@ class AddModifyComponentRecordDialog(wx.Dialog):
         self.Destroy()
 
     def OnClose(self, event):
-        print "closing the dialog"
         self.Destroy()
 
     def get_data(self):
-
-        print "Category selection: ", self.ch_category.GetSelection()
-        print "Category sel value: ", self.ch_category.GetStringSelection()
 
         comp_dict = {
             "name"          : self.txtc_name.GetValue(),
@@ -715,9 +696,6 @@ def modify_batch_record(session, id_num, data):
     """
 
     batch = session.query(Batch).get(id_num)
-    for k in data.keys():
-        setattr(batch, k, data[k])
-
     session.add(batch)
     session.commit()
 
@@ -838,7 +816,6 @@ def modify_component_record(session, id_num, data):
     Edit/Modify Component record in the database,
     """
 
-    print "editing the component"
     category = data.pop("category", None)
     if category == "Undefined":
         category = None

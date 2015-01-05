@@ -262,11 +262,9 @@ class Chemical(BaseChemical, Base):
         return res
 
     def __repr__(self):
-        #return "<Chemical(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
-        #        i=self.id, n=self.name, f=self.formula)
         return "%s(\n%s)" % (
                  (self.__class__.__name__),
-                 ', '.join(["%s=%r\n" % (key, getattr(self, key))
+                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
                             for key in sorted(self.__dict__.keys())
                             if not key.startswith('_')]))
 
@@ -321,6 +319,20 @@ class BatchCalculator(object):
         engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=True)
         DBSession  = sessionmaker(bind=engine)
         self.session = DBSession()
+
+    def new_db(self, path):
+        '''
+        Create a new database under the name stored in "path".
+        '''
+
+        if hasattr(self, "session"):
+            self.session.close()
+
+        engine = create_engine("sqlite:///{path:s}".format(path=path), echo=True)
+        Base.metadata.create_all(engine)
+        DBSession  = sessionmaker(bind=engine)
+        self.session = DBSession()
+
 
     def reset(self):
         '''

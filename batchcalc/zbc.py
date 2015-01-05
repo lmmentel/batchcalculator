@@ -1364,6 +1364,8 @@ class MainFrame(wx.Frame):
         menubar.Append(calcm, "Calculation")
         # Database Menu
         dbm = wx.Menu()
+        mnewdb = dbm.Append(wx.ID_ANY, "New db\t", "Create a new database")
+        dbm.AppendSeparator()
         mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
         dbm.AppendSeparator()
         maddchemicaldb = dbm.Append(wx.ID_ANY, "Edit Chemicals\t", "Edit chemicals records in the database")
@@ -1390,6 +1392,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExportTex, metex)
         self.Bind(wx.EVT_MENU, self.OnExportPdf, mepdf)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
+        self.Bind(wx.EVT_MENU, self.OnNewDB, mnewdb)
         self.Bind(wx.EVT_MENU, self.OnAddChemicalToDB, maddchemicaldb)
         self.Bind(wx.EVT_MENU, self.OnAddComponentToDB, maddcomponentdb)
         self.Bind(wx.EVT_MENU, self.OnAddBatchToDB, maddbatchdb)
@@ -1481,6 +1484,7 @@ class MainFrame(wx.Frame):
         dlg.Destroy()
 
     def OnExit(self, event):
+        self.model.session.close()
         self.Close()
 
     def OnExportTex(self, event):
@@ -1547,6 +1551,24 @@ class MainFrame(wx.Frame):
                 event.Skip()
 
             dlg.Destroy()
+
+    def OnNewDB(self, event):
+
+        dbwildcard = "db Files (*.db)|*.db|"     \
+                     "All files (*.*)|*.*"
+
+        dlg = wx.FileDialog(
+            self, message="Choose database file",
+            defaultDir=os.getcwd(),
+            defaultFile="",
+            wildcard=dbwildcard,
+            style=wx.SAVE|wx.OVERWRITE_PROMPT|wx.CHANGE_DIR
+            )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            self.model.new_db(path)
+        dlg.Destroy()
 
     def OnOpen(self, evt):
         '''
