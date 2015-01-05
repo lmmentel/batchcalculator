@@ -31,4 +31,6 @@ DONE
   extend (add/remove/modify) entries in the database from the GUI
 * add a button to rescale to the mass of one on the reactants
 * add an option to print volumes instead of masses for liquids
-
+* add an option to generate pdf reports using reportlab, both for batch
+  calculation and composition calculation
+* add an option to create new database from scratch
