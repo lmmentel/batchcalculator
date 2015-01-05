@@ -187,6 +187,7 @@ def create_pdf(path, model, flags):
         story.append(Spacer(1, 15))
         story.append(rescaled_result)
     if flags['comment'] != "":
+        story.append(Spacer(1, 10))
         story.append(Paragraph("Comments", styles['Section']))
         story.append(Spacer(1, 12))
         story.append(Paragraph(flags['comment'], styles['Normal']))
@@ -222,4 +223,10 @@ def create_pdf_composition(path, model, flags):
         story.append(Paragraph("Results", styles['Section']))
     story.append(Spacer(1, 20))
     story.append(result)
+    if flags['comment'] != "":
+        story.append(Spacer(1, 10))
+        story.append(Paragraph("Comments", styles['Section']))
+        story.append(Spacer(1, 12))
+        story.append(Paragraph(flags['comment'], styles['Normal']))
+
     doc.build(story)
