@@ -10,7 +10,7 @@ DESCRIPTION = "Script for calculating batch composition of zeoliteis"
 LICENSE = open('LICENSE.txt').read()
 NAME = "batchcalc"
 URL = "https://bitbucket.org/lukaszmentel/batchcalc"
-VERSION = "0.1.2"
+VERSION = "0.2.0"
 YEAR = "2014"
 
 def readme():
