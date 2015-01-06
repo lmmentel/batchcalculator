@@ -758,12 +758,13 @@ def modify_chemical_record(session, id_num, data):
     if physical_form == "Undefined":
         physical_form = None
 
+    chemical = session.query(Chemical).get(id_num)
+
     for k, v in data.items():
         if v == "":
             data[k] = None
         setattr(chemical, k, data[k])
 
-    chemical = session.query(Chemical).get(id_num)
     chemical._kind = session.query(Kind).filter(Kind.name == kind).one()
 
     if physical_form is not None:
