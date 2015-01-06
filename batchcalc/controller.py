@@ -691,6 +691,13 @@ def modify_batch_record(session, id_num, data):
     """
 
     batch = session.query(Batch).get(id_num)
+    batch.coefficient = data['coefficient']
+    if data['chemical_id'] is not None:
+        batch._chemical = session.query(Chemical).get(data['chemical_id'])
+    if data['component_id'] is not None:
+        batch._component = session.query(Component).get(data['component_id'])
+    if data['reaction_id'] is not None:
+        batch._reaction = session.query(Reaction).get(data['reaction_id'])
     session.add(batch)
     session.commit()
 
@@ -718,6 +725,45 @@ def add_chemical_record(session, data):
             data[k] = None
 
     chemical = Chemical(**data)
+    chemical._kind = session.query(Kind).filter(Kind.name == kind).one()
+
+    if physical_form is not None:
+        chemical._physical_form = session.query(PhysicalForm).filter(PhysicalForm.form == physical_form).one()
+
+    if electrolyte is not None:
+        chemical._electrolyte = session.query(Electrolyte).filter(Electrolyte.name == electrolyte).one()
+
+    session.add(chemical)
+    session.commit()
+
+def delete_chemical_record(session, id_num):
+    """
+    Delete a Chemical record.
+    """
+
+    chemical = session.query(Chemical).get(id_num)
+    session.delete(chemical)
+    session.commit()
+
+def modify_chemical_record(session, id_num, data):
+    """
+    Edit/Modify Chemical record in the database,
+    """
+
+    kind = data.pop("kind", None)
+    electrolyte = data.pop("electrolyte", None)
+    if electrolyte == "Undefined":
+        electrolyte = None
+    physical_form = data.pop("physical_form", None)
+    if physical_form == "Undefined":
+        physical_form = None
+
+    for k, v in data.items():
+        if v == "":
+            data[k] = None
+        setattr(chemical, k, data[k])
+
+    chemical = session.query(Chemical).get(id_num)
     chemical._kind = session.query(Kind).filter(Kind.name == kind).one()
 
     if physical_form is not None:
