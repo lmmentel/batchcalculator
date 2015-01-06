@@ -23,7 +23,7 @@ dbfile = Datafiles('batchcalc/data/zeolite.db', strip_path=False) # keep the pat
 tmpfiles = Datafiles('batchcalc/templates/tex/report_color.tex', strip_path=False)
 
 a = Analysis(['batchcalc/zbc.py'],
-             pathex=['C:\\cygwin64\\home\\kasia\\Devel\\batchcalculator'],
+             pathex=['C:\\cygwin\\home\\lmentel\\devel\\batchcalculator'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None,
