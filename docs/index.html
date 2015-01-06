@@ -21,7 +21,14 @@ layout: subpage
     <div class="row" id="tex">
         <div class="col-md-12">
             <h1>PDF/TeX reports</h1>
-            <p> Although a <a href=https://www.tug.org/">TeX</a> distribution is not a formal dependency
+            <p> In the <a href="https://github.com/lmmentel/batchcalculator/releases/latest">latest</a>
+                batch calculator release there is a built in pdf report generator based on <a href="http://www.reportlab.com/">reportlab</a>
+                package that will generate a report wihtout using eny external programs. The pdf can be generated for
+                the conventional batch calculation (moles to masses) or from the composition calculation (masses to moles).
+                <p> An alternative and more flexible option is generating a report in <a href="http://en.wikipedia.org/wiki/TeX">tex</a>
+                format which can be edited further or used to generate the pdf file. To generate the pdf
+                a <a href="http://en.wikipedia.org/wiki/TeX">tex</a> distribution is required.
+                Although a <a href=https://www.tug.org/">TeX</a> distribution is not a formal dependency
                 and the program will work without any trouble without it, it is required if you want to
                 produce nice pdf reports. If you don't know what TeX is, but you would like to know more
                 <a href=https://www.tug.org/">TUG (TeX Users Group)</a> website is a good place to start.</p>
@@ -49,6 +56,29 @@ layout: subpage
     </div>
 </div>
 
+
+<div class=container">
+    <div class="row" id="database">
+        <div class="col-md-12">
+        <h1>Database</h1>
+
+        <p>The program uses an <a href="http://www.sqlite.org/">SQLite3</a>
+        database to store all of the data on chemicals and all of the details
+        used in the calculations. The database distributed with the code is
+        limited but can easily be extended with additional reactants. The
+        schema of the database in shown on the diagram below.</p>
+
+        <p style="text-align: center"><img  src="{{ site.baseurl }}/img/db_schema.png" style="width: 80%" alt="db schema" title="db schema" /></p>
+
+        <p> Statring from <a href="https://github.com/lmmentel/batchcalculator/releases/latest">version 0.2.0</a>
+            adding new records or modifying and deleting existing ones is possible from within the batch calculator.
+            This new functionality makes any external database browser redundant.
+        <p> The program offers an option to use an external database (e.g. from other users)
+            or creting a new customized database from scratch.</p>
+        </div>
+    </div>
+</div>
+
 <div class=container">
     <div class="row" id="source">
         <div class="col-md-12">
@@ -67,7 +97,8 @@ layout: subpage
                 <li> <a href="http://www.numpy.org">numpy</a>tested with version 1.8.1,</li>
                 <li> <a href="http://www.sqlalchemy.org">SQLAlchemy</a> 0.9.7,</li>
                 <li> <a href="http://jinja.pocoo.org">Jinja2</a> 2.7.3,</li>
-                <li> <a href="(http://sourceforge.net/projects/objectlistview/files/objectlistview-python/v1.2/">ObjectListView</a> 1.2,</li>
+                <li> <a href="http://sourceforge.net/projects/objectlistview/files/objectlistview-python/v1.2/">ObjectListView</a> 1.2,</li>
+                <li> <a href="http://www.reportlab.com/">ReportLab</a> 3.1.8,</li>
             </ul>
             <h3>Manual installation</h3>
             <p>To get the program you can either download the latest stable
@@ -91,28 +122,3 @@ layout: subpage
     </div>
 </div>
 
-<div class=container">
-    <div class="row" id="database">
-        <div class="col-md-12">
-        <h1>Database</h1>
-
-        <p>The program uses an <a href="http://www.sqlite.org/">SQLite</a>
-        database to store all of the data on reactants and all of the details
-        used in the calculations. The database distributed with the code is
-        limited but can easily be extended with additional reactants. The
-        schema of the database in shown on the diagram below.</p>
-
-        <p style="text-align: center"><img  src="{{ site.baseurl }}/img/db_schema.png" style="width: 80%" alt="db schema" title="db schema" /></p>
-
-        <p>Currently it is not possible to modify the database from the batch
-        calculator itself but it can be done using standard
-        <a href="http://www.sqlite.org/">SQLite</a> command line interface or
-        GUI editors like <a href="http://sourceforge.net/projects/sqlitebrowser/">sqlitebrowser</a>. After editing the
-        database the program needs to be reinstalled for the changes to take place.</p>
-        <p>Another option for having updated records in the database is to create a local copy of the
-        database with the schema presented above. Since batch calulator allow you to use an external
-        database you can switch to the new database after the program started by choosing the <strong>change db</strong> option
-        from the database menu.</p>
-        </div>
-    </div>
-</div>
