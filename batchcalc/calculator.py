@@ -37,8 +37,8 @@ import sys
 from numpy.linalg import solve, lstsq
 import numpy as np
 
-from sqlalchemy import orm, Column, Integer, String, Float, create_engine, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import Column, Integer, String, Float, create_engine, ForeignKey
+from sqlalchemy.orm import sessionmaker, relationship, reconstructor
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -93,6 +93,9 @@ class BaseChemical(object):
 
     @staticmethod
     def is_undefined(item):
+        '''
+        Return True if the item is undefined, False otherwise.
+        '''
         if item is None or item.lower() in ["", "null", "none"]:
             return True
         else:
@@ -158,7 +161,7 @@ class Batch(Base):
     chemical = association_proxy("_chemical", "name")
     _component = relationship("Component")
     component = association_proxy("_component", "name")
-    _reaction= relationship("Reaction")
+    _reaction = relationship("Reaction")
     reaction = association_proxy("_reaction", "reaction")
 
     def __repr__(self):
@@ -175,27 +178,30 @@ class Component(BaseChemical, Base):
     '''
     __tablename__ = 'components'
 
-    id          = Column(Integer, primary_key=True)
-    name        = Column(String, nullable=False)
-    formula     = Column(String, nullable=False)
-    molwt       = Column(Float, nullable=False)
-    short_name  = Column(String)
+    id         = Column(Integer, primary_key=True)
+    name       = Column(String, nullable=False)
+    formula    = Column(String, nullable=False)
+    molwt      = Column(Float, nullable=False)
+    short_name = Column(String)
 
     _category_id = Column("category_id", Integer, ForeignKey('categories.id'))
     _category = relationship("Category")
     category = association_proxy("_category", "name")
 
-    @orm.reconstructor
+    @reconstructor
     def init_on_load(self):
         self.moles = 0.0
 
     @hybrid_property
     def mass(self):
+        '''
+        Return mass calculated from number of moles and molecular weight.
+        '''
         return self.moles*self.molwt
 
     def __repr__(self):
         return "<Component(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
-                i=self.id, n=self.name, f=self.formula)
+               i=self.id, n=self.name, f=self.formula)
 
 class Chemical(BaseChemical, Base):
     '''
@@ -214,7 +220,7 @@ class Chemical(BaseChemical, Base):
     pk            = Column(Float)
     smiles        = Column(String)
 
-    _kind_id       = Column("kind_id", Integer, ForeignKey('kinds.id'), nullable=False)
+    _kind_id = Column("kind_id", Integer, ForeignKey('kinds.id'), nullable=False)
     _kind = relationship("Kind")
     kind = association_proxy("_kind", "name")
 
@@ -226,16 +232,22 @@ class Chemical(BaseChemical, Base):
     _physical_form = relationship("PhysicalForm")
     physical_form = association_proxy("_physical_form", "form")
 
-    @orm.reconstructor
+    @reconstructor
     def init_on_load(self):
         self.mass = 0.0
 
     @hybrid_property
     def moles(self):
+        '''
+        Return number of moles calculated from mass and molecular weight.
+        '''
         return self.mass/self.molwt
 
     @hybrid_property
     def volume(self):
+        '''
+        Return volume calculated from mass and density if chemical is a liquid.
+        '''
         if self.density is not None and self.physical_form == "liquid":
             return self.mass/self.density
         else:
@@ -279,8 +291,8 @@ class BatchCalculator(object):
         self.lists = ["components", "chemicals"]
 
         # create lists for different categories of
-        for lst in self.lists:
-            setattr(self, lst, list())
+        self.components = []
+        self.chemicals = []
 
         self.calculated = False
 
@@ -294,7 +306,8 @@ class BatchCalculator(object):
         self.item_scale = None
         self.selections = []
 
-    def get_dbpath(self):
+    @staticmethod
+    def get_dbpath():
         '''
         Depending on the execution environment get the proper database path.
         '''
@@ -310,15 +323,15 @@ class BatchCalculator(object):
 
     def new_dbsession(self, dbpath):
         '''
-        When the new database is chosen, close the old session and establish a new
-        one.
+        When the new database is chosen, close the old session and establish a
+        new one.
         '''
 
         if hasattr(self, "session"):
             self.session.close()
         engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
-        DBSession  = sessionmaker(bind=engine)
-        self.session = DBSession()
+        db_session = sessionmaker(bind=engine)
+        self.session = db_session()
 
     def new_db(self, path):
         '''
@@ -360,6 +373,9 @@ class BatchCalculator(object):
         return query
 
     def get_components(self):
+        '''
+        Return all components fro the database.
+        '''
 
         query = self.session.query(Component).order_by(Component.id).all()
         return query
@@ -371,7 +387,7 @@ class BatchCalculator(object):
         '''
 
         if showall:
-            query =  self.session.query(Chemical).order_by(Chemical.id).all()
+            query = self.session.query(Chemical).order_by(Chemical.id).all()
         else:
             compset = set()
             for comp in self.components:
@@ -420,8 +436,8 @@ class BatchCalculator(object):
 
     def select_item(self, lst, attr, value):
         '''
-        From a list of objects "lst" having a common attribute get the index of the
-        object having the attribute "attr" set to "value".
+        From a list of objects "lst" having a common attribute get the index of
+        the object having the attribute "attr" set to "value".
         '''
 
         if lst not in self.lists:
