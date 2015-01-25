@@ -7,7 +7,7 @@ TODO
 * add an option to export to HTML, and plain text
 * add an option to calculate the pH of the batch (this onw is tricky since
   first the equilibrium concentrations of all the species in the solution need
-  to be calculated)
+  to be calculated) CAN BE DONE with 'ionize' package, https://github.com/lewisamarshall/ionize
 * rewrite the basic classes used in the calculator so that the interface and
   manipulation become simpler
 * add consistency check to the database:

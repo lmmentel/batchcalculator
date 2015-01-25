@@ -1,7 +1,6 @@
+''' Batch Calculator setup script '''
 
 from setuptools import setup
-import sys
-import wx
 
 APP = "batchcalc/zbc.py"
 AUTHOR = "Lukasz Mentel"
@@ -14,8 +13,8 @@ VERSION = "0.2.0"
 YEAR = "2014"
 
 def readme():
-    with open('README.rst') as f:
-        return f.read()
+    with open('README.rst') as txt:
+        return txt.read()
 
 
 setup(
