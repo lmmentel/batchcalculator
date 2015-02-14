@@ -14,6 +14,9 @@ TODO
     - check for duplicate entries in chemicals, components, and batch,
     - check if all the components have sources,
     - check if all the chemicals are sources for existing components
+* add a hash generator to get a hash based on the calculation input and results
+* use the hash unique for the report to generate a QR code and put it one the
+  report and optionally print the qr codes on the stickers for samples
 
 DONE
 ====
