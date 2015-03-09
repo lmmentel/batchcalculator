@@ -32,8 +32,9 @@ __version__ = "0.2.0"
 import datetime
 import numpy as np
 from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_CENTER
-from reportlab.lib.pagesizes import A4, inch
+from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus.flowables import KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
@@ -61,11 +62,19 @@ res_tab_style = TableStyle([
     ('FONTSIZE', (0, 0), (-1, -1), 8),
     ('LINEABOVE', (0, 0), (-1, 1), 0.5, colors.black),
     ('ALIGN', (1, 0), (-1, 0), 'CENTER'),
-    ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
+    ('ALIGN', (2, 1), (-1, -1), 'RIGHT'),
     ('LINEBELOW', (0, -2), (-1, -1), 0.5, colors.black),
     ('LINEBEFORE', (-1, 0), (-1, -1), 0.5, colors.black),
     ('LINEBELOW', (-1, 1), (-1, -1), 0.5, colors.black),
     ])
+
+def volume2str(vol, scale=1.0, fmt="{0:10.4f}"):
+    '''Convert volume to string'''
+
+    if vol is not None:
+        return fmt.format(vol/scale)
+    else:
+        return ""
 
 def create_header(model, title, author, email, no_moles=False):
     story = []
@@ -129,27 +138,35 @@ def batch_table(model):
     tab.setStyle(tab_style)
     return tab
 
-def results_table(model):
+def results_table(model, scale=None):
+    '''
+    Return a table with the results scaled according to the scale argument
+    scale:
+        None     : no scaling,
+        "all"    : scale all chemicals by a factor,
+        "sample" : scale all chemicals to a selected sample size,
+        "item"   : scale all chemicals to and item of selected size,
+    '''
 
-    data = [["Substance", "Mass [g]", "Scaled Mass [g]", "Weighted Mass [g]"]]
-    for chem in model.chemicals:
-        data.append([chem.formula, "{0:10.4f}".format(chem.mass), "{0:10.4f}".format(chem.mass/model.scale_all), ""])
-    data.append(["Sum", "{0:10.4f}".format(sum([c.mass for c in model.chemicals])),
-                        "{0:10.4f}".format(sum(c.mass/model.scale_all for x in model.chemicals)), ""])
-    tab = Table(data)
-    tab.setStyle(res_tab_style)
-    return tab
+    if scale is None:
+        scale = 1.0
+    elif scale == "all":
+        scale = model.scale_all
+    elif scale == "sample":
+        scale = model.sample_scale
+    elif scale == "item":
+        scale = model.item_scale
+    else:
+        raise ValueError("wrong scale argument set: {0}".format(scale))
 
-def rescaled_results_table(model):
-
-    masspar = sum([s.mass for s in model.selections])
     masssum = sum([s.mass for s in model.chemicals])
+    volusum = sum([s.volume for s in model.chemicals if s.volume is not None])
 
-    data = [["Substance", "Mass [g]", "Scaled Mass [g]", "Weighted Mass [g]"]]
+    data = [["Substance", "Formula", "Mass [g]", "Volume [cm3]", "Weighted Mass [g]"]]
     for chem in model.chemicals:
-        data.append([chem.formula, "{0:10.4f}".format(chem.mass), "{0:10.4f}".format(chem.mass/model.sample_scale), ""])
-    data.append(["Total Sum", "{0:10.4f}".format(masssum),
-                        "{0:10.4f}".format(masssum/model.sample_scale), ""])
+        data.append([chem.listctrl_label(), chem.formula, "{0:10.4f}".format(chem.mass/scale), volume2str(chem.volume, scale=scale), ""])
+    data.append(["Sum", "", "{0:10.4f}".format(masssum/scale),
+                        "{0:10.4f}".format(volusum/scale), ""])
     tab = Table(data)
     tab.setStyle(res_tab_style)
     return tab
@@ -162,35 +179,29 @@ def create_pdf(path, model, flags):
     header = create_header(model, flags['title'], flags['author'], flags['email'])
     comps = components_table(model)
     batch = batch_table(model)
-    result = results_table(model)
-    rescaled_result = rescaled_results_table(model)
 
     story.extend(header)
     story.append(Spacer(1, 15))
     if flags['composition']:
-        story.append(Paragraph("Composition Matrix [C]", styles['Section']))
-        story.append(Spacer(1, 15))
-        story.append(comps)
-        story.append(Spacer(1, 10))
+        story.append(KeepTogether([Paragraph("Composition Matrix [C]", styles['Section']),
+                                   Spacer(1, 15), comps, Spacer(1, 10)]))
     if flags['batch']:
-        story.append(Paragraph("Batch Matrix [B]", styles['Section']))
-        story.append(Spacer(1, 15))
-        story.append(batch)
-        story.append(Spacer(1, 10))
+        story.append(KeepTogether([Paragraph("Batch Matrix [B]", styles['Section']),
+                                   Spacer(1, 15), batch, Spacer(1, 10)]))
     if flags['rescale_all']:
-        story.append(Paragraph("Results [X] (SF={0:8.4f})".format(model.scale_all), styles['Section']))
-        story.append(Spacer(1, 15))
-        story.append(result)
-        story.append(Spacer(1, 10))
+        story.append(KeepTogether([Paragraph("Results [X] (SF={0:8.4f})".format(model.scale_all), styles['Section']),
+                                  Spacer(1, 15), results_table(model, scale="all"), Spacer(1, 10)]))
     if flags['rescale_to']:
-        story.append(Paragraph("Results [X] (SF={0:8.4f})".format(model.sample_scale), styles['Section']))
-        story.append(Spacer(1, 15))
-        story.append(rescaled_result)
+        story.append(KeepTogether([Paragraph("Results [X] (SF={0:8.4f})".format(model.sample_scale), styles['Section']),
+                                   Spacer(1, 15), results_table(model, scale="sample"), Spacer(1, 10)]))
+    if flags['rescale_item']:
+        story.append(KeepTogether([Paragraph("Results [X] (SF={0:8.4f})".format(model.item_scale), styles['Section']),
+                                   Spacer(1, 15), results_table(model, scale="item"), Spacer(1, 10)]))
     if flags['comment'] != "":
-        story.append(Spacer(1, 10))
-        story.append(Paragraph("Comments", styles['Section']))
-        story.append(Spacer(1, 12))
-        story.append(Paragraph(flags['comment'], styles['Normal']))
+        story.append(KeepTogether([Spacer(1, 10),
+                                   Paragraph("Comments", styles['Section']),
+                                   Spacer(1, 12),
+                                   Paragraph(flags['comment'], styles['Normal'])]))
     doc.build(story)
 
 def create_pdf_composition(path, model, flags):

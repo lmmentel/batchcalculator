@@ -303,7 +303,7 @@ class BatchCalculator(object):
         self.scale_all = 100.0
         self.sample_scale = 1.0
         self.sample_size = 5.0
-        self.item_scale = None
+        self.item_scale = 1.0
         self.selections = []
 
     @staticmethod
@@ -364,7 +364,7 @@ class BatchCalculator(object):
         self.scale_all = 100.0
         self.sample_scale = 1.0
         self.sample_size = 5.0
-        self.item_scale = None
+        self.item_scale = 1.0
         self.selections = []
 
     def get_batch_records(self):
@@ -621,8 +621,8 @@ class BatchCalculator(object):
         specified by the user.
         '''
 
-        item_scale = chemical.mass/float(desired_mass)
-        res = [s.mass/item_scale for s in self.chemicals]
+        self.item_scale = chemical.mass/float(desired_mass)
+        res = [s.mass/self.item_scale for s in self.chemicals]
         return res
 
 
@@ -643,8 +643,8 @@ class BatchCalculator(object):
         selected *item* has th number of moles equal to *amount*.
         '''
 
-        self.item_scale = desired_moles/component.moles
-        res = [s.moles*self.item_scale for s in self.components]
+        self.item_scale = component.moles/desired_moles
+        res = [s.moles/self.item_scale for s in self.components]
         return res
 
     def print_A(self):

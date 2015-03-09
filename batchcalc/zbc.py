@@ -1488,7 +1488,7 @@ class MainFrame(wx.Frame):
         '''
         Open the dialog with options about the pdf document to be written.
         '''
-        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, size=(400, 470))
+        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, size=(400, 520))
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()

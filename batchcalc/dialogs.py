@@ -180,11 +180,11 @@ class ExportPdfMinimalDialog(wx.Dialog):
 
 class ExportPdfDialog(wx.Dialog):
     '''
-    A dialog for setting the options of the pdf report.
+    A dialog for setting the options of the pdf report (using reportlab).
     '''
 
     def __init__(self, parent, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(400, 550),
+            pos=wx.DefaultPosition, size=(450, 600),
             style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
 
         super(ExportPdfDialog, self).__init__(parent, id, title, pos, size,
@@ -210,11 +210,13 @@ class ExportPdfDialog(wx.Dialog):
         cb_bmat = wx.CheckBox(panel, label="Batch Matrix")
         cb_rescaleAll = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
         cb_rescaleTo = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
+        cb_rescaleItem = wx.CheckBox(panel, label="Result vector X (rescaled to an item)")
 
         cb_cmpm.SetValue(True)
         cb_bmat.SetValue(True)
         cb_rescaleAll.SetValue(True)
         cb_rescaleTo.SetValue(True)
+        cb_rescaleItem.SetValue(True)
 
         sb_calculation = wx.StaticBox(panel, label="Include")
         sbc_bs = wx.StaticBoxSizer(sb_calculation, wx.VERTICAL)
@@ -222,6 +224,7 @@ class ExportPdfDialog(wx.Dialog):
         sbc_bs.Add(cb_bmat, flag=wx.LEFT|wx.TOP, border=5)
         sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT|wx.TOP, border=5)
         sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT|wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleItem, flag=wx.LEFT|wx.TOP, border=5)
 
         self.widgets = {
             "title" : title,
@@ -232,6 +235,7 @@ class ExportPdfDialog(wx.Dialog):
             "batch" : cb_bmat,
             "rescale_all" : cb_rescaleAll,
             "rescale_to" : cb_rescaleTo,
+            "rescale_item" : cb_rescaleItem,
         }
 
         # layout
