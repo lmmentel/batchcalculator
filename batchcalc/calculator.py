@@ -101,6 +101,39 @@ class BaseChemical(object):
         else:
             return False
 
+class Synthesis(Base):
+    __tablename__ = "synthesis"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    reference = Column(String)
+    laborant = Column(String)
+    target_framework = Column(String)
+
+class SynthesisChemicals(Base):
+    __tablename__ = "synthesischemicals"
+
+    id = Column(Integer, primary_key=True)
+    synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
+    chemical_id  = Column(Integer, ForeignKey("chemicals.id")
+    chemical = relationship("Chemical")
+    mass = Column(Float, nullable=False)
+
+class SynthesisComponents(Base):
+    __tablename__ = "synthesischemicals"
+
+    id = Column(Integer, primary_key=True)
+    synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
+    component_id  = Column(Integer, ForeignKey("components.id")
+    component = relationship("Component")
+    moles = Column(Float, nullable=False)
+
+class SEMimages(Base):
+    __tablename__ = "semimages"
+
+    id = Column(Integer, primary_key=True)
+    synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
+
 class Category(Base):
     __tablename__ = 'categories'
 
