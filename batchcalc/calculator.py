@@ -108,6 +108,9 @@ class Synthesis(Base):
     name = Column(String)
     reference = Column(String)
     laborant = Column(String)
+    temperature = Column(Float, nullable=False)
+    crystallization_time = Column(Float, nullable=False)
+    oven_type = Column(String)
     target_framework = Column(String)
 
 class SynthesisChemicals(Base):
