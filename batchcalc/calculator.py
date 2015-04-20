@@ -111,7 +111,9 @@ class Synthesis(Base):
     temperature = Column(Float, nullable=False)
     crystallization_time = Column(Float, nullable=False)
     oven_type = Column(String)
-    target_framework = Column(String)
+    target_material = Column(String)
+    description = Column(String)
+    stirring = Column(String)
 
 class SynthesisChemicals(Base):
     __tablename__ = "synthesischemicals"
@@ -136,6 +138,7 @@ class SEMimages(Base):
 
     id = Column(Integer, primary_key=True)
     synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
+    name = Column(String)
 
 class Category(Base):
     __tablename__ = 'categories'
