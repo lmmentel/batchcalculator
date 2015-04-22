@@ -79,8 +79,6 @@ class AddModifyDBBaseFrame(wx.Frame):
 
         super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos, size, style, name)
 
-        panel = wx.Panel(self, -1, style=wx.SUNKEN_BORDER)
-
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -595,6 +593,93 @@ class ShowBFrame(wx.Frame):
     def OnButtonFocus(self, evt):
         pass
 
+class ShowSynthesesFrame(wx.Frame):
+
+    def __init__(self, parent, columns=None, id=wx.ID_ANY, title="syntheses",
+            pos=wx.DefaultPosition, size=(500, 300),
+            style=wx.DEFAULT_FRAME_STYLE, name=""):
+
+        super(ShowSynthesesFrame, self).__init__(parent, id, title, pos, size, style, name)
+
+        self.model = parent.model
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+
+        self.olv = ObjectListView(self, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.olv.evenRowsBackColor="#DCF0C7"
+        self.olv.oddRowsBackColor="#FFFFFF"
+        self.olv.SetEmptyListMsg("No Records Found")
+
+        # create the button row
+
+        loadRecordBtn = wx.Button(self, label="Load")
+        loadRecordBtn.Bind(wx.EVT_BUTTON, self.onLoadRecord)
+        btnSizer.Add(loadRecordBtn, 0, wx.ALL, 5)
+
+        addRecordBtn = wx.Button(self, label="Add")
+        addRecordBtn.Bind(wx.EVT_BUTTON, self.onAddRecord)
+        btnSizer.Add(addRecordBtn, 0, wx.ALL, 5)
+
+        editRecordBtn = wx.Button(self, label="Edit")
+        editRecordBtn.Bind(wx.EVT_BUTTON, self.onEditRecord)
+        btnSizer.Add(editRecordBtn, 0, wx.ALL, 5)
+
+        deleteRecordBtn = wx.Button(self, label="Delete")
+        deleteRecordBtn.Bind(wx.EVT_BUTTON, self.onDelete)
+        btnSizer.Add(deleteRecordBtn, 0, wx.ALL, 5)
+
+        mainSizer.Add(self.olv, 1, wx.ALL|wx.EXPAND, 5)
+        mainSizer.Add(btnSizer, 0, wx.CENTER)
+        self.SetSizer(mainSizer)
+
+        self.show_all(columns)
+
+    def onAddRecord(self, event):
+        """
+        Add a record to the database
+        """
+        print "adding"
+
+    def onEditRecord(self, event):
+        """
+        Edit a record
+        """
+        print "editing"
+
+    def onDelete(self, event):
+        """
+        Delete a record
+        """
+        print "deleting"
+
+    def onLoadRecord(self, event):
+        """
+        Load a record into the batch calculator
+        """
+        print "loading"
+
+    def onSearch(self, event):
+        """
+        Searches database based on the user's filter choice and keyword
+        """
+        print "searching"
+
+    def set_olv(self, syntheses, columns):
+
+        olv_cols = []
+        for col in columns:
+            olv_cols.append(ColumnDefn(**col))
+
+        self.olv.SetColumns(olv_cols)
+        self.olv.SetObjects(syntheses)
+
+    def show_all(self, columns):
+
+        syntheses = self.model.get_syntheses()
+        self.set_olv(syntheses, columns)
+
 class CustomDataTable(gridlib.PyGridTableBase):
     def __init__(self, model):
         gridlib.PyGridTableBase.__init__(self)
@@ -942,10 +1027,6 @@ class OutputPanel(wx.Panel):
                 ed.Destroy()
         dialog.Destroy()
 
-    def get_rescale_columns(self):
-        fields = ["label", "mass"]
-        return [self.columns[k] for k in self.columns.keys() if k in fields]
-
     def OnRescaleToItem(self, event):
         '''
         Retrieve the selected item and the mass for that item to which it
@@ -1290,11 +1371,13 @@ class MainFrame(wx.Frame):
             ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
             ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
             ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("description", {"title" : "Description",   "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
             ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
             ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
             ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
             ("kind"    , {"title" : "Kind",             "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "kind", "isEditable" : False}),
             ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False, "isSpaceFilling" : True}),
+            ("laborant", {"title" : "Laborant",         "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "laborant", "isEditable" : False, "isSpaceFilling" : False}),
             ("mass"    , {"title" : "Mass [g]",         "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
             ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
@@ -1302,9 +1385,12 @@ class MainFrame(wx.Frame):
             ("pk"      , {"title" : "pK",               "minimumWidth" : 100, "width" : 120, "align" : "right", "valueGetter" : "pk", "isEditable" : False, "stringConverter" : "%.2f"}),
             ("physform", {"title" : "Physical Form",    "minimumWidth" : 150, "width" : 150, "align" : "left",  "valueGetter" : "physical_form", "isEditable" : False}),
             ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
+            ("reference", {"title" : "Reference",       "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reference", "isEditable" : False}),
             ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
             ("smiles"  , {"title" : "SMILES",           "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "smiles", "isEditable" : False}),
+            ("target_material", {"title" : "Target Material","minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "target_material", "isEditable" : False}),
+            ("temperature", {"title" : "Temperature",   "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "temperature", "isEditable" : False, "stringConverter" : "%.1f"}),
         ])
 
         self.model = BatchCalculator()
@@ -1359,6 +1445,10 @@ class MainFrame(wx.Frame):
         maddreactiondb = dbm.Append(wx.ID_ANY, "Edit Reactions\t", "Edit reaction records in the database")
         maddcategorydb = dbm.Append(wx.ID_ANY, "Edit Categories\t", "Edit category records in the database")
         menubar.Append(dbm, "Database")
+        # Synthesis Menu
+        synthm = wx.Menu()
+        synth_show = synthm.Append(wx.ID_ANY, "Show All\t", "Show all stored syntheses")
+        menubar.Append(synthm, "Syntheses")
         # About Menu
         aboutm = wx.Menu()
         about = aboutm.Append(wx.ID_ABOUT, "About")
@@ -1383,6 +1473,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAddBatchToDB, maddbatchdb)
         self.Bind(wx.EVT_MENU, self.OnAddReactionToDB, maddreactiondb)
         self.Bind(wx.EVT_MENU, self.OnAddCategoryToDB, maddcategorydb)
+        self.Bind(wx.EVT_MENU, self.OnShowSyntheses, synth_show)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
     # Menu Bindings ------------------------------------------------------------
@@ -1714,6 +1805,17 @@ class MainFrame(wx.Frame):
         elif type(self.model.B).__module__ == np.__name__:
             frame = ShowBFrame(self, sys.stdout)
             frame.Show(True)
+
+    def _get_syntheses_columns(self):
+
+        fields = ["name", "target_material", "laborant", "reference", "temperature", "description"]
+        return [self.columns[k] for k in self.columns.keys() if k in fields]
+
+    def OnShowSyntheses(self, event):
+        '''Show a frame with all stored syntheses'''
+
+        frame = ShowSynthesesFrame(parent=self, columns=self._get_syntheses_columns(), size=(1000, 600))
+        frame.Show(True)
 
     def update_all_objectlistviews(self):
         '''

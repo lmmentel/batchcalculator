@@ -108,28 +108,35 @@ class Synthesis(Base):
     name = Column(String)
     reference = Column(String)
     laborant = Column(String)
-    temperature = Column(Float, nullable=False)
-    crystallization_time = Column(Float, nullable=False)
+    temperature = Column(Float)
+    crystallization_time = Column(Float)
     oven_type = Column(String)
     target_material = Column(String)
     description = Column(String)
     stirring = Column(String)
+
+    def __repr__(self):
+        return "%s(\n%s)" % (
+                 (self.__class__.__name__),
+                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
+                            for key in sorted(self.__dict__.keys())
+                            if not key.startswith('_')]))
 
 class SynthesisChemicals(Base):
     __tablename__ = "synthesischemicals"
 
     id = Column(Integer, primary_key=True)
     synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    chemical_id  = Column(Integer, ForeignKey("chemicals.id")
+    chemical_id  = Column(Integer, ForeignKey("chemicals.id"))
     chemical = relationship("Chemical")
     mass = Column(Float, nullable=False)
 
 class SynthesisComponents(Base):
-    __tablename__ = "synthesischemicals"
+    __tablename__ = "synthesiscomponents"
 
     id = Column(Integer, primary_key=True)
     synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    component_id  = Column(Integer, ForeignKey("components.id")
+    component_id  = Column(Integer, ForeignKey("components.id"))
     component = relationship("Component")
     moles = Column(Float, nullable=False)
 
@@ -335,9 +342,9 @@ class BatchCalculator(object):
 
         self.calculated = False
 
-        self.A = list()
-        self.B = list()
-        self.X = list()
+        self.A = np.zeros(1)
+        self.B = np.zeros(1)
+        self.X = np.zeros(1)
 
         self.scale_all = 100.0
         self.sample_scale = 1.0
@@ -396,9 +403,9 @@ class BatchCalculator(object):
         self.components = []
         self.chemicals = []
 
-        self.A = []
-        self.B = []
-        self.X = []
+        self.A = np.zeros(1)
+        self.B = np.zeros(1)
+        self.X = np.zeros(1)
 
         self.scale_all = 100.0
         self.sample_scale = 1.0
@@ -419,6 +426,12 @@ class BatchCalculator(object):
         query = self.session.query(Component).order_by(Component.id).all()
         return query
 
+    def get_categories(self):
+        '''
+        Return the list of `Category` objects from the database
+        '''
+        return self.session.query(Category).order_by(Category.id).all()
+
     def get_chemicals(self, showall=False):
         '''
         Return chemicals that are sources for the components present in the
@@ -436,11 +449,11 @@ class BatchCalculator(object):
                 query = sorted(list(compset), key=lambda x: x.id)
         return query
 
-    def get_categories(self):
+    def get_electrolytes(self):
         '''
-        Return the list of `Category` objects from the database
+        Return the list of `Electrolyte` objects from the database
         '''
-        return self.session.query(Category).order_by(Category.id).all()
+        return self.session.query(Electrolyte).order_by(Electrolyte.id).all()
 
     def get_kinds(self):
         '''
@@ -448,23 +461,23 @@ class BatchCalculator(object):
         '''
         return self.session.query(Kind).order_by(Kind.id).all()
 
-    def get_reactions(self):
-        '''
-        Return the list of `Reaction` objects from the database
-        '''
-        return self.session.query(Reaction).order_by(Reaction.id).all()
-
     def get_physical_forms(self):
         '''
         Return the list of `PhysicalForm` objects from the database
         '''
         return self.session.query(PhysicalForm).order_by(PhysicalForm.id).all()
 
-    def get_electrolytes(self):
+    def get_reactions(self):
         '''
-        Return the list of `Electrolyte` objects from the database
+        Return the list of `Reaction` objects from the database
         '''
-        return self.session.query(Electrolyte).order_by(Electrolyte.id).all()
+        return self.session.query(Reaction).order_by(Reaction.id).all()
+
+    def get_syntheses(self):
+        '''
+        Return the list of `Synthesis` objects from the database
+        '''
+        return self.session.query(Synthesis).order_by(Synthesis.id).all()
 
     @staticmethod
     def is_empty(item):

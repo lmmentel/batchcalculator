@@ -50,6 +50,59 @@ def which(prog):
         if os.path.exists(fprog) and os.access(fprog, os.X_OK):
             return fprog
 
+class ChemicalsDialog(wx.Dialog):
+
+    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
+            pos=wx.DefaultPosition, size=(850, 520),
+            style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
+
+        dlgwidth = sum([c["width"] for c in columns]) + 60
+        super(ChemicalsDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
+
+        panel = wx.Panel(self)
+
+        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.reacsOlv.evenRowsBackColor="#DCF0C7"
+        self.reacsOlv.oddRowsBackColor="#FFFFFF"
+        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+
+        self.SetChemicals(model, columns)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+
+        buttonOk = wx.Button(panel, id=wx.ID_OK)
+        buttonOk.SetDefault()
+        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
+        hbox.Add(buttonOk)
+        self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
+
+        panel.SetSizerAndFit(self.sizer)
+
+    def SetChemicals(self, model, columns):
+
+        olv_cols = []
+        for col in columns:
+            olv_cols.append(ColumnDefn(**col))
+
+        self.reacsOlv.SetColumns(olv_cols)
+        self.reacsOlv.CreateCheckStateColumn()
+        data = model.get_chemicals(showall=(len(model.components) == 0))
+        for item in data:
+            if item.id in [r.id for r in model.chemicals]:
+                self.reacsOlv.SetCheckState(item, True)
+                reac = model.select_item("chemicals", "id", item.id)
+                item.mass = reac.mass
+                item.concentration = reac.concentration
+        self.reacsOlv.SetObjects(data)
+
+    def GetCurrentSelections(self):
+        return self.reacsOlv.GetCheckedObjects()
+
 class ComponentsDialog(wx.Dialog):
 
     def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
@@ -105,6 +158,59 @@ class ComponentsDialog(wx.Dialog):
 
     def GetCurrentSelections(self):
         return self.compsOlv.GetCheckedObjects()
+
+class SynthesisDialog(wx.Dialog):
+
+    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
+            pos=wx.DefaultPosition, size=(850, 520),
+            style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
+
+        dlgwidth = sum([c["width"] for c in columns]) + 60
+        super(SynthesisDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
+
+        panel = wx.Panel(self)
+
+        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.reacsOlv.evenRowsBackColor="#DCF0C7"
+        self.reacsOlv.oddRowsBackColor="#FFFFFF"
+        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+
+        self.SetChemicals(model, columns)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+
+        buttonOk = wx.Button(panel, id=wx.ID_OK)
+        buttonOk.SetDefault()
+        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
+        hbox.Add(buttonOk)
+        self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
+
+        panel.SetSizerAndFit(self.sizer)
+
+    def SetChemicals(self, model, columns):
+
+        olv_cols = []
+        for col in columns:
+            olv_cols.append(ColumnDefn(**col))
+
+        self.reacsOlv.SetColumns(olv_cols)
+        self.reacsOlv.CreateCheckStateColumn()
+        data = model.get_chemicals(showall=(len(model.components) == 0))
+        for item in data:
+            if item.id in [r.id for r in model.chemicals]:
+                self.reacsOlv.SetCheckState(item, True)
+                reac = model.select_item("chemicals", "id", item.id)
+                item.mass = reac.mass
+                item.concentration = reac.concentration
+        self.reacsOlv.SetObjects(data)
+
+    def GetCurrentSelections(self):
+        return self.reacsOlv.GetCheckedObjects()
 
 class ExceptionDialog(GMD.GenericMessageDialog):
     def __init__(self, msg):
@@ -415,59 +521,6 @@ class ExportTexDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
-class ChemicalsDialog(wx.Dialog):
-
-    def __init__(self, parent, model, columns, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(850, 520),
-            style=wx.DEFAULT_FRAME_STYLE, name="Reactant Dialog"):
-
-        dlgwidth = sum([c["width"] for c in columns]) + 60
-        super(ChemicalsDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
-
-        panel = wx.Panel(self)
-
-        self.reacsOlv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.reacsOlv.evenRowsBackColor="#DCF0C7"
-        self.reacsOlv.oddRowsBackColor="#FFFFFF"
-        self.reacsOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
-
-        self.SetChemicals(model, columns)
-
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.reacsOlv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
-
-        buttonOk = wx.Button(panel, id=wx.ID_OK)
-        buttonOk.SetDefault()
-        buttonCancel = wx.Button(panel, id=wx.ID_CANCEL)
-
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
-        hbox.Add(buttonOk)
-        self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
-
-        panel.SetSizerAndFit(self.sizer)
-
-    def SetChemicals(self, model, columns):
-
-        olv_cols = []
-        for col in columns:
-            olv_cols.append(ColumnDefn(**col))
-
-        self.reacsOlv.SetColumns(olv_cols)
-        self.reacsOlv.CreateCheckStateColumn()
-        data = model.get_chemicals(showall=(len(model.components) == 0))
-        for item in data:
-            if item.id in [r.id for r in model.chemicals]:
-                self.reacsOlv.SetCheckState(item, True)
-                reac = model.select_item("chemicals", "id", item.id)
-                item.mass = reac.mass
-                item.concentration = reac.concentration
-        self.reacsOlv.SetObjects(data)
-
-    def GetCurrentSelections(self):
-        return self.reacsOlv.GetCheckedObjects()
-
 class RescaleToItemDialog(wx.Dialog):
 
     def __init__(self, parent, objects, columns, id=wx.ID_ANY, title="Choose an item and the amount",
@@ -564,13 +617,16 @@ class RescaleToSampleDialog(wx.Dialog):
     def GetCurrentSelections(self):
         return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
 
-
 def show_message_dlg(message, caption, flag=wx.ICON_ERROR|wx.OK):
     """"""
     msg = wx.MessageDialog(None, message=message,
                            caption=caption, style=flag)
     msg.ShowModal()
     msg.Destroy()
+
+
+### Validators
+
 
 class NumberValidator(wx.PyValidator):
 
