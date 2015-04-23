@@ -73,11 +73,13 @@ def format_float(item):
         return ""
 
 class AddModifyDBBaseFrame(wx.Frame):
-    def __init__(self, parent, id=wx.ID_ANY, title="Edit Database",
+    def __init__(self, parent, columns=None, id=wx.ID_ANY, title="Edit Database",
             pos=wx.DefaultPosition, size=(500, 300),
             style=wx.DEFAULT_FRAME_STYLE, name=""):
 
         super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos, size, style, name)
+
+        self.columns = columns
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -205,13 +207,8 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
     def set_olv(self, batches):
 
-        self.olv.SetColumns([
-            ColumnDefn(title="Id",          minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
-            ColumnDefn(title="Chemical",    minimumWidth=150, width=200, align="left",  valueGetter="chemical", isEditable=False, isSpaceFilling=True),
-            ColumnDefn(title="Component",   minimumWidth=150, width=200, align="left",  valueGetter="component", isEditable=False, isSpaceFilling=True),
-            ColumnDefn(title="Coefficient", minimumWidth=100, width=100, align="right", valueGetter="coefficient", isEditable=False, stringConverter="%.2f"),
-            ColumnDefn(title="Reaction",    minimumWidth=200, width=200, align="left",  valueGetter="reaction", isEditable=False, isSpaceFilling=True),
-        ])
+        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(batches)
 
     def show_all(self):
@@ -224,6 +221,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
     def __init__(self, parent, **kwargs):
 
         super(AddModifyChemicalTableFrame, self).__init__(parent, **kwargs)
+
         self.model = parent.model
 
         self.show_all()
@@ -286,21 +284,8 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
     def set_olv(self, chemicals):
 
-        self.olv.SetColumns([
-            ColumnDefn(title="Id",               minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
-            ColumnDefn(title="Name",             minimumWidth=200, width=200, align="left",  valueGetter="name", isEditable=False, isSpaceFilling=True),
-            ColumnDefn(title="Formula",          minimumWidth=120, width=120, align="left",  valueGetter="formula", isEditable=False, isSpaceFilling=True),
-            ColumnDefn(title="Concentration",    minimumWidth=100, width=100, align="right", valueGetter="concentration", isEditable=False, stringConverter="%.2f"),
-            ColumnDefn(title="Molecular Weight", minimumWidth=120, width=120, align="right", valueGetter="molwt", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn(title="Short name",       minimumWidth=120, width=120, align="left",  valueGetter="short_name", isEditable=False),
-            ColumnDefn(title="Kind",             minimumWidth=120, width=120, align="left",  valueGetter="kind", isEditable=False),
-            ColumnDefn(title="Physical Form",    minimumWidth=120, width=120, align="left",  valueGetter="physical_form", isEditable=False),
-            ColumnDefn(title="Electrolyte",      minimumWidth=120, width=120, align="left",  valueGetter="electrolyte", isEditable=False),
-            ColumnDefn(title="CAS No.",          minimumWidth=120, width=120, align="left",  valueGetter="cas", isEditable=False),
-            ColumnDefn(title="pK",               minimumWidth=120, width=120, align="right", valueGetter="pk", isEditable=False, stringConverter=format_float),
-            ColumnDefn(title="Density",          minimumWidth=120, width=120, align="right", valueGetter="density", isEditable=False, stringConverter=format_float),
-            ColumnDefn(title="SMILES",           minimumWidth=150, width=120, align="left",  valueGetter="smiles", isEditable=False),
-        ])
+        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(chemicals)
 
     def show_all(self):
@@ -376,14 +361,8 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
     def set_olv(self, components):
 
-        self.olv.SetColumns([
-            ColumnDefn(title="Id",               minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
-            ColumnDefn(title="Name",             minimumWidth=200, width=200, align="left",  valueGetter="name", isEditable=False, isSpaceFilling=True),
-            ColumnDefn(title="Formula",          minimumWidth=120, width=120, align="left",  valueGetter="formula", isEditable=False, isSpaceFilling=True),
-            ColumnDefn(title="Molecular Weight", minimumWidth=120, width=120, align="right", valueGetter="molwt", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn(title="Short name",       minimumWidth=120, width=120, align="left",  valueGetter="short_name", isEditable=False),
-            ColumnDefn(title="Category",         minimumWidth=120, width=120, align="left",  valueGetter="category", isEditable=False),
-        ])
+        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(components)
 
     def show_all(self):
@@ -396,6 +375,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
     def __init__(self, parent, **kwargs):
 
         super(AddModifyCategoryTableFrame, self).__init__(parent, **kwargs)
+
         self.model = parent.model
 
         self.show_all()
@@ -465,10 +445,8 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
     def set_olv(self, categories):
 
-        self.olv.SetColumns([
-            ColumnDefn(title="Id",          minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
-            ColumnDefn(title="Category",    minimumWidth=150, width=200, align="left",  valueGetter="name", isEditable=False, isSpaceFilling=True),
-        ])
+        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(categories)
 
     def show_all(self):
@@ -557,10 +535,8 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
 
     def set_olv(self, reactions):
 
-        self.olv.SetColumns([
-            ColumnDefn(title="Id",          minimumWidth=50,  width=50,  align="left",  valueGetter="id", isEditable=False),
-            ColumnDefn(title="Reaction",    minimumWidth=250, width=300, align="left",  valueGetter="reaction", isEditable=False, isSpaceFilling=True),
-        ])
+        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(reactions)
 
     def show_all(self):
@@ -602,6 +578,7 @@ class ShowSynthesesFrame(wx.Frame):
         super(ShowSynthesesFrame, self).__init__(parent, id, title, pos, size, style, name)
 
         self.model = parent.model
+        self.columns = columns
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -666,19 +643,16 @@ class ShowSynthesesFrame(wx.Frame):
         """
         print "searching"
 
-    def set_olv(self, syntheses, columns):
+    def set_olv(self, syntheses):
 
-        olv_cols = []
-        for col in columns:
-            olv_cols.append(ColumnDefn(**col))
-
+        olv_cols = [ColumnDefn(**col) for col in self.columns]
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(syntheses)
 
     def show_all(self, columns):
 
         syntheses = self.model.get_syntheses()
-        self.set_olv(syntheses, columns)
+        self.set_olv(syntheses)
 
 class CustomDataTable(gridlib.PyGridTableBase):
     def __init__(self, model):
@@ -1369,9 +1343,10 @@ class MainFrame(wx.Frame):
         self.columns = OrderedDict([
             ("cas"     , {"title" : "CAS No.",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
             ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
+            ("categobj", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "name", "isEditable" : False}),
             ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
             ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("description", {"title" : "Description",   "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
+            ("descr"   , {"title" : "Description",      "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
             ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
             ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
             ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
@@ -1389,7 +1364,7 @@ class MainFrame(wx.Frame):
             ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
             ("smiles"  , {"title" : "SMILES",           "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "smiles", "isEditable" : False}),
-            ("target_material", {"title" : "Target Material","minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "target_material", "isEditable" : False}),
+            ("target"  , {"title" : "Target Material",  "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "target_material", "isEditable" : False}),
             ("temperature", {"title" : "Temperature",   "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "temperature", "isEditable" : False, "stringConverter" : "%.1f"}),
         ])
 
@@ -1420,12 +1395,6 @@ class MainFrame(wx.Frame):
         filem.AppendSeparator()
         mexit = filem.Append(wx.ID_CLOSE, "Exit\tAlt+F4")
         menubar.Append(filem, "&File")
-        # Edit Menu
-        #editm = wx.Menu()
-        #editm.Append(wx.ID_COPY, "Copy\tCtrl+C")
-        #editm.Append(wx.ID_CUT, "Cut\tCtrl+X")
-        #editm.Append(wx.ID_PASTE, "Paste\tCtrl+V")
-        #menubar.Append(editm, "&Edit")
         # View Menu
         viewm = wx.Menu()
         mshowb = viewm.Append(wx.ID_ANY, "Show B Matrix")
@@ -1476,6 +1445,39 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnShowSyntheses, synth_show)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
+    # Helper methods
+
+    def _get_batch_cols(self):
+
+        fields = ["id", "chemical", "component", "coefficient", "raction"]
+        return [self.columns[k] for k in fields]
+
+    def _get_category_cols(self):
+
+        fields = ["id", "category"]
+        return [self.columns[k] for k in fields]
+
+    def _get_chemical_cols(self):
+
+        fields = ["id", "name", "formula", "conc", "molwt", "short", "kind",
+                  "physform", "elect", "cas", "pk", "density", "smiles"]
+        return [self.columns[k] for k in fields]
+
+    def _get_component_cols(self):
+
+        fields = ["id", "name", "formula", "molwt", "short", "category"]
+        return [self.columns[k] for k in fields]
+
+    def _get_reaction_cols(self):
+
+        fields = ["id", "reaction"]
+        return [self.columns[k] for k in fields]
+
+    def _get_syntheses_cols(self):
+
+        fields = ["name", "target", "laborant", "reference", "temperature", "descr"]
+        return [self.columns[k] for k in fields]
+
     # Menu Bindings ------------------------------------------------------------
 
     def OnAbout(self, event):
@@ -1502,7 +1504,7 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        frame = AddModifyBatchTableFrame(parent=self, size=(800, 600))
+        frame = AddModifyBatchTableFrame(parent=self, columns=self._get_batch_cols(), size=(800, 600))
         frame.Show(True)
 
     def OnAddCategoryToDB(self, event):
@@ -1510,7 +1512,7 @@ class MainFrame(wx.Frame):
         Add a Category to the Database
         '''
 
-        frame = AddModifyCategoryTableFrame(parent=self, size=(400, 400))
+        frame = AddModifyCategoryTableFrame(parent=self, columns=self._get_category_cols(), size=(400, 400))
         frame.Show(True)
 
     def OnAddChemicalToDB(self, event):
@@ -1518,7 +1520,7 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        frame = AddModifyChemicalTableFrame(parent=self, size=(1000, 600))
+        frame = AddModifyChemicalTableFrame(parent=self, columns=self._get_chemical_cols(), size=(1000, 600))
         frame.Show(True)
 
     def OnAddComponentToDB(self, event):
@@ -1526,7 +1528,7 @@ class MainFrame(wx.Frame):
         Add a Zeolite Component to the Database
         '''
 
-        frame = AddModifyComponentTableFrame(parent=self, size=(800, 600))
+        frame = AddModifyComponentTableFrame(parent=self, columns=self._get_component_cols(), size=(800, 600))
         frame.Show(True)
 
     def OnAddReactionToDB(self, event):
@@ -1534,7 +1536,7 @@ class MainFrame(wx.Frame):
         Add a Reaction to the Database
         '''
 
-        frame = AddModifyReactionTableFrame(parent=self, size=(600, 600))
+        frame = AddModifyReactionTableFrame(parent=self, columns=self._get_reaction_cols(), size=(600, 600))
         frame.Show(True)
 
     def OnChangeDB(self, event):
@@ -1806,15 +1808,11 @@ class MainFrame(wx.Frame):
             frame = ShowBFrame(self, sys.stdout)
             frame.Show(True)
 
-    def _get_syntheses_columns(self):
-
-        fields = ["name", "target_material", "laborant", "reference", "temperature", "description"]
-        return [self.columns[k] for k in self.columns.keys() if k in fields]
 
     def OnShowSyntheses(self, event):
         '''Show a frame with all stored syntheses'''
 
-        frame = ShowSynthesesFrame(parent=self, columns=self._get_syntheses_columns(), size=(1000, 600))
+        frame = ShowSynthesesFrame(parent=self, columns=self._get_syntheses_cols(), size=(1000, 600))
         frame.Show(True)
 
     def update_all_objectlistviews(self):
