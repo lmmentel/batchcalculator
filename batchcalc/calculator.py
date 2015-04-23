@@ -141,6 +141,9 @@ class Synthesis(Base):
     stirring = Column(String)
     #startedon = Column(DateTime)
 
+    components = relationship("SynthesisComponent")
+    chemicals = relationship("SynthesisChemical")
+
     def __repr__(self):
         return "%s(\n%s)" % (
                  (self.__class__.__name__),
@@ -148,7 +151,7 @@ class Synthesis(Base):
                             for key in sorted(self.__dict__.keys())
                             if not key.startswith('_')]))
 
-class SynthesisChemicals(Base):
+class SynthesisChemical(Base):
     __tablename__ = "synthesischemicals"
 
     id = Column(Integer, primary_key=True)
@@ -157,7 +160,14 @@ class SynthesisChemicals(Base):
     chemical = relationship("Chemical")
     mass = Column(Float, nullable=False)
 
-class SynthesisComponents(Base):
+    def __repr__(self):
+        return "%s(\n%s)" % (
+                 (self.__class__.__name__),
+                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
+                            for key in sorted(self.__dict__.keys())
+                            if not key.startswith('_')]))
+
+class SynthesisComponent(Base):
     __tablename__ = "synthesiscomponents"
 
     id = Column(Integer, primary_key=True)
@@ -166,7 +176,14 @@ class SynthesisComponents(Base):
     component = relationship("Component")
     moles = Column(Float, nullable=False)
 
-class SEMimages(Base):
+    def __repr__(self):
+        return "%s(\n%s)" % (
+                 (self.__class__.__name__),
+                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
+                            for key in sorted(self.__dict__.keys())
+                            if not key.startswith('_')]))
+
+class SEMimage(Base):
     __tablename__ = "semimages"
 
     id = Column(Integer, primary_key=True)

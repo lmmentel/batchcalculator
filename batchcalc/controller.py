@@ -33,6 +33,9 @@ __version__ = "0.2.1"
 
 import wx
 
+from collections import OrderedDict
+
+from ObjectListView import ObjectListView, ColumnDefn
 from batchcalc.calculator import Chemical, Component, Electrolyte, Kind, Category, Reaction, PhysicalForm, Batch
 from batchcalc import dialogs
 
@@ -654,29 +657,58 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(400, 480)):
+            pos=wx.DefaultPosition, size=(500, 700)):
 
         super(AddModifySynthesisRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
 
+        self.model = parent.model
+
         self.panel = wx.Panel(self)
 
-        synth = {"id" : {"label" : "Id"},
-                 "name" : {"label" : "Name"},
-                 "reference" : {"label" : "Reference"},
-                 "laborant" : {"label" : "Laborant"},
-                 "temperature" : {"label" : "Temperature"},
-                 "crystallization_time" : {"label" : "Crystallization Time"},
-                 "target_material" : {"label" : "Target Material"},
-                 "description" : {"label" : "Description"},
-                 "stirring" : {"label" : "Stirring"},
-                 }
+        synth = OrderedDict([
+                ("name", {"label" : "Name"}),
+                ("target_material", {"label" : "Target Material"}),
+                ("laborant", {"label" : "Laborant"}),
+                ("reference", {"label" : "Reference"}),
+                ("temperature", {"label" : "Temperature"}),
+                ("crystallization_time", {"label" : "Crystallization Time"}),
+                ("stirring", {"label" : "Stirring"}),
+                ("description", {"label" : "Description"}),
+        ])
 
+        # Attributes
 
-
-        # attributes
         self.session = session
         self.record = record
         self.add_record = add_record
+
+        comptxt = wx.StaticText(self.panel, -1, label="Components")
+        chemtxt = wx.StaticText(self.panel, -1, label="Chemicals")
+        comptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+        chemtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.comp_olv.evenRowsBackColor="#DCF0C7"
+        self.comp_olv.oddRowsBackColor="#FFFFFF"
+        self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+
+        self.chem_olv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.chem_olv.evenRowsBackColor="#DCF0C7"
+        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+
+        self.SetComponents()
+        self.SetChemicals()
+
+        gbs = wx.GridBagSizer(vgap=5, hgap=5)
+        gbs.Add(comptxt, pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+        gbs.Add(chemtxt, pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.GROW, border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.GROW, border=10)
+        gbs.AddGrowableCol(0)
+        gbs.AddGrowableCol(1)
 
         if record is not None:
             for attr in synth.keys():
@@ -700,14 +732,22 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         for attr in synth.keys():
             synth[attr]["sttext"] = wx.StaticText(self.panel, -1, synth[attr]["label"])
-            synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=synth[attr]["value"])
+            if attr == "description":
+                synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=synth[attr]["value"], size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+            else:
+                synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=synth[attr]["value"])
 
-        sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
+        # create and populate sizer for the text controls
+
+        txtsizer = wx.GridBagSizer(vgap=5, hgap=5)
+        txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
 
         for i, attr in enumerate(synth.keys(), start=1):
-            sizer.Add(synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-            sizer.Add(synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+            txtsizer.Add(synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+            txtsizer.Add(synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        txtsizer.AddGrowableCol(1)
+
 
         buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
         buttonOk.SetDefault()
@@ -715,13 +755,16 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
         buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
-        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
-        sizer.Add(hbox, pos=(13, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=5)
+        btnsizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnsizer.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
+        btnsizer.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
 
-        sizer.AddGrowableCol(1)
-        self.panel.SetSizerAndFit(sizer)
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        mainsizer.Add(txtsizer, flag=wx.RIGHT|wx.LEFT|wx.GROW, border=5)
+        mainsizer.Add(gbs, flag=wx.RIGHT|wx.LEFT|wx.GROW|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+
+        self.panel.SetSizerAndFit(mainsizer)
 
     def is_empty(self, textctrl, message):
 
@@ -748,6 +791,36 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             textctrl.SetFocus()
             textctrl.Refresh()
             return False
+
+    def SetComponents(self):
+
+        self.comp_olv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Moles", "right", 100, "moles", isEditable=False, stringConverter="%.3f"),
+        ])
+
+        if self.record is not None:
+            components = [c.component for c in self.record.components]
+            for comp, synthchem in zip(components, self.record.components):
+                comp.moles = synthchem.moles
+            self.comp_olv.SetObjects(components)
+        else:
+            self.comp_olv.SetObjects([])
+
+    def SetChemicals(self):
+
+        self.chem_olv.SetColumns([
+            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
+            ColumnDefn("Mass", "right", 100, "mass", isEditable=True, stringConverter="%.3f"),
+        ])
+
+        if self.record is not None:
+            chemicals = [c.chemical for c in self.record.chemicals]
+            for chem, synthchem in zip(chemicals, self.record.chemicals):
+                chem.mass = synthchem.mass
+            self.chem_olv.SetObjects(chemicals)
+        else:
+            self.comp_olv.SetObjects([])
 
     def add_synthesis(self):
 
