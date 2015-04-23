@@ -611,19 +611,38 @@ class ShowSynthesesFrame(wx.Frame):
         mainSizer.Add(btnSizer, 0, wx.CENTER)
         self.SetSizer(mainSizer)
 
-        self.show_all(columns)
+        self.show_all()
 
     def onAddRecord(self, event):
         """
         Add a record to the database
         """
-        print "adding"
+
+        dlg = controller.AddModifySynthesisRecordDialog(self,
+                                                    session=self.model.session,
+                                                    title="Add",
+                                                    add_record=True)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.show_all()
 
     def onEditRecord(self, event):
         """
         Edit a record
         """
-        print "editing"
+
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        dlg = controller.AddModifySynthesisRecordDialog(self,
+                                                    session=self.model.session,
+                                                    record=sel_row,
+                                                    title="Modify",
+                                                    add_record=False)
+        result = dlg.ShowModal()
+        dlg.Destroy()
+        self.show_all()
 
     def onDelete(self, event):
         """
@@ -649,7 +668,7 @@ class ShowSynthesesFrame(wx.Frame):
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(syntheses)
 
-    def show_all(self, columns):
+    def show_all(self):
 
         syntheses = self.model.get_syntheses()
         self.set_olv(syntheses)
@@ -1344,8 +1363,11 @@ class MainFrame(wx.Frame):
             ("cas"     , {"title" : "CAS No.",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
             ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
             ("categobj", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "name", "isEditable" : False}),
+            ("chemical", {"title" : "Chemical",         "minimumWidth" : 150, "width" : 200, "align" : "left",  "valueGetter" : "chemical", "isEditable" : False, "isSpaceFilling" : True}),
+            ("coeff"   , {"title" : "Coefficient",      "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "coefficient", "isEditable" : False, "stringConverter" : "%.2f"}),
+            ("component",{"title" : "Chemical",         "minimumWidth" : 150, "width" : 200, "align" : "left",  "valueGetter" : "component", "isEditable" : False, "isSpaceFilling" : True}),
             ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
-            ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : "%.4f"}),
+            ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : format_float}),
             ("descr"   , {"title" : "Description",      "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
             ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
             ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
@@ -1357,9 +1379,9 @@ class MainFrame(wx.Frame):
             ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
             ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("name"    , {"title" : "Name",             "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False, "isSpaceFilling" : True}),
-            ("pk"      , {"title" : "pK",               "minimumWidth" : 100, "width" : 120, "align" : "right", "valueGetter" : "pk", "isEditable" : False, "stringConverter" : "%.2f"}),
+            ("pk"      , {"title" : "pK",               "minimumWidth" : 100, "width" : 120, "align" : "right", "valueGetter" : "pk", "isEditable" : False, "stringConverter" : format_float}),
             ("physform", {"title" : "Physical Form",    "minimumWidth" : 150, "width" : 150, "align" : "left",  "valueGetter" : "physical_form", "isEditable" : False}),
-            ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False}),
+            ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False, "isSpaceFilling" : True}),
             ("reference", {"title" : "Reference",       "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reference", "isEditable" : False}),
             ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
             ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
@@ -1449,12 +1471,12 @@ class MainFrame(wx.Frame):
 
     def _get_batch_cols(self):
 
-        fields = ["id", "chemical", "component", "coefficient", "raction"]
+        fields = ["id", "chemical", "component", "coeff", "reaction"]
         return [self.columns[k] for k in fields]
 
     def _get_category_cols(self):
 
-        fields = ["id", "category"]
+        fields = ["id", "categobj"]
         return [self.columns[k] for k in fields]
 
     def _get_chemical_cols(self):

@@ -651,6 +651,130 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
         return comp_dict
 
+class AddModifySynthesisRecordDialog(wx.Dialog):
+
+    def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
+            pos=wx.DefaultPosition, size=(400, 480)):
+
+        super(AddModifySynthesisRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
+
+        self.panel = wx.Panel(self)
+
+        synth = {"id" : {"label" : "Id"},
+                 "name" : {"label" : "Name"},
+                 "reference" : {"label" : "Reference"},
+                 "laborant" : {"label" : "Laborant"},
+                 "temperature" : {"label" : "Temperature"},
+                 "crystallization_time" : {"label" : "Crystallization Time"},
+                 "target_material" : {"label" : "Target Material"},
+                 "description" : {"label" : "Description"},
+                 "stirring" : {"label" : "Stirring"},
+                 }
+
+
+
+        # attributes
+        self.session = session
+        self.record = record
+        self.add_record = add_record
+
+        if record is not None:
+            for attr in synth.keys():
+                if getattr(record, attr) is not None:
+                    if attr in ["temperature", "crystallization_time"]:
+                        synth[attr]["value"] = "{0:7.3f}".format(getattr(record, attr))
+                    elif attr == "id":
+                        synth[attr]["value"] = "{0:d}".format(getattr(record, attr))
+                    else:
+                        synth[attr]["value"] = getattr(record, attr)
+                else:
+                    synth[attr]["value"] = ""
+        else:
+            for attr in synth.keys():
+                synth[attr]["value"] = ""
+
+        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+
+        lbl_title = wx.StaticText(self.panel, -1, "{0:s} a Synthesis Record".format(title))
+        lbl_title.SetFont(font)
+
+        for attr in synth.keys():
+            synth[attr]["sttext"] = wx.StaticText(self.panel, -1, synth[attr]["label"])
+            synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=synth[attr]["value"])
+
+        sizer = wx.GridBagSizer(vgap=5, hgap=5)
+        sizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
+
+        for i, attr in enumerate(synth.keys(), start=1):
+            sizer.Add(synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+            sizer.Add(synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
+        buttonOk.SetDefault()
+        buttonOk.Bind(wx.EVT_BUTTON, self.OnSaveRecord)
+        buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
+        buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
+        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
+        sizer.Add(hbox, pos=(13, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=5)
+
+        sizer.AddGrowableCol(1)
+        self.panel.SetSizerAndFit(sizer)
+
+    def is_empty(self, textctrl, message):
+
+        if len(textctrl.GetValue()) == 0:
+            wx.MessageBox(message, "Error")
+            textctrl.SetBackgroundColour("pink")
+            textctrl.SetFocus()
+            textctrl.Refresh()
+            return True
+        else:
+            textctrl.SetBackgroundColour("white")
+            textctrl.Refresh()
+
+    def is_number(self, textctrl, message):
+
+        try:
+            float(textctrl.GetValue())
+            textctrl.SetBackgroundColour("white")
+            textctrl.Refresh()
+            return True
+        except:
+            wx.MessageBox(message, "Error")
+            textctrl.SetBackgroundColour("pink")
+            textctrl.SetFocus()
+            textctrl.Refresh()
+            return False
+
+    def add_synthesis(self):
+
+        pass
+
+    def edit_synthesis(self):
+
+        pass
+
+    def OnSaveRecord(self, event):
+
+        if self.add_record:
+            self.add_synthesis()
+        else:
+            self.edit_synthesis()
+
+    def OnClose(self, event):
+        self.Destroy()
+
+    def get_data(self):
+        '''
+        Retrieve the data from the dialogs' TextCtrls and ChoiceBoxes
+        and return as a dictionary.
+        '''
+
+        pass
+
 def print_attrs(inst):
 
     print "Class {0}".format(inst.__class__.__name__)

@@ -102,6 +102,31 @@ class BaseChemical(object):
             return False
 
 class Synthesis(Base):
+    '''
+    Synthesis Table.
+
+    Attributes
+    ----------
+    name : str
+        Name of the synthesis (label)
+    reference : str
+        Literature reference
+    laborant : str
+        Name of the person performing the synthesis (or initials)
+    temperature : float
+        Temperature in degrees Celsius
+    crystallization_time : float
+        Crystallization time in hours
+    oven_type : str
+        Type of the oven used
+    target_material : str
+        In case of zeolites it should be the three letter framework code
+    description : str
+        Description of the synthesis
+    strirring : str
+        Stirring
+    '''
+
     __tablename__ = "synthesis"
 
     id = Column(Integer, primary_key=True)
@@ -114,6 +139,7 @@ class Synthesis(Base):
     target_material = Column(String)
     description = Column(String)
     stirring = Column(String)
+    #startedon = Column(DateTime)
 
     def __repr__(self):
         return "%s(\n%s)" % (
