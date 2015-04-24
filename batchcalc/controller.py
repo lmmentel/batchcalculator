@@ -36,7 +36,7 @@ import wx
 from collections import OrderedDict
 
 from ObjectListView import ObjectListView, ColumnDefn
-from batchcalc.calculator import Chemical, Component, Electrolyte, Kind, Category, Reaction, PhysicalForm, Batch
+from batchcalc.calculator import Chemical, Component, Electrolyte, Kind, Category, Reaction, PhysicalForm, Batch, Synthesis
 from batchcalc import dialogs
 
 
@@ -665,15 +665,15 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         self.panel = wx.Panel(self)
 
-        synth = OrderedDict([
-                ("name", {"label" : "Name"}),
-                ("target_material", {"label" : "Target Material"}),
-                ("laborant", {"label" : "Laborant"}),
-                ("reference", {"label" : "Reference"}),
-                ("temperature", {"label" : "Temperature"}),
-                ("crystallization_time", {"label" : "Crystallization Time"}),
-                ("stirring", {"label" : "Stirring"}),
-                ("description", {"label" : "Description"}),
+        self.synth = OrderedDict([
+            ("name", {"label" : "Name", "required" : True}),
+            ("target_material", {"label" : "Target Material", "required" : False}),
+                ("laborant", {"label" : "Laborant", "required" : True}),
+                ("reference", {"label" : "Reference", "required" : False}),
+                ("temperature", {"label" : "Temperature", "required" : True}),
+                ("crystallization_time", {"label" : "Crystallization Time", "required" : True}),
+                ("stirring", {"label" : "Stirring", "required" : False}),
+                ("description", {"label" : "Description", "required" : True}),
         ])
 
         # Attributes
@@ -711,40 +711,40 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         gbs.AddGrowableCol(1)
 
         if record is not None:
-            for attr in synth.keys():
+            for attr in self.synth.keys():
                 if getattr(record, attr) is not None:
                     if attr in ["temperature", "crystallization_time"]:
-                        synth[attr]["value"] = "{0:7.3f}".format(getattr(record, attr))
+                        self.synth[attr]["value"] = "{0:7.3f}".format(getattr(record, attr))
                     elif attr == "id":
-                        synth[attr]["value"] = "{0:d}".format(getattr(record, attr))
+                        self.synth[attr]["value"] = "{0:d}".format(getattr(record, attr))
                     else:
-                        synth[attr]["value"] = getattr(record, attr)
+                        self.synth[attr]["value"] = getattr(record, attr)
                 else:
-                    synth[attr]["value"] = ""
+                    self.synth[attr]["value"] = ""
         else:
-            for attr in synth.keys():
-                synth[attr]["value"] = ""
+            for attr in self.synth.keys():
+                self.synth[attr]["value"] = ""
 
         font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
         lbl_title = wx.StaticText(self.panel, -1, "{0:s} a Synthesis Record".format(title))
         lbl_title.SetFont(font)
 
-        for attr in synth.keys():
-            synth[attr]["sttext"] = wx.StaticText(self.panel, -1, synth[attr]["label"])
+        for attr in self.synth.keys():
+            self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
             if attr == "description":
-                synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=synth[attr]["value"], size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"], size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
             else:
-                synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=synth[attr]["value"])
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"])
 
         # create and populate sizer for the text controls
 
         txtsizer = wx.GridBagSizer(vgap=5, hgap=5)
         txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
 
-        for i, attr in enumerate(synth.keys(), start=1):
-            txtsizer.Add(synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-            txtsizer.Add(synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        for i, attr in enumerate(self.synth.keys(), start=1):
+            txtsizer.Add(self.synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+            txtsizer.Add(self.synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
 
         txtsizer.AddGrowableCol(1)
 
@@ -823,8 +823,25 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             self.comp_olv.SetObjects([])
 
     def add_synthesis(self):
+        '''
+        Get the vlues enter in the dialog and insert a record to the db and commit.
+        '''
 
-        pass
+        for k, v in self.synth.items():
+            if v["required"]:
+                if self.is_empty(v["txtctrl"], "{} is required".format(v["label"])):
+                    return
+
+        data = self.get_data()
+
+        add_synthesis_record(self.session, data)
+
+        dialogs.show_message_dlg("Component added", "Success!", wx.OK|wx.ICON_INFORMATION)
+
+        # clear the TextCtrls to add a new record
+        for child in self.panel.GetChildren():
+            if isinstance(child, wx.TextCtrl):
+                child.SetValue("")
 
     def edit_synthesis(self):
 
@@ -846,7 +863,10 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         and return as a dictionary.
         '''
 
-        pass
+        vals = {}
+        for k, v in self.synth.items():
+            vals[k] = v['txtctrl'].GetValue()
+        return vals
 
 def print_attrs(inst):
 
@@ -1196,4 +1216,34 @@ def modify_electrolyte_record(session, id_num, data):
     elec = session.query(Electrolyte).get(id_num)
     elec.name = data
     session.add(elec)
+    session.commit()
+
+########## Synthesis controller methods
+
+def add_synthesis_record(session, data):
+    """
+    Add a Synthesis record.
+    """
+
+    synth = Synthesis(**data)
+    session.add(synth)
+    session.commit()
+
+def modify_synthesis_record(session, id_num, data):
+    """
+    Modify/Edit an existing Eelectrolyte record in the database
+    """
+
+    synth = session.query(Synthesis).get(id_num)
+    synth.name = data
+    session.add(synth)
+    session.commit()
+
+def delete_synthesis_record(session, id_num):
+    """
+    Delete a Synthesis record.
+    """
+
+    synth = session.query(Synthesis).get(id_num)
+    session.delete(synth)
     session.commit()

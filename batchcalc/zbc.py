@@ -1439,6 +1439,7 @@ class MainFrame(wx.Frame):
         # Synthesis Menu
         synthm = wx.Menu()
         synth_show = synthm.Append(wx.ID_ANY, "Show All\t", "Show all stored syntheses")
+        synth_save = synthm.Append(wx.ID_ANY, "Save\t", "Save current calculation internally")
         menubar.Append(synthm, "Syntheses")
         # About Menu
         aboutm = wx.Menu()
@@ -1465,6 +1466,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAddReactionToDB, maddreactiondb)
         self.Bind(wx.EVT_MENU, self.OnAddCategoryToDB, maddcategorydb)
         self.Bind(wx.EVT_MENU, self.OnShowSyntheses, synth_show)
+        self.Bind(wx.EVT_MENU, self.OnSaveCalculation, synth_save)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
     # Helper methods
@@ -1751,6 +1753,21 @@ class MainFrame(wx.Frame):
             pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
             fp.close()
 
+        dlg.Destroy()
+
+    def OnSaveCalculation(self, event):
+        '''
+        Display the dialog to save the current calculation internally.
+        '''
+
+        # check if any calcualtion was done or if there are some chemicals and
+        # components selected
+
+        dlg = controller.AddModifySynthesisRecordDialog(self,
+                                                    session=self.model.session,
+                                                    title="Add",
+                                                    add_record=True)
+        dlg.ShowModal()
         dlg.Destroy()
 
     def OnSavePdf(self):
