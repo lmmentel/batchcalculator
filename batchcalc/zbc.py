@@ -578,6 +578,8 @@ class ShowSynthesesFrame(wx.Frame):
         super(ShowSynthesesFrame, self).__init__(parent, id, title, pos, size, style, name)
 
         self.model = parent.model
+        # columns from the main zbc
+        self._columns = parent.columns
         self.columns = columns
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -646,9 +648,15 @@ class ShowSynthesesFrame(wx.Frame):
 
     def onDelete(self, event):
         """
-        Delete a record
+        Delete a synthesis record
         """
-        print "deleting"
+
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+        controller.delete_synthesis_record(self.model.session, sel_row.id)
+        self.show_all()
 
     def onLoadRecord(self, event):
         """

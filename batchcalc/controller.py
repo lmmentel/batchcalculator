@@ -657,12 +657,12 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(500, 700)):
+            pos=wx.DefaultPosition, size=(500, 720)):
 
         super(AddModifySynthesisRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
 
         self.model = parent.model
-
+        self._columns = parent._columns
         self.panel = wx.Panel(self)
 
         self.synth = OrderedDict([
@@ -702,11 +702,16 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         self.SetComponents()
         self.SetChemicals()
 
+        compbtn = wx.Button(self.panel, -1, label="Add/Remove")
+        chembtn = wx.Button(self.panel, -1, label="Add/Remove")
+
         gbs = wx.GridBagSizer(vgap=5, hgap=5)
         gbs.Add(comptxt, pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
         gbs.Add(chemtxt, pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
         gbs.Add(self.comp_olv, pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.GROW, border=10)
         gbs.Add(self.chem_olv, pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.GROW, border=10)
+        gbs.Add(compbtn, pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        gbs.Add(chembtn, pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
         gbs.AddGrowableCol(0)
         gbs.AddGrowableCol(1)
 
@@ -748,7 +753,6 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         txtsizer.AddGrowableCol(1)
 
-
         buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
         buttonOk.SetDefault()
         buttonOk.Bind(wx.EVT_BUTTON, self.OnSaveRecord)
@@ -765,6 +769,11 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
 
         self.panel.SetSizerAndFit(mainsizer)
+
+        # Event Handlers
+
+        compbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveComponent)
+        chembtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveChemical)
 
     def is_empty(self, textctrl, message):
 
@@ -792,11 +801,30 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             textctrl.Refresh()
             return False
 
+    def get_cols(self, fields):
+        '''Get the column definitions.'''
+
+        return [self._columns[k] for k in fields]
+
+    def OnAddRemoveComponent(self, event):
+
+        cols = self.get_cols(["name", "formula", "molwt", "short", "category"])
+        dlg = dialogs.ComponentsDialog(self, self.model, cols,
+                                   id=-1, title="Choose Zeolite Components...")
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            components = dlg.GetCurrentSelections()
+        self.comp_olv.SetObjects(components)
+        dlg.Destroy()
+
+    def OnAddRemoveChemical(self, event):
+        pass
+
     def SetComponents(self):
 
         self.comp_olv.SetColumns([
             ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Moles", "right", 100, "moles", isEditable=False, stringConverter="%.3f"),
+            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.3f"),
         ])
 
         if self.record is not None:
@@ -831,6 +859,9 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             if v["required"]:
                 if self.is_empty(v["txtctrl"], "{} is required".format(v["label"])):
                     return
+                elif k in ["temperature", "crystallization_time"]:
+                    if not self.is_number(v["txtctrl"], "{} must be a number".format(v["label"])):
+                        return
 
         data = self.get_data()
 
