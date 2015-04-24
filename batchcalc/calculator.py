@@ -373,9 +373,8 @@ class BatchCalculator(object):
 
     def __init__(self):
 
-        # default database path
-        dbpath = self.get_dbpath()
-        self.new_dbsession(dbpath)
+        # get the database connection
+        self.session = self.get_session()
 
         self.lists = ["components", "chemicals"]
 
@@ -410,17 +409,20 @@ class BatchCalculator(object):
         else:
             raise ValueError("database not found on: {}".format(dbpath))
 
-    def new_dbsession(self, dbpath):
+    def get_session(self, dbpath=None):
         '''
         When the new database is chosen, close the old session and establish a
         new one.
         '''
 
+        if dbpath is None:
+            dbpath = self.get_dbpath()
+
         if hasattr(self, "session"):
             self.session.close()
         engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
         db_session = sessionmaker(bind=engine)
-        self.session = db_session()
+        return db_session()
 
     def new_db(self, path):
         '''

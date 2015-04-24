@@ -1284,7 +1284,7 @@ class InverseBatch(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.model.new_dbsession(path)
+            self.model.session = self.model.get_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
@@ -1590,7 +1590,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.model.new_dbsession(path)
+            self.model.session = self.model.get_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
