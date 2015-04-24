@@ -44,42 +44,36 @@ import numpy as np
 import wx
 import wx.grid as gridlib
 from wx.lib.wordwrap import wordwrap
-# ObjectListView
+
 from ObjectListView import ObjectListView, ColumnDefn
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.pdf_writer import create_pdf, create_pdf_composition
 from batchcalc.calculator import BatchCalculator
-from batchcalc import dialogs, controller
+from batchcalc import controller as ctrl
+from batchcalc import dialogs
+
+from batchcalc.utils import get_columns
 
 # uncomment for debugging
 #import wx.lib.inspection
 
+
 def clean_tex(fname):
-    '''
-    Clean the auxiliary tex files.
-    '''
+    '''Clean the auxiliary tex files.'''
+
     exts = [".out", ".aux", ".log"]
     fbase = os.path.splitext(fname)[0]
     for fil in [fbase + ext for ext in exts]:
         if os.path.exists(fil):
             os.remove(fil)
 
-def format_float(item):
-
-    if item is not None:
-        return "{0:7.3f}".format(item)
-    else:
-        return ""
-
 class AddModifyDBBaseFrame(wx.Frame):
-    def __init__(self, parent, columns=None, id=wx.ID_ANY, title="Edit Database",
+    def __init__(self, parent, cols=None, id=wx.ID_ANY, title="Edit Database",
             pos=wx.DefaultPosition, size=(500, 300),
             style=wx.DEFAULT_FRAME_STYLE, name=""):
 
         super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos, size, style, name)
-
-        self.columns = columns
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -112,21 +106,18 @@ class AddModifyDBBaseFrame(wx.Frame):
         self.SetSizer(mainSizer)
 
     def onAddRecord(self, event):
-        """
-        Add a record to the database
-        """
+        '''Add a record to the database'''
+
         print "adding"
 
     def onEditRecord(self, event):
-        """
-        Edit a record
-        """
+        '''Edit a record'''
+
         print "editing"
 
     def onDelete(self, event):
-        """
-        Delete a record
-        """
+        '''Delete a record'''
+
         print "deleting"
 
     def onSearch(self, event):
@@ -136,9 +127,8 @@ class AddModifyDBBaseFrame(wx.Frame):
         print "searching"
 
     def onShowAllRecords(self, event):
-        """
-        Updates the record list to show all of them
-        """
+        '''Updates the record list to show all of them'''
+
         print "showing all"
 
 class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
@@ -146,7 +136,11 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
     def __init__(self, parent, **kwargs):
 
         super(AddModifyBatchTableFrame, self).__init__(parent, **kwargs)
+
+        # attributes
+
         self.model = parent.model
+        self.cols = ["id", "chemical", "component", "coeff", "reaction"]
 
         self.show_all()
 
@@ -155,7 +149,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         Add a record to the database
         """
 
-        dlg = controller.AddModifyBatchRecordDialog(self,
+        dlg = ctrl.AddModifyBatchRecordDialog(self,
                                                     session=self.model.session,
                                                     title="Add",
                                                     add_record=True)
@@ -172,7 +166,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        dlg = controller.AddModifyBatchRecordDialog(self,
+        dlg = ctrl.AddModifyBatchRecordDialog(self,
                                                     session=self.model.session,
                                                     record=sel_row,
                                                     title="Modify",
@@ -182,38 +176,31 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onDelete(self, event):
-        """
-        Delete a record
-        """
+        '''Delete a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        controller.delete_batch_record(self.model.session, sel_row.id)
+        ctrl.delete_batch_record(self.model.session, sel_row.id)
         self.show_all()
 
-    def onSearch(self, event):
-        """
-        Searches database based on the user's filter choice and keyword
-        """
-        pass
-
     def onShowAllRecords(self, event):
-        """
-        Updates the record list to show all of them
-        """
+        '''Update the record list to show all of them'''
+
         self.show_all()
 
     def set_olv(self, batches):
+        '''Put current Batch objects in the OLV'''
 
-        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        olv_cols = get_columns(self.cols)
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(batches)
 
     def show_all(self):
+        '''Get all batch records and put them in the OLV'''
 
-        batches = self.model.get_batch_records()
+        batches = ctrl.get_batches(self.model.session)
         self.set_olv(batches)
 
 class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
@@ -222,16 +209,18 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
         super(AddModifyChemicalTableFrame, self).__init__(parent, **kwargs)
 
+        # attributes
+
         self.model = parent.model
+        self.cols = ["id", "name", "formula", "conc", "molwt", "short", "kind",
+                     "physform", "elect", "cas", "pk", "density", "smiles"]
 
         self.show_all()
 
     def onAddRecord(self, event):
-        """
-        Add a record to the database
-        """
+        '''Add a record to the database'''
 
-        dlg = controller.AddModifyChemicalRecordDialog(self,
+        dlg = ctrl.AddModifyChemicalRecordDialog(self,
                                                     session=self.model.session,
                                                     title="Add",
                                                     add_record=True)
@@ -240,15 +229,13 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onEditRecord(self, event):
-        """
-        Edit a record
-        """
+        '''Edit a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        dlg = controller.AddModifyChemicalRecordDialog(self,
+        dlg = ctrl.AddModifyChemicalRecordDialog(self,
                                                     session=self.model.session,
                                                     record=sel_row,
                                                     title="Modify",
@@ -258,39 +245,31 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onDelete(self, event):
-        """
-        Delete a record
+        '''Delete a record'''
 
-        """
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        controller.delete_chemical_record(self.model.session, sel_row.id)
+        ctrl.delete_chemical_record(self.model.session, sel_row.id)
         self.show_all()
 
-    def onSearch(self, event):
-        """
-        Searches database based on the user's filter choice and keyword
-        """
-
-        pass
-
     def onShowAllRecords(self, event):
-        """
-        Updates the record list to show all of them
-        """
+        '''Updates the record list to show all of them'''
+
         self.show_all()
 
     def set_olv(self, chemicals):
+        '''Put current Chemical objects in the OLV'''
 
-        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        olv_cols = get_columns(self.cols)
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(chemicals)
 
     def show_all(self):
+        '''Get all chemical records and put them in the OLV'''
 
-        chemicals = self.model.get_chemicals(showall=True)
+        chemicals = ctrl.get_chemicals(self.model.session, showall=True)
         self.set_olv(chemicals)
 
 class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
@@ -298,16 +277,18 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
     def __init__(self, parent, **kwargs):
 
         super(AddModifyComponentTableFrame, self).__init__(parent, **kwargs)
+
+        # attributes
+
         self.model = parent.model
+        self.cols = ["id", "name", "formula", "molwt", "short", "category"]
 
         self.show_all()
 
     def onAddRecord(self, event):
-        """
-        Add a record to the database
-        """
+        '''Add a record to the database'''
 
-        dlg = controller.AddModifyComponentRecordDialog(self,
+        dlg = ctrl.AddModifyComponentRecordDialog(self,
                                                         session=self.model.session,
                                                         title="Add",
                                                         add_record=True)
@@ -316,16 +297,14 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onEditRecord(self, event):
-        """
-        Edit a record
-        """
+        '''Edit a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
 
             return
-        dlg = controller.AddModifyComponentRecordDialog(self,
+        dlg = ctrl.AddModifyComponentRecordDialog(self,
                                                         session=self.model.session,
                                                         record=sel_row,
                                                         title="Modify",
@@ -335,15 +314,13 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onDelete(self, event):
-        """
-        Delete a record
+        '''Delete a record'''
 
-        """
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        controller.delete_component_record(self.model.session, sel_row.id)
+        ctrl.delete_component_record(self.model.session, sel_row.id)
         self.show_all()
 
     def onSearch(self, event):
@@ -354,20 +331,21 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         pass
 
     def onShowAllRecords(self, event):
-        """
-        Updates the record list to show all of them
-        """
+        '''Updates the record list to show all of them'''
+
         self.show_all()
 
     def set_olv(self, components):
+        '''Put current Component objects in the OLV'''
 
-        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        olv_cols = get_columns(self.cols)
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(components)
 
     def show_all(self):
+        '''Get all component records and put them in the OLV'''
 
-        components = self.model.get_components()
+        components = ctrl.get_components(self.model.session)
         self.set_olv(components)
 
 class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
@@ -376,14 +354,15 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
         super(AddModifyCategoryTableFrame, self).__init__(parent, **kwargs)
 
+        # attributes
+
         self.model = parent.model
+        self.cols = ["id", "categobj"]
 
         self.show_all()
 
     def onAddRecord(self, event):
-        """
-        Add a record to the database
-        """
+        '''Add a record to the database'''
 
         dlg = wx.TextEntryDialog(None,
             "Enter new category",
@@ -391,7 +370,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             category = dlg.GetValue()
             if category != "":
-                controller.add_category_record(self.model.session, category)
+                ctrl.add_category_record(self.model.session, category)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -401,9 +380,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onEditRecord(self, event):
-        """
-        Edit a record
-        """
+        '''Edit a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
@@ -416,7 +393,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             category = dlg.GetValue()
             if category != "":
-                controller.modify_category_record(self.model.session, sel_row.id, category)
+                ctrl.modify_category_record(self.model.session, sel_row.id, category)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -426,32 +403,31 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onDelete(self, event):
-        """
-        Delete a record
-        """
+        '''Delete a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        controller.delete_category_record(self.model.session, sel_row.id)
+        ctrl.delete_category_record(self.model.session, sel_row.id)
         self.show_all()
 
     def onShowAllRecords(self, event):
-        """
-        Updates the record list to show all of them
-        """
+        '''Updates the record list to show all of them'''
+
         self.show_all()
 
     def set_olv(self, categories):
+        '''Put current Category objects in the OLV'''
 
-        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        olv_cols = get_columns(self.cols)
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(categories)
 
     def show_all(self):
+        '''Get all category records and put them in the OLV'''
 
-        categories = self.model.get_categories()
+        categories = ctrl.get_categories(self.model.session)
         self.set_olv(categories)
 
 class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
@@ -459,14 +435,15 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
     def __init__(self, parent, **kwargs):
 
         super(AddModifyReactionTableFrame, self).__init__(parent, **kwargs)
-        self.model = parent.model
 
+        # attributes
+
+        self.model = parent.model
+        self.cols = ["id", "reaction"]
         self.show_all()
 
     def onAddRecord(self, event):
-        """
-        Add a record to the database
-        """
+        '''Add a record to the database'''
 
         dlg = wx.TextEntryDialog(None,
             "Enter the reaction",
@@ -474,7 +451,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             reaction = dlg.GetValue()
             if reaction != "":
-                controller.add_reaction_record(self.model.session, reaction)
+                ctrl.add_reaction_record(self.model.session, reaction)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -484,9 +461,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onEditRecord(self, event):
-        """
-        Edit a record
-        """
+        '''Edit a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
@@ -499,7 +474,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             reaction = dlg.GetValue()
             if reaction != "":
-                controller.modify_reaction_record(self.model.session, sel_row.id, reaction)
+                ctrl.modify_reaction_record(self.model.session, sel_row.id, reaction)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -509,39 +484,31 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         self.show_all()
 
     def onDelete(self, event):
-        """
-        Delete a record
-        """
+        '''Delete a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        controller.delete_reaction_record(self.model.session, sel_row.id)
+        ctrl.delete_reaction_record(self.model.session, sel_row.id)
         self.show_all()
 
-    def onSearch(self, event):
-        """
-        Searches database based on the user's filter choice and keyword
-        """
-
-        pass
-
     def onShowAllRecords(self, event):
-        """
-        Updates the record list to show all of them
-        """
+        '''Updates the record list to show all of them'''
+
         self.show_all()
 
     def set_olv(self, reactions):
+        '''Put current Reaction objects in the OLV'''
 
-        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        olv_cols = get_columns(self.cols)
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(reactions)
 
     def show_all(self):
+        '''Get all reaction records and put them in the OLV'''
 
-        reactions = self.model.get_reactions()
+        reactions = ctrl.get_reactions(self.model.session)
         self.set_olv(reactions)
 
 class ShowBFrame(wx.Frame):
@@ -571,16 +538,16 @@ class ShowBFrame(wx.Frame):
 
 class ShowSynthesesFrame(wx.Frame):
 
-    def __init__(self, parent, columns=None, id=wx.ID_ANY, title="syntheses",
+    def __init__(self, parent, cols=None, id=wx.ID_ANY, title="Syntheses",
             pos=wx.DefaultPosition, size=(500, 300),
             style=wx.DEFAULT_FRAME_STYLE, name=""):
 
         super(ShowSynthesesFrame, self).__init__(parent, id, title, pos, size, style, name)
 
+        # attributes
+
         self.model = parent.model
-        # columns from the main zbc
-        self._columns = parent.columns
-        self.columns = columns
+        self.cols = ["name", "target", "laborant", "reference", "temperature", "descr"]
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -616,46 +583,39 @@ class ShowSynthesesFrame(wx.Frame):
         self.show_all()
 
     def onAddRecord(self, event):
-        """
-        Add a record to the database
-        """
+        '''Add a record to the database'''
 
-        dlg = controller.AddModifySynthesisRecordDialog(self,
-                                                    session=self.model.session,
-                                                    title="Add",
-                                                    add_record=True)
+        dlg = ctrl.AddModifySynthesisRecordDialog(model=self.model,
+                                                  title="Add",
+                                                  add_record=True)
         dlg.ShowModal()
         dlg.Destroy()
         self.show_all()
 
     def onEditRecord(self, event):
-        """
-        Edit a record
-        """
+        '''Edit a record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        dlg = controller.AddModifySynthesisRecordDialog(self,
-                                                    session=self.model.session,
-                                                    record=sel_row,
-                                                    title="Modify",
-                                                    add_record=False)
+
+        dlg = ctrl.AddModifySynthesisRecordDialog(model=self.model,
+                                                  record=sel_row,
+                                                  title="Modify",
+                                                  add_record=False)
         result = dlg.ShowModal()
         dlg.Destroy()
         self.show_all()
 
     def onDelete(self, event):
-        """
-        Delete a synthesis record
-        """
+        '''Delete a synthesis record'''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        controller.delete_synthesis_record(self.model.session, sel_row.id)
+        ctrl.delete_synthesis_record(self.model.session, sel_row.id)
         self.show_all()
 
     def onLoadRecord(self, event):
@@ -664,21 +624,17 @@ class ShowSynthesesFrame(wx.Frame):
         """
         print "loading"
 
-    def onSearch(self, event):
-        """
-        Searches database based on the user's filter choice and keyword
-        """
-        print "searching"
-
     def set_olv(self, syntheses):
+        '''Put current Synthesis objects in the OLV'''
 
-        olv_cols = [ColumnDefn(**col) for col in self.columns]
+        olv_cols = get_columns(self.cols)
         self.olv.SetColumns(olv_cols)
         self.olv.SetObjects(syntheses)
 
     def show_all(self):
+        '''Get all synthesis records and put them in the OLV'''
 
-        syntheses = self.model.get_syntheses()
+        syntheses = ctrl.get_syntheses(self.model.session)
         self.set_olv(syntheses)
 
 class CustomDataTable(gridlib.PyGridTableBase):
@@ -806,29 +762,30 @@ def compRowFormatter(listItem, Component):
 
 class InputPanel(wx.Panel):
 
-    def __init__(self, parent, model, columns):
+    def __init__(self, parent, model):
         super(InputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
 
         self.model = model
-        self.columns = columns
+
+        self.comp_cols = ["name", "formula", "molwt", "short", "category"]
+        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
 
         cmptxt = wx.StaticText(self, -1, label="Components")
         rcttxt = wx.StaticText(self, -1, label="Chemicals")
         cmptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         rcttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        self.compOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.compOlv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
-        self.compOlv.rowFormatter = compRowFormatter
+        self.comp_olv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+        self.comp_olv.rowFormatter = compRowFormatter
 
-
-        self.reacOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+        self.chem_olv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
                 useAlternateBackColors=True)
-        self.reacOlv.evenRowsBackColor="#DCF0C7"
-        self.reacOlv.oddRowsBackColor="#FFFFFF"
-        self.reacOlv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
+        self.chem_olv.evenRowsBackColor="#DCF0C7"
+        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetComponents()
         self.SetChemicals()
@@ -837,14 +794,13 @@ class InputPanel(wx.Panel):
 
         # Layout
 
-        #fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
         gbs = wx.GridBagSizer(hgap=10, vgap=10)
 
         gbs.Add(cmptxt, pos=(0,0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
         gbs.Add(rcttxt, pos=(0,1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
 
-        gbs.Add(self.compOlv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        gbs.Add(self.reacOlv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
 
         gbs.Add(zeobtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
         gbs.Add(rctbtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
@@ -861,26 +817,19 @@ class InputPanel(wx.Panel):
         zeobtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveComponents)
         rctbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveChemicals)
 
-    def get_component_cols(self):
-        fields = ["name", "formula", "molwt", "short", "category"]
-        return [self.columns[k] for k in fields]
-
-    def get_chemicals_cols(self):
-        fields = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
-        return [self.columns[k] for k in fields]
-
     def OnAddRemoveComponents(self, event):
         '''
         Show the dialog with the zeolite components retrieved from the
         database.
         '''
 
-        self.dlg = dialogs.ComponentsDialog(self, self.model, self.get_component_cols(),
-                                   id=-1, title="Choose Zeolite Components...")
+        self.dlg = ctrl.ComponentsDialog(self, self.model,
+                    cols=get_columns(self.comp_cols),
+                    id=-1, title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.components = self.dlg.GetCurrentSelections()
-        self.compOlv.SetObjects(self.model.components)
+        self.comp_olv.SetObjects(self.model.components)
         self.dlg.Destroy()
 
     def OnAddRemoveChemicals(self, event):
@@ -888,61 +837,60 @@ class InputPanel(wx.Panel):
         Show the dialog with the chemicals retrieved from the database.
         '''
 
-        self.dlg = dialogs.ChemicalsDialog(self, self.model, self.get_chemicals_cols(),
-                                  id=-1, title="Choose Chemicals...")
+        self.dlg = ctrl.ChemicalsDialog(self, self.model,
+                    cols=get_columns(self.chem_cols),
+                    id=-1, title="Choose Chemicals...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.chemicals = self.dlg.GetCurrentSelections()
-        self.reacOlv.SetObjects(self.model.chemicals)
+        self.chem_olv.SetObjects(self.model.chemicals)
         self.dlg.Destroy()
 
-    def SetComponents(self, columns=None):
-
-        self.compOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Moles", "right", 100, "moles", isEditable=True, stringConverter="%.4f"),
-        ])
-        self.compOlv.SetObjects(self.model.components)
-
-    def SetChemicals(self, columns=None):
-
-        self.reacOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.3f"),
-        ])
-        self.reacOlv.SetObjects(self.model.chemicals)
-
-class MolesInputPanel(InputPanel):
-
-    def __init__(self, parent, model, columns):
-        super(MolesInputPanel, self).__init__(parent, model, columns)
-
     def SetComponents(self):
+        '''Set the OLV columns and put current Component objects in the OLV'''
 
-        self.compOlv.SetColumns([
-            ColumnDefn("Label", "left", 150, "listctrl_label", isEditable=False, isSpaceFilling=True),
-        ])
-        self.compOlv.SetObjects(self.model.components)
+        olv_cols = get_columns(["label", "moles"])
+        self.comp_olv.SetColumns(olv_cols)
+        self.comp_olv.SetObjects(self.model.components)
 
     def SetChemicals(self):
+        '''Set the OLV columns and put current Chemical objects in the OLV'''
 
-        self.reacOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Mass", "right", 150, "mass", isEditable=True, stringConverter="%.4f"),
-            ColumnDefn("Concentration", "right", 100, "concentration", isEditable=True, stringConverter="%.2f"),
-        ])
-        self.reacOlv.SetObjects(self.model.chemicals)
+        olv_cols = get_columns(["label", "conc"])
+        self.chem_olv.SetColumns(olv_cols)
+        self.chem_olv.SetObjects(self.model.chemicals)
+
+class MolesInputPanel(InputPanel):
+    '''
+    Input panel for the inverse calculation masses -> moles
+    '''
+
+    def __init__(self, parent, model):
+        super(MolesInputPanel, self).__init__(parent, model)
+
+    def SetComponents(self):
+        '''Set the OLV columns and put current Component objects in the OLV'''
+
+        olv_cols = get_columns(["label"])
+        self.comp_olv.SetColumns(olv_cols)
+        self.comp_olv.SetObjects(self.model.components)
+
+    def SetChemicals(self):
+        '''Set the OLV columns and put current Chemical objects in the OLV'''
+
+        olv_cols = get_columns(["label", "mass", "conc"])
+        self.chem_olv.SetColumns(olv_cols)
+        self.chem_olv.SetObjects(self.model.chemicals)
 
 class OutputPanel(wx.Panel):
 
-    def __init__(self, parent, model, columns):
+    def __init__(self, parent, model):
         super(OutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
-        self.model = model
-        self.columns = columns
 
         # Attributes
 
+        self.model = model
         self.gray   = "#939393"
 
         resulttxt = wx.StaticText(self, -1, label="Results [X]")
@@ -998,11 +946,11 @@ class OutputPanel(wx.Panel):
         rescaleToSampleBtn.Bind(wx.EVT_BUTTON, self.OnRescaleToSample)
         rescaleToItemBtn.Bind(wx.EVT_BUTTON, self.OnRescaleToItem)
 
-    def get_rescale_columns(self):
-        fields = ["label", "mass"]
-        return [self.columns[k] for k in self.columns.keys() if k in fields]
-
     def OnCalculate(self, event):
+        '''
+        Calculate the masses of chemicals in the batch and display the
+        result in the OLV.
+        '''
 
         self.model.calculate_masses()
         self.resultOlv.SetObjects(self.model.chemicals)
@@ -1034,7 +982,10 @@ class OutputPanel(wx.Panel):
         should be scaled, then rescale all the components and display them.
         '''
 
-        rtsd = dialogs.RescaleToItemDialog(self, self.model.chemicals, self.get_rescale_columns(), title="Choose chemical and desired mass")
+        rtsd = dialogs.RescaleToItemDialog(self, self.model.chemicals,
+                cols=get_columns(["label", "mass"]),
+                title="Choose chemical and desired mass")
+
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
             mass, item = rtsd.GetCurrentSelections()
@@ -1069,7 +1020,9 @@ class OutputPanel(wx.Panel):
         items and print them to the ListCtrl.
         '''
 
-        rto = dialogs.RescaleToSampleDialog(self, self.model, self.get_rescale_columns(), title="Choose chemicals and sample size")
+        rto = dialogs.RescaleToSampleDialog(self, self.model,
+                cols=get_columns(["label", "mass"]),
+                title="Choose chemicals and sample size")
         result = rto.ShowModal()
         if result == wx.ID_OK:
             # get the sample size and sample selections
@@ -1099,6 +1052,7 @@ class OutputPanel(wx.Panel):
                 self.Layout()
 
     def RescaleAll(self):
+        '''Recale all the masses by a common factor'''
 
         chemicals = copy.deepcopy(self.model.chemicals)
         newmasses = self.model.rescale_all()
@@ -1108,30 +1062,25 @@ class OutputPanel(wx.Panel):
         self.rescaledtxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
 
     def SetResults(self):
+        '''Set the OLV columns and put current Chemical objects in the OLV'''
 
-        self.resultOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter=format_float),
-        ])
+        olv_cols = get_columns(["label", "mass", "volume"])
+        self.resultOlv.SetColumns(olv_cols)
         self.resultOlv.SetObjects(self.model.chemicals)
 
     def SetScaled(self):
+        '''Set the OLV columns and put scaled Chemical objects in the OLV'''
 
-        self.scaledOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Scaled Mass [g]", "right", 120, "mass", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn("Volume [cm3]", "right", 120, "volume", isEditable=False, stringConverter=format_float),
-        ])
+        olv_cols = get_columns(["label", "mass", "volume"])
+        self.scaledOlv.SetColumns(olv_cols)
         self.scaledOlv.SetObjects(self.model.chemicals)
 
 class MolesOutputPanel(wx.Panel):
 
-    def __init__(self, parent, model, columns):
+    def __init__(self, parent, model):
         super(MolesOutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         self.model = model
-        self.columns = columns
 
         resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -1164,11 +1113,11 @@ class MolesOutputPanel(wx.Panel):
         calculatebtn.Bind(wx.EVT_BUTTON, self.OnCalculateMoles)
         rescalebtn.Bind(wx.EVT_BUTTON, self.OnRescaleMoles)
 
-    def get_rescale_columns(self):
-        fields = ["label", "moles"]
-        return [self.columns[k] for k in self.columns.keys() if k in fields]
-
     def OnCalculateMoles(self, event):
+        '''
+        Calculate the number moles of the batch components based on the masses
+        of chemicals and display the result in the OLV.
+        '''
 
         self.model.calculate_moles()
         self.resultOlv.SetObjects(self.model.components)
@@ -1180,7 +1129,8 @@ class MolesOutputPanel(wx.Panel):
         them.
         '''
 
-        rtsd = dialogs.RescaleToItemDialog(self, self.model.components, self.get_rescale_columns(), title="Choose one component and enter moles")
+        rtsd = dialogs.RescaleToItemDialog(self, self.model.components,
+                cols=get_columns(["label", "moles"]), title="Choose one component and enter moles")
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
             amount, item = rtsd.GetCurrentSelections()
@@ -1206,12 +1156,10 @@ class MolesOutputPanel(wx.Panel):
                 self.Layout()
 
     def SetResults(self):
+        '''Set the OLV columns and put current Component objects in the OLV'''
 
-        self.resultOlv.SetColumns([
-            ColumnDefn("Label", "left", 100, "listctrl_label", isEditable=False, isSpaceFilling=True),
-            ColumnDefn("Moles", "right", 150, "moles", isEditable=False, stringConverter="%.4f"),
-            ColumnDefn("Mass", "right", 150, "mass", isEditable=False, stringConverter="%.4f"),
-        ])
+        olv_cols = get_columns(["label", "moles", "mass"])
+        self.resultOlv.SetColumns(olv_cols)
         self.resultOlv.SetObjects(self.model.components)
 
 class InverseBatch(wx.Frame):
@@ -1222,10 +1170,13 @@ class InverseBatch(wx.Frame):
                                            size=(600, 600),
                                            style=wx.DEFAULT_FRAME_STYLE,
                                            name="")
-        self.model = BatchCalculator()
+
+        session = ctrl.get_session()
+        self.model = BatchCalculator(session)
+
         panel = wx.Panel(self)
-        self.inppanel = MolesInputPanel(panel, self.model, parent.columns)
-        self.outpanel = MolesOutputPanel(panel, self.model, parent.columns)
+        self.inppanel = MolesInputPanel(panel, self.model)
+        self.outpanel = MolesOutputPanel(panel, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
         vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
@@ -1284,7 +1235,7 @@ class InverseBatch(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.model.session = self.model.get_session(path)
+            self.model.session = ctrl.get_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
@@ -1294,6 +1245,7 @@ class InverseBatch(wx.Frame):
         '''
         Open the dialog with options about the pdf document to be written.
         '''
+
         dlg = dialogs.ExportPdfMinimalDialog(parent=self, id=-1, size=(400, 330))
         result = dlg.ShowModal()
         if result == wx.ID_OK:
@@ -1367,42 +1319,12 @@ class MainFrame(wx.Frame):
 
         self.gray = "#939393"
 
-        self.columns = OrderedDict([
-            ("cas"     , {"title" : "CAS No.",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "cas", "isEditable" : False}),
-            ("category", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "category", "isEditable" : False}),
-            ("categobj", {"title" : "Category",         "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "name", "isEditable" : False}),
-            ("chemical", {"title" : "Chemical",         "minimumWidth" : 150, "width" : 200, "align" : "left",  "valueGetter" : "chemical", "isEditable" : False, "isSpaceFilling" : True}),
-            ("coeff"   , {"title" : "Coefficient",      "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "coefficient", "isEditable" : False, "stringConverter" : "%.2f"}),
-            ("component",{"title" : "Chemical",         "minimumWidth" : 150, "width" : 200, "align" : "left",  "valueGetter" : "component", "isEditable" : False, "isSpaceFilling" : True}),
-            ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
-            ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : format_float}),
-            ("descr"   , {"title" : "Description",      "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
-            ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
-            ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
-            ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
-            ("kind"    , {"title" : "Kind",             "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "kind", "isEditable" : False}),
-            ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False, "isSpaceFilling" : True}),
-            ("laborant", {"title" : "Laborant",         "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "laborant", "isEditable" : False, "isSpaceFilling" : False}),
-            ("mass"    , {"title" : "Mass [g]",         "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("moles"   , {"title" : "Moles",            "minimumWidth" : 90,  "width" : 90,  "align" : "right", "valueGetter" : "moles", "isEditable" : True, "stringConverter" : "%.4f"}),
-            ("molwt"   , {"title" : "Molecular Weight", "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "molwt", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("name"    , {"title" : "Name",             "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "name", "isEditable" : False, "isSpaceFilling" : True}),
-            ("pk"      , {"title" : "pK",               "minimumWidth" : 100, "width" : 120, "align" : "right", "valueGetter" : "pk", "isEditable" : False, "stringConverter" : format_float}),
-            ("physform", {"title" : "Physical Form",    "minimumWidth" : 150, "width" : 150, "align" : "left",  "valueGetter" : "physical_form", "isEditable" : False}),
-            ("reaction", {"title" : "Reaction",         "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reaction", "isEditable" : False, "isSpaceFilling" : True}),
-            ("reference", {"title" : "Reference",       "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "reference", "isEditable" : False}),
-            ("scaled"  , {"title" : "Scaled Mass [g]",  "minimumWidth" : 140, "width" : 140, "align" : "right", "valueGetter" : "mass", "isEditable" : False, "stringConverter" : "%.4f"}),
-            ("short"   , {"title" : "Short name",       "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "short_name", "isEditable" : False}),
-            ("smiles"  , {"title" : "SMILES",           "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "smiles", "isEditable" : False}),
-            ("target"  , {"title" : "Target Material",  "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "target_material", "isEditable" : False}),
-            ("temperature", {"title" : "Temperature",   "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "temperature", "isEditable" : False, "stringConverter" : "%.1f"}),
-        ])
-
-        self.model = BatchCalculator()
+        session = ctrl.get_session()
+        self.model = BatchCalculator(session)
 
         main_panel = wx.Panel(self)
-        self.inppanel = InputPanel(main_panel, self.model, self.columns)
-        self.outpanel = OutputPanel(main_panel, self.model, self.columns)
+        self.inppanel = InputPanel(main_panel, self.model)
+        self.outpanel = OutputPanel(main_panel, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
         vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
@@ -1415,7 +1337,7 @@ class MainFrame(wx.Frame):
 
         # File Menu
         filem = wx.Menu()
-        mnew  = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
+        mnew = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
         filem.AppendSeparator()
         mopen = filem.Append(wx.ID_OPEN, "&Open\tCtrl+O", "Open")
         msave = filem.Append(wx.ID_SAVE, "&Save\tCtrl+S", "Save")
@@ -1477,39 +1399,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnSaveCalculation, synth_save)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
-    # Helper methods
-
-    def _get_batch_cols(self):
-
-        fields = ["id", "chemical", "component", "coeff", "reaction"]
-        return [self.columns[k] for k in fields]
-
-    def _get_category_cols(self):
-
-        fields = ["id", "categobj"]
-        return [self.columns[k] for k in fields]
-
-    def _get_chemical_cols(self):
-
-        fields = ["id", "name", "formula", "conc", "molwt", "short", "kind",
-                  "physform", "elect", "cas", "pk", "density", "smiles"]
-        return [self.columns[k] for k in fields]
-
-    def _get_component_cols(self):
-
-        fields = ["id", "name", "formula", "molwt", "short", "category"]
-        return [self.columns[k] for k in fields]
-
-    def _get_reaction_cols(self):
-
-        fields = ["id", "reaction"]
-        return [self.columns[k] for k in fields]
-
-    def _get_syntheses_cols(self):
-
-        fields = ["name", "target", "laborant", "reference", "temperature", "descr"]
-        return [self.columns[k] for k in fields]
-
     # Menu Bindings ------------------------------------------------------------
 
     def OnAbout(self, event):
@@ -1536,7 +1425,7 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        frame = AddModifyBatchTableFrame(parent=self, columns=self._get_batch_cols(), size=(800, 600))
+        frame = AddModifyBatchTableFrame(parent=self, size=(800, 600))
         frame.Show(True)
 
     def OnAddCategoryToDB(self, event):
@@ -1544,7 +1433,7 @@ class MainFrame(wx.Frame):
         Add a Category to the Database
         '''
 
-        frame = AddModifyCategoryTableFrame(parent=self, columns=self._get_category_cols(), size=(400, 400))
+        frame = AddModifyCategoryTableFrame(parent=self, size=(400, 400))
         frame.Show(True)
 
     def OnAddChemicalToDB(self, event):
@@ -1552,7 +1441,7 @@ class MainFrame(wx.Frame):
         Add a Chemical to the Database
         '''
 
-        frame = AddModifyChemicalTableFrame(parent=self, columns=self._get_chemical_cols(), size=(1000, 600))
+        frame = AddModifyChemicalTableFrame(parent=self, size=(1000, 600))
         frame.Show(True)
 
     def OnAddComponentToDB(self, event):
@@ -1560,7 +1449,7 @@ class MainFrame(wx.Frame):
         Add a Zeolite Component to the Database
         '''
 
-        frame = AddModifyComponentTableFrame(parent=self, columns=self._get_component_cols(), size=(800, 600))
+        frame = AddModifyComponentTableFrame(parent=self, size=(800, 600))
         frame.Show(True)
 
     def OnAddReactionToDB(self, event):
@@ -1568,7 +1457,7 @@ class MainFrame(wx.Frame):
         Add a Reaction to the Database
         '''
 
-        frame = AddModifyReactionTableFrame(parent=self, columns=self._get_reaction_cols(), size=(600, 600))
+        frame = AddModifyReactionTableFrame(parent=self, size=(600, 600))
         frame.Show(True)
 
     def OnChangeDB(self, event):
@@ -1590,7 +1479,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.model.session = self.model.get_session(path)
+            self.model.session = ctrl.get_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
@@ -1679,11 +1568,11 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
             if os.path.exists(path):
                 os.remove(path)
-            self.model.new_db(path)
+            self.model.session = ctrl.new_db(path)
             # fill the tables
-            controller.fill_kinds_table(self.model.session)
-            controller.fill_physical_forms_table(self.model.session)
-            controller.fill_electrolytes_table(self.model.session)
+            ctrl.fill_kinds_table(self.model.session)
+            ctrl.fill_physical_forms_table(self.model.session)
+            ctrl.fill_electrolytes_table(self.model.session)
             dlg = wx.MessageDialog(None, "Successfully created new database",
                                     "", wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
@@ -1771,7 +1660,7 @@ class MainFrame(wx.Frame):
         # check if any calcualtion was done or if there are some chemicals and
         # components selected
 
-        dlg = controller.AddModifySynthesisRecordDialog(self,
+        dlg = ctrl.AddModifySynthesisRecordDialog(self,
                                                     session=self.model.session,
                                                     title="Add",
                                                     add_record=True)
@@ -1859,7 +1748,7 @@ class MainFrame(wx.Frame):
     def OnShowSyntheses(self, event):
         '''Show a frame with all stored syntheses'''
 
-        frame = ShowSynthesesFrame(parent=self, columns=self._get_syntheses_cols(), size=(1000, 600))
+        frame = ShowSynthesesFrame(parent=self, size=(1000, 600))
         frame.Show(True)
 
     def update_all_objectlistviews(self):
@@ -1867,8 +1756,8 @@ class MainFrame(wx.Frame):
         Update all the ObjectListView with the current state of the model.
         '''
 
-        self.inppanel.compOlv.SetObjects(self.model.components)
-        self.inppanel.reacOlv.SetObjects(self.model.chemicals)
+        self.inppanel.comp_olv.SetObjects(self.model.components)
+        self.inppanel.chem_olv.SetObjects(self.model.chemicals)
         self.outpanel.resultOlv.SetObjects(self.model.chemicals)
         self.outpanel.scaledOlv.SetObjects(self.model.chemicals)
 

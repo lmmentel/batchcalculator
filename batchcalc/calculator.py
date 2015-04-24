@@ -30,351 +30,21 @@
 __version__ = "0.2.1"
 
 import operator
-import os
 import re
-import sys
 
 from numpy.linalg import solve, lstsq
 import numpy as np
 
-from sqlalchemy import Column, Integer, String, Float, create_engine, ForeignKey
-from sqlalchemy.orm import sessionmaker, relationship, reconstructor
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.hybrid import hybrid_property
+from batchcalc import controller as ctrl
+from batchcalc.model import Chemical, Component, Batch
 
-_minwidth = 15
-
-Base = declarative_base()
-
-class BaseChemical(object):
-
-    def formula_to_tex(self):
-        '''
-        Convert the formula string to tex string.
-        '''
-        return re.sub(ur'(\d+)', ur'$_{\1}$', self.formula)
-
-    def formula_to_html(self):
-        '''
-        Convert the formula string to html string.
-        '''
-        return re.sub(ur'(\d+)', ur'<sub>\1</sub>', self.formula)
-
-    def listctrl_label(self):
-        '''
-        Return the string to be displayed in the ListCtrl's.
-        '''
-        if self.is_undefined(self.short_name):
-            res = self.name
-        else:
-            res = self.short_name
-        return res
-
-    def html_label(self):
-        '''
-        Return a label to be used in printable tables in html format.
-        '''
-        if self.is_undefined(self.short_name):
-            res = self.formula_to_html()
-        else:
-            res = self.short_name
-        return res
-
-    def tex_label(self):
-        '''
-        Return a label to be used in printable tables in tex format.
-        '''
-        if self.is_undefined(self.short_name):
-            res = self.formula_to_tex()
-        else:
-            res = self.short_name
-        return res
-
-    @staticmethod
-    def is_undefined(item):
-        '''
-        Return True if the item is undefined, False otherwise.
-        '''
-        if item is None or item.lower() in ["", "null", "none"]:
-            return True
-        else:
-            return False
-
-class Synthesis(Base):
-    '''
-    Synthesis Table.
-
-    Attributes
-    ----------
-    name : str
-        Name of the synthesis (label)
-    reference : str
-        Literature reference
-    laborant : str
-        Name of the person performing the synthesis (or initials)
-    temperature : float
-        Temperature in degrees Celsius
-    crystallization_time : float
-        Crystallization time in hours
-    oven_type : str
-        Type of the oven used
-    target_material : str
-        In case of zeolites it should be the three letter framework code
-    description : str
-        Description of the synthesis
-    strirring : str
-        Stirring
-    '''
-
-    __tablename__ = "synthesis"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    reference = Column(String)
-    laborant = Column(String)
-    temperature = Column(Float)
-    crystallization_time = Column(Float)
-    oven_type = Column(String)
-    target_material = Column(String)
-    description = Column(String)
-    stirring = Column(String)
-    #startedon = Column(DateTime)
-
-    components = relationship("SynthesisComponent")
-    chemicals = relationship("SynthesisChemical")
-
-    def __repr__(self):
-        return "%s(\n%s)" % (
-                 (self.__class__.__name__),
-                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
-                            for key in sorted(self.__dict__.keys())
-                            if not key.startswith('_')]))
-
-class SynthesisChemical(Base):
-    __tablename__ = "synthesischemicals"
-
-    id = Column(Integer, primary_key=True)
-    synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    chemical_id  = Column(Integer, ForeignKey("chemicals.id"))
-    chemical = relationship("Chemical")
-    mass = Column(Float, nullable=False)
-
-    def __repr__(self):
-        return "%s(\n%s)" % (
-                 (self.__class__.__name__),
-                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
-                            for key in sorted(self.__dict__.keys())
-                            if not key.startswith('_')]))
-
-class SynthesisComponent(Base):
-    __tablename__ = "synthesiscomponents"
-
-    id = Column(Integer, primary_key=True)
-    synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    component_id  = Column(Integer, ForeignKey("components.id"))
-    component = relationship("Component")
-    moles = Column(Float, nullable=False)
-
-    def __repr__(self):
-        return "%s(\n%s)" % (
-                 (self.__class__.__name__),
-                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
-                            for key in sorted(self.__dict__.keys())
-                            if not key.startswith('_')]))
-
-class SEMimage(Base):
-    __tablename__ = "semimages"
-
-    id = Column(Integer, primary_key=True)
-    synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    name = Column(String)
-
-class Category(Base):
-    __tablename__ = 'categories'
-
-    id        = Column(Integer, primary_key=True)
-    name      = Column(String, nullable=False)
-    full_name = Column(String)
-
-    def __repr__(self):
-        return "<Category(id={i}, name={n}, full_name={f})>".format(i=self.id,
-                n=self.name, f=self.full_name)
-
-class Electrolyte(Base):
-    __tablename__ = 'electrolytes'
-
-    id   = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-
-    def __repr__(self):
-        return "<Electrolyte(id={i}, form={n})>".format(i=self.id, n=self.name)
-
-class PhysicalForm(Base):
-    __tablename__ = 'physical_forms'
-
-    id   = Column(Integer, primary_key=True)
-    form = Column(String, nullable=False)
-
-    def __repr__(self):
-        return "<PhysicalForm(id={i}, form={n})>".format(i=self.id, n=self.form)
-
-class Kind(Base):
-    __tablename__ = 'kinds'
-
-    id   = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-
-    def __repr__(self):
-        return "<Kind(id={i}, name={n})>".format(i=self.id, n=self.name)
-
-class Reaction(Base):
-    __tablename__ = 'reactions'
-
-    id       = Column(Integer, primary_key=True)
-    reaction = Column(String, nullable=False)
-
-    def __repr__(self):
-        return "<Reaction(id={i}, reaction={n})>".format(i=self.id, n=self.reaction)
-
-class Batch(Base):
-    __tablename__ = 'batch'
-
-    id           = Column(Integer, primary_key=True)
-    chemical_id  = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
-    component_id = Column(Integer, ForeignKey('components.id'), nullable=False)
-    reaction_id  = Column(Integer, ForeignKey('reactions.id'), nullable=True)
-    coefficient  = Column(Float, nullable=True)
-
-    _chemical = relationship("Chemical")
-    chemical = association_proxy("_chemical", "name")
-    _component = relationship("Component")
-    component = association_proxy("_component", "name")
-    _reaction = relationship("Reaction")
-    reaction = association_proxy("_reaction", "reaction")
-
-    def __repr__(self):
-        return "<Batch(id={i:>2d}, chemical_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
-                i=self.id, n=self.chemical_id, z=self.component_id, c=self.coefficient)
-
-class Component(BaseChemical, Base):
-    '''
-    Class representing the Component object. The component can belong to one of
-    the 3 categories:
-        * Zeolite component
-        * Template
-        * Zeolite Growth Modifier
-    '''
-    __tablename__ = 'components'
-
-    id         = Column(Integer, primary_key=True)
-    name       = Column(String, nullable=False)
-    formula    = Column(String, nullable=False)
-    molwt      = Column(Float, nullable=False)
-    short_name = Column(String)
-
-    _category_id = Column("category_id", Integer, ForeignKey('categories.id'))
-    _category = relationship("Category")
-    category = association_proxy("_category", "name")
-
-    @reconstructor
-    def init_on_load(self):
-        self.moles = 0.0
-
-    @hybrid_property
-    def mass(self):
-        '''
-        Return mass calculated from number of moles and molecular weight.
-        '''
-        return self.moles*self.molwt
-
-    def __repr__(self):
-        return "<Component(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
-               i=self.id, n=self.name, f=self.formula)
-
-class Chemical(BaseChemical, Base):
-    '''
-    Class representing the Chemical object, (off the shelf reactants).
-    '''
-    __tablename__ = 'chemicals'
-
-    id            = Column(Integer, primary_key=True)
-    name          = Column(String, nullable=False)
-    formula       = Column(String, nullable=False)
-    molwt         = Column(Float, nullable=False)
-    short_name    = Column(String)
-    concentration = Column(Float)
-    cas           = Column(String)
-    density       = Column(Float)
-    pk            = Column(Float)
-    smiles        = Column(String)
-
-    _kind_id = Column("kind_id", Integer, ForeignKey('kinds.id'), nullable=False)
-    _kind = relationship("Kind")
-    kind = association_proxy("_kind", "name")
-
-    _electrolyte_id = Column("electrolyte_id", Integer, ForeignKey('electrolytes.id'))
-    _electrolyte = relationship("Electrolyte")
-    electrolyte = association_proxy("_electrolyte", "name")
-
-    _physical_form_id = Column("physical_form_id", Integer, ForeignKey('physical_forms.id'))
-    _physical_form = relationship("PhysicalForm")
-    physical_form = association_proxy("_physical_form", "form")
-
-    @reconstructor
-    def init_on_load(self):
-        self.mass = 0.0
-
-    @hybrid_property
-    def moles(self):
-        '''
-        Return number of moles calculated from mass and molecular weight.
-        '''
-        return self.mass/self.molwt
-
-    @hybrid_property
-    def volume(self):
-        '''
-        Return volume calculated from mass and density if chemical is a liquid.
-        '''
-        if self.density is not None and self.physical_form == "liquid":
-            return self.mass/self.density
-        else:
-            return None
-
-    def html_label(self):
-        '''
-        Return a label to be used in printable tables in html format.
-        '''
-        if self.is_undefined(self.short_name):
-            res = self.formula_to_html() + u" ({0:>4.1f}%)".format(100*self.concentration)
-        else:
-            res = self.short_name + u" ({0:>4.1f}%)".format(100*self.concentration)
-        return res
-
-    def tex_label(self):
-        '''
-        Return a label to be used in printable tables in tex format.
-        '''
-        if self.is_undefined(self.short_name):
-            res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
-        else:
-            res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
-        return res
-
-    def __repr__(self):
-        return "%s(\n%s)" % (
-                 (self.__class__.__name__),
-                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
-                            for key in sorted(self.__dict__.keys())
-                            if not key.startswith('_')]))
+_MINWIDTH = 15
 
 class BatchCalculator(object):
 
-    def __init__(self):
+    def __init__(self, session):
 
-        # get the database connection
-        self.session = self.get_session()
+        self.session = session
 
         self.lists = ["components", "chemicals"]
 
@@ -393,49 +63,6 @@ class BatchCalculator(object):
         self.sample_size = 5.0
         self.item_scale = 1.0
         self.selections = []
-
-    @staticmethod
-    def get_dbpath():
-        '''
-        Depending on the execution environment get the proper database path.
-        '''
-
-        dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "zeolite.db")
-        if os.path.exists(dbpath):
-            return dbpath
-        elif sys.executable is not None:
-            dbpath = os.path.join(os.path.dirname(sys.executable), "data", "zeolite.db")
-            return dbpath
-        else:
-            raise ValueError("database not found on: {}".format(dbpath))
-
-    def get_session(self, dbpath=None):
-        '''
-        When the new database is chosen, close the old session and establish a
-        new one.
-        '''
-
-        if dbpath is None:
-            dbpath = self.get_dbpath()
-
-        if hasattr(self, "session"):
-            self.session.close()
-        engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
-        db_session = sessionmaker(bind=engine)
-        return db_session()
-
-    def new_db(self, path):
-        '''
-        Create a new database under the name stored in "path".
-        '''
-
-        if hasattr(self, "session"):
-            self.session.close()
-
-        engine = create_engine("sqlite:///{path:s}".format(path=path), echo=False)
-        Base.metadata.create_all(engine)
-        DBSession  = sessionmaker(bind=engine)
-        self.session = DBSession()
 
     def reset(self):
         '''
@@ -458,72 +85,7 @@ class BatchCalculator(object):
         self.item_scale = 1.0
         self.selections = []
 
-    def get_batch_records(self):
-
-        query = self.session.query(Batch).order_by(Batch.id).all()
-        return query
-
-    def get_components(self):
-        '''
-        Return all components fro the database.
-        '''
-
-        query = self.session.query(Component).order_by(Component.id).all()
-        return query
-
-    def get_categories(self):
-        '''
-        Return the list of `Category` objects from the database
-        '''
-        return self.session.query(Category).order_by(Category.id).all()
-
-    def get_chemicals(self, showall=False):
-        '''
-        Return chemicals that are sources for the components present in the
-        components list, of the list is empty return all the components.
-        '''
-
-        if showall:
-            query = self.session.query(Chemical).order_by(Chemical.id).all()
-        else:
-            compset = set()
-            for comp in self.components:
-                temp = self.session.query(Chemical).join(Batch).\
-                            filter(Batch.component_id == comp.id).all()
-                compset.update(temp)
-                query = sorted(list(compset), key=lambda x: x.id)
-        return query
-
-    def get_electrolytes(self):
-        '''
-        Return the list of `Electrolyte` objects from the database
-        '''
-        return self.session.query(Electrolyte).order_by(Electrolyte.id).all()
-
-    def get_kinds(self):
-        '''
-        Return the list of `Kind` objects from the database
-        '''
-        return self.session.query(Kind).order_by(Kind.id).all()
-
-    def get_physical_forms(self):
-        '''
-        Return the list of `PhysicalForm` objects from the database
-        '''
-        return self.session.query(PhysicalForm).order_by(PhysicalForm.id).all()
-
-    def get_reactions(self):
-        '''
-        Return the list of `Reaction` objects from the database
-        '''
-        return self.session.query(Reaction).order_by(Reaction.id).all()
-
-    def get_syntheses(self):
-        '''
-        Return the list of `Synthesis` objects from the database
-        '''
-        return self.session.query(Synthesis).order_by(Synthesis.id).all()
-
+    # this can be probably removed since base chemical has is_undefined method
     @staticmethod
     def is_empty(item):
         if item is None or item in ["", "NULL", "None"]:
@@ -559,8 +121,8 @@ class BatchCalculator(object):
             raise ValueError("No chemicals selected")
 
         for comp in self.components:
-            tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
-            if len(set([t.id for t in tempr]) & set([r.id for r in self.chemicals])) == 0:
+            temp = ctrl.get_chemicals(self.session, components=[comp])
+            if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some components need their sources: {0:s}".format(comp.name))
 
         self.A = self.get_A_matrix()
@@ -594,8 +156,8 @@ class BatchCalculator(object):
             raise ValueError("No chemicals selected")
 
         for comp in self.components:
-            tempr = self.session.query(Chemical).join(Batch).filter(Batch.component_id == comp.id).all()
-            if len(set([t.id for t in tempr]) & set([r.id for r in self.chemicals])) == 0:
+            temp = ctrl.get_chemicals(self.session, components=[comp])
+            if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some compoennts need their sources: {0:s}".format(comp.name))
 
         masses = []
@@ -749,7 +311,7 @@ class BatchCalculator(object):
         Print the components vector in a readable form.
         '''
 
-        width = max([len(c.listctrl_label()) for c in self.components] + [_minwidth])
+        width = max([len(c.listctrl_label()) for c in self.components] + [_MINWIDTH])
         print "\n     {0:*^{w}s}\n".format("  "+ "Composition Vector [C]" +"  ", w=width+34)
         print " "*5 + "{l:^{wl}}  |{mol:^15s}|{mas:^15s}".format(
                     l="Formula", wl=width, mol="Moles", mas="Mass [g]")
@@ -765,8 +327,8 @@ class BatchCalculator(object):
 
         lr = len(self.chemicals)
 
-        rowwidth = max([len(c.listctrl_label()) for c in self.components] + [_minwidth])
-        colwidth = max([len(r.listctrl_label()) for r in self.chemicals] + [_minwidth])
+        rowwidth = max([len(c.listctrl_label()) for c in self.components] + [_MINWIDTH])
+        colwidth = max([len(r.listctrl_label()) for r in self.chemicals] + [_MINWIDTH])
 
         print "\n{0}{1:*^{w}s}\n".format(" "*7, "  Batch Matrix [B]  ", w=(colwidth+1)*lr+rowwidth)
         print "{}".format(" "*(8+rowwidth))+"|".join(["{0:^{cw}s}".format(c.listctrl_label(), cw=colwidth) for c in self.components])
