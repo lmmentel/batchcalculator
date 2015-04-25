@@ -585,7 +585,8 @@ class ShowSynthesesFrame(wx.Frame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        dlg = ctrl.AddModifySynthesisRecordDialog(model=self.model,
+        dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
+                                                  model=self.model,
                                                   title="Add",
                                                   add_record=True)
         dlg.ShowModal()
@@ -600,7 +601,8 @@ class ShowSynthesesFrame(wx.Frame):
             dialogs.show_message_dlg("No row selected", "Error")
             return
 
-        dlg = ctrl.AddModifySynthesisRecordDialog(model=self.model,
+        dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
+                                                  model=self.model,
                                                   record=sel_row,
                                                   title="Modify",
                                                   add_record=False)
@@ -1660,7 +1662,7 @@ class MainFrame(wx.Frame):
         # check if any calcualtion was done or if there are some chemicals and
         # components selected
 
-        dlg = ctrl.AddModifySynthesisRecordDialog(self,
+        dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                     session=self.model.session,
                                                     title="Add",
                                                     add_record=True)

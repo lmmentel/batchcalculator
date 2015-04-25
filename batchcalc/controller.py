@@ -283,12 +283,13 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         super(AddModifyBatchRecordDialog, self).__init__(parent, id=wx.ID_ANY,
                 title="{0:s} a Batch Record".format(title), size=size)
 
-        self.panel = wx.Panel(self)
-
         # attributes
+
         self.session = session
         self.record = record
         self.add_record = add_record
+        self.panel = wx.Panel(self)
+
         if record is not None:
             v_coeff = "{0:6.2f}".format(record.coefficient)
         else:
@@ -892,10 +893,11 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
-    def __init__(self, model, record=None, title="Add", add_record=True,
+    def __init__(self, parent, model, record=None, title="Add", add_record=True,
             cols=None, pos=wx.DefaultPosition, size=(500, 720)):
 
-        super(AddModifySynthesisRecordDialog, self).__init__(self, id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
+        super(AddModifySynthesisRecordDialog, self).__init__(parent,
+                id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
 
         self.model = model
         self.record = record
