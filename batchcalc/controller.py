@@ -893,7 +893,7 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, model, record=None, title="Add", add_record=True,
+    def __init__(self, parent, model, session, record=None, title="Add", add_record=True,
             cols=None, pos=wx.DefaultPosition, size=(500, 720)):
 
         super(AddModifySynthesisRecordDialog, self).__init__(parent,
@@ -905,6 +905,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         self.title = title
         self.cols = cols
         self.panel = wx.Panel(self)
+
+        self.session = session
 
         self.synth = OrderedDict([
             ("name", {"label" : "Name", "required" : True}),
@@ -1079,7 +1081,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def add_synthesis(self):
         '''
-        Get the vlues enter in the dialog and insert a record to the db and commit.
+        Retrieve the values entered in the dialog and insert a record to the db
+        and commit.
         '''
 
         for k, v in self.synth.items():
@@ -1094,7 +1097,7 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         add_synthesis_record(self.session, data)
 
-        dialogs.show_message_dlg("Component added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Synthesis added", "Success!", wx.OK|wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
@@ -1102,8 +1105,25 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
                 child.SetValue("")
 
     def edit_synthesis(self):
+        '''
+        Get the vlues enter in the dialog and insert a record to the db and commit.
+        '''
 
-        pass
+        for k, v in self.synth.items():
+            if v["required"]:
+                if self.is_empty(v["txtctrl"], "{} is required".format(v["label"])):
+                    return
+                elif k in ["temperature", "crystallization_time"]:
+                    if not self.is_number(v["txtctrl"], "{} must be a number".format(v["label"])):
+                        return
+
+        data = self.get_data()
+
+        modify_synthesis_record(self.session, self.record.id, data)
+
+        dialogs.show_message_dlg("Synthesis modified", "Success!", wx.OK|wx.ICON_INFORMATION)
+
+        self.Destroy()
 
     def OnSaveRecord(self, event):
 
@@ -1470,7 +1490,7 @@ def delete_electrolyte_record(session, id_num):
 
 def modify_electrolyte_record(session, id_num, data):
     """
-    Modify/Edit an existing Eelectrolyte record in the database
+    Modify/Edit an existing Electrolyte record in the database
     """
 
     elec = session.query(Electrolyte).get(id_num)
@@ -1491,11 +1511,14 @@ def add_synthesis_record(session, data):
 
 def modify_synthesis_record(session, id_num, data):
     """
-    Modify/Edit an existing Eelectrolyte record in the database
+    Modify/Edit an existing Synthesis record in the database
     """
 
     synth = session.query(Synthesis).get(id_num)
-    synth.name = data
+
+    for k in data.keys():
+        setattr(synth, k, data[k])
+
     session.add(synth)
     session.commit()
 

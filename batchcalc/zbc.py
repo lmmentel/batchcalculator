@@ -546,8 +546,9 @@ class ShowSynthesesFrame(wx.Frame):
 
         # attributes
 
-        self.model = parent.model
         self.cols = ["name", "target", "laborant", "reference", "temperature", "descr"]
+        self.model = parent.model
+        self.session = ctrl.get_session()
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -576,6 +577,11 @@ class ShowSynthesesFrame(wx.Frame):
         deleteRecordBtn.Bind(wx.EVT_BUTTON, self.onDelete)
         btnSizer.Add(deleteRecordBtn, 0, wx.ALL, 5)
 
+        cancelBtn = wx.Button(self, label="Cancel")
+        cancelBtn.Bind(wx.EVT_BUTTON, self.OnCloseFrame)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
+        btnSizer.Add(cancelBtn, 0, wx.ALL, 5)
+
         mainSizer.Add(self.olv, 1, wx.ALL|wx.EXPAND, 5)
         mainSizer.Add(btnSizer, 0, wx.CENTER)
         self.SetSizer(mainSizer)
@@ -587,6 +593,7 @@ class ShowSynthesesFrame(wx.Frame):
 
         dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                   model=self.model,
+                                                  session=self.session,
                                                   title="Add",
                                                   add_record=True)
         dlg.ShowModal()
@@ -603,6 +610,7 @@ class ShowSynthesesFrame(wx.Frame):
 
         dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                   model=self.model,
+                                                  session=self.session,
                                                   record=sel_row,
                                                   title="Modify",
                                                   add_record=False)
@@ -626,6 +634,12 @@ class ShowSynthesesFrame(wx.Frame):
         """
         print "loading"
 
+    def OnCloseFrame(self, event):
+        '''Close the synthesis frame'''
+
+        self.session.close()
+        self.Destroy()
+
     def set_olv(self, syntheses):
         '''Put current Synthesis objects in the OLV'''
 
@@ -636,7 +650,7 @@ class ShowSynthesesFrame(wx.Frame):
     def show_all(self):
         '''Get all synthesis records and put them in the OLV'''
 
-        syntheses = ctrl.get_syntheses(self.model.session)
+        syntheses = ctrl.get_syntheses(self.session)
         self.set_olv(syntheses)
 
 class CustomDataTable(gridlib.PyGridTableBase):

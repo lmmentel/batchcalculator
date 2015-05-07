@@ -104,7 +104,7 @@ class BaseChemical(object):
 
 class Synthesis(ObjRepr, Base):
     '''
-    Synthesis Table.
+    Synthesis object
 
     Attributes
     ----------
@@ -209,6 +209,22 @@ class Reaction(Base):
         return "<Reaction(id={i}, reaction={n})>".format(i=self.id, n=self.reaction)
 
 class Batch(Base):
+    '''
+    Batch object
+
+    Attributes
+    ----------
+    chemical_id : int
+        Id number of the Chemical from the chemicals table
+    component_id : int
+        Id number of the Component from the components table
+    reaction_id : int
+        Id number of the Reaction from the reactions table
+    coefficient : float
+        Stechimetric coefficient relating the chemical to the component per 1
+        mole of chemical
+    '''
+
     __tablename__ = 'batch'
 
     id           = Column(Integer, primary_key=True)
@@ -230,12 +246,22 @@ class Batch(Base):
 
 class Component(BaseChemical, Base):
     '''
-    Class representing the Component object. The component can belong to one of
-    the 3 categories:
-        * Zeolite component
-        * Template
-        * Zeolite Growth Modifier
+    Component object
+
+    Attributes
+    ----------
+    name : str
+        Name of the component
+    formula : str
+        Chemical formula
+    molwt : float
+        Molecular weight
+    short_name : str
+        Short name
+    _category : int
+        Id number of the Category from the categories table
     '''
+
     __tablename__ = 'components'
 
     id         = Column(Integer, primary_key=True)
@@ -265,7 +291,28 @@ class Component(BaseChemical, Base):
 
 class Chemical(BaseChemical, Base):
     '''
-    Class representing the Chemical object, (off the shelf reactants).
+    Chemical object
+
+    Attributes
+    ----------
+    name : str
+        Name of the chemical
+    formula : str
+        Chemical formula
+    molwt : float
+        Molecular weight
+    short_name : str
+        Short name
+    concentration : float
+        Concentration as weight percent
+    cas : str
+        CAS number
+    density : float
+        Density in g/cm^3
+    pk : float
+        pK value
+    smiles : str
+        SMILES formula
     '''
     __tablename__ = 'chemicals'
 
