@@ -547,8 +547,8 @@ class ShowSynthesesFrame(wx.Frame):
         # attributes
 
         self.cols = ["name", "target", "laborant", "reference", "temperature", "descr"]
-        self.model = parent.model
         self.session = ctrl.get_session()
+        self.model = BatchCalculator(self.session)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -584,7 +584,7 @@ class ShowSynthesesFrame(wx.Frame):
 
         mainSizer.Add(self.olv, 1, wx.ALL|wx.EXPAND, 5)
         mainSizer.Add(btnSizer, 0, wx.CENTER)
-        self.SetSizer(mainSizer)
+        self.SetSizerAndFit(mainSizer)
 
         self.show_all()
 
@@ -825,8 +825,7 @@ class InputPanel(wx.Panel):
         gbs.AddGrowableCol(1)
         gbs.AddGrowableRow(1)
 
-        self.SetSizer(gbs)
-        self.Fit()
+        self.SetSizerAndFit(gbs)
 
         # Event Handlers
 
@@ -933,27 +932,44 @@ class OutputPanel(wx.Panel):
 
         # Layout
 
-        fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
-
-        fgs.AddGrowableCol(0)
-        fgs.AddGrowableCol(1)
-        fgs.AddGrowableRow(1)
-
-        fgs.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
-        fgs.Add(self.rescaledtxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-
-        fgs.Add(self.resultOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        fgs.Add(self.scaledOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
-
-        fgs.Add(calculateBtn, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(rescaleAllBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
         hbox.Add(rescaleToSampleBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
         hbox.Add(rescaleToItemBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
-        fgs.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
 
-        self.SetSizer(fgs)
-        self.Fit()
+        gbs = wx.GridBagSizer(hgap=10, vgap=10)
+
+        gbs.Add(resulttxt, pos=(0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
+        gbs.Add(self.rescaledtxt, pos=(0, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+
+        gbs.Add(self.resultOlv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+        gbs.Add(self.scaledOlv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+
+        gbs.Add(calculateBtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
+        gbs.Add(hbox, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
+
+        gbs.AddGrowableCol(0)
+        #gbs.AddGrowableCol(1)
+        gbs.AddGrowableRow(1)
+
+        self.SetSizerAndFit(gbs)
+
+#        fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
+#
+#        fgs.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
+#        fgs.Add(self.rescaledtxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+#
+#        fgs.Add(self.resultOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
+#        fgs.Add(self.scaledOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+#
+#        fgs.Add(calculateBtn, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
+#        fgs.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
+#
+#        fgs.AddGrowableCol(0)
+#        fgs.AddGrowableCol(1)
+#        fgs.AddGrowableRow(1)
+#
+#        self.SetSizerAndFit(fgs)
 
         # Event Handlers
 

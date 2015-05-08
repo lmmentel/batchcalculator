@@ -80,7 +80,7 @@ def new_db(dbpath):
 
     engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
     Base.metadata.create_all(engine)
-    db_session  = sessionmaker(bind=engine)
+    db_session = sessionmaker(bind=engine)
     return db_session()
 
 def get_batches(session):
@@ -893,17 +893,20 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, model, session, record=None, title="Add", add_record=True,
-            cols=None, pos=wx.DefaultPosition, size=(500, 720)):
+    def __init__(self, parent, model, session, record=None, title="Add",
+            add_record=True, pos=wx.DefaultPosition, size=(500, 720)):
 
         super(AddModifySynthesisRecordDialog, self).__init__(parent,
                 id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
 
+        # Attributes
+
+        if model is None:
+            self.model = BatchCalculator()
         self.model = model
         self.record = record
         self.add_record = add_record
         self.title = title
-        self.cols = cols
         self.panel = wx.Panel(self)
 
         self.session = session
@@ -919,14 +922,15 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             ("description", {"label" : "Description", "required" : True}),
         ])
 
-        # Attributes
+        self.comp_cols = ["name", "formula", "molwt", "short", "category"]
+        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
 
         comptxt = wx.StaticText(self.panel, -1, label="Components")
         chemtxt = wx.StaticText(self.panel, -1, label="Chemicals")
         comptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         chemtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, size=(-1, 200), style=wx.LC_REPORT|wx.SUNKEN_BORDER,
                 useAlternateBackColors=True)
         self.comp_olv.evenRowsBackColor="#DCF0C7"
         self.comp_olv.oddRowsBackColor="#FFFFFF"
@@ -947,10 +951,10 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         gbs = wx.GridBagSizer(vgap=5, hgap=5)
         gbs.Add(comptxt, pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
         gbs.Add(chemtxt, pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
-        gbs.Add(self.comp_olv, pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.GROW, border=10)
-        gbs.Add(self.chem_olv, pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.GROW, border=10)
-        gbs.Add(compbtn, pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
-        gbs.Add(chembtn, pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        gbs.Add(self.comp_olv, pos=(1, 0), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
+        gbs.Add(compbtn, pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        gbs.Add(chembtn, pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
         gbs.AddGrowableCol(0)
         gbs.AddGrowableCol(1)
 
@@ -1004,7 +1008,7 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
         mainsizer.Add(txtsizer, flag=wx.RIGHT|wx.LEFT|wx.GROW, border=5)
-        mainsizer.Add(gbs, flag=wx.RIGHT|wx.LEFT|wx.GROW|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        mainsizer.Add(gbs, flag=wx.RIGHT|wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, border=5)
         mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
 
         self.panel.SetSizerAndFit(mainsizer)
@@ -1027,6 +1031,11 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             textctrl.Refresh()
 
     def is_number(self, textctrl, message):
+        '''
+        Check if the string entered in the `textctrl` can be converted to float.
+        Return True if it can otherwise change the `textctrl` color, show a
+        dialog with the `message` and return False.
+        '''
 
         try:
             float(textctrl.GetValue())
@@ -1042,8 +1051,10 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def OnAddRemoveComponent(self, event):
 
-        dlg = ComponentsDialog(self, self.model, self.cols,
-                                   id=-1, title="Choose Zeolite Components...")
+        dlg = ComponentsDialog(parent=self, model=self.model,
+                               cols=get_columns(self.comp_cols),
+                               id=-1, title="Choose Zeolite Components...")
+
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             components = dlg.GetCurrentSelections()

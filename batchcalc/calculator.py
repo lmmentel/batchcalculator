@@ -158,7 +158,7 @@ class BatchCalculator(object):
         for comp in self.components:
             temp = ctrl.get_chemicals(self.session, components=[comp])
             if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
-                raise ValueError("some compoennts need their sources: {0:s}".format(comp.name))
+                raise ValueError("some components need their sources: {0:s}".format(comp.name))
 
         masses = []
         for chemical in self.chemicals:

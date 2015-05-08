@@ -191,6 +191,19 @@ class PhysicalForm(ObjRepr, Base):
     form = Column(String, nullable=False)
 
 class Kind(Base):
+    '''
+    Kind object
+
+    Attributes
+    ----------
+    name : str
+        Kind of the chemical determining how the weight fraction will be
+        calculated. The allowed values are:
+            "mixture"  - weight mixture
+            "reactant" - general reactant
+            "solution" - water solution given
+    '''
+
     __tablename__ = 'kinds'
 
     id   = Column(Integer, primary_key=True)
@@ -200,6 +213,15 @@ class Kind(Base):
         return "<Kind(id={i}, name={n})>".format(i=self.id, n=self.name)
 
 class Reaction(Base):
+    '''
+    Reaction object
+
+    Attributes
+    ----------
+    reaction : str
+        Reaction relating chemicals to components
+    '''
+
     __tablename__ = 'reactions'
 
     id       = Column(Integer, primary_key=True)
