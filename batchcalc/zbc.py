@@ -53,7 +53,7 @@ from batchcalc.calculator import BatchCalculator
 from batchcalc import dialogs, controller
 
 # uncomment for debugging
-#import wx.lib.inspection
+import wx.lib.inspection
 
 def clean_tex(fname):
     '''
@@ -1762,5 +1762,5 @@ if __name__ == "__main__":
 
     app = ZeoGui(False)
     # uncomment for debugging
-    # wx.lib.inspection.InspectionTool().Show()
+    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()

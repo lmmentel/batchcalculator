@@ -40,7 +40,7 @@ from batchcalc import dialogs
 class AddModifyBatchRecordDialog(wx.Dialog):
 
     def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(800, 230)):
+            pos=wx.DefaultPosition, size=(900, 230)):
 
         super(AddModifyBatchRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Batch Record".format(title), size=size)
 
@@ -64,7 +64,7 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         lbl_coeff = wx.StaticText(self.panel, -1, "Coefficient")
         lbl_reaction = wx.StaticText(self.panel, -1, "Reaction")
 
-        self.txtc_coeff = wx.TextCtrl(self.panel, -1, v_coeff)
+        self.txtc_coeff = wx.TextCtrl(self.panel, -1, value=v_coeff, size=(50, 20))
 
         chemicals = parent.model.get_chemicals(showall=True)
         components = parent.model.get_components()
@@ -74,9 +74,9 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         self.components = {i:c for i,c in zip(range(len(components)), components)}
         self.reactions  = {i:c for i,c in zip(range(len(reactions)), reactions)}
 
-        self.ch_chemical  = wx.Choice(self.panel, -1, (50, 20), choices=[x.name for x in chemicals])
-        self.ch_component = wx.Choice(self.panel, -1, (50, 20), choices=[x.name for x in components])
-        self.ch_reaction  = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction for x in reactions])
+        self.ch_chemical  = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:30] for x in chemicals])
+        self.ch_component = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:30] for x in components])
+        self.ch_reaction  = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction[:60] for x in reactions])
 
         if record is not None:
             if self.record.chemical is not None:
