@@ -1,6 +1,7 @@
 TODO
 =====
 
+* use ``appdirs`` package to place the user config file in the right path
 * write a django app to expose the calculator functionality through a
   web form
 * add an option to select a tex template in the export tex dialog

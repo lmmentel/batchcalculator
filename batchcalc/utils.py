@@ -49,7 +49,7 @@ COLUMNS = OrderedDict([
     ("chemical", {"title" : "Chemical",         "minimumWidth" : 150, "width" : 200, "align" : "left",  "valueGetter" : "chemical", "isEditable" : False, "isSpaceFilling" : True}),
     ("coeff"   , {"title" : "Coefficient",      "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "coefficient", "isEditable" : False, "stringConverter" : "%.2f"}),
     ("component",{"title" : "Chemical",         "minimumWidth" : 150, "width" : 200, "align" : "left",  "valueGetter" : "component", "isEditable" : False, "isSpaceFilling" : True}),
-    ("conc"    , {"title" : "Concentration",    "minimumWidth" : 100, "width" : 100, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
+    ("conc"    , {"title" : "Concentration",    "minimumWidth" : 110, "width" : 110, "align" : "right", "valueGetter" : "concentration", "isEditable" : True, "stringConverter" : "%.2f"}),
     ("density" , {"title" : "Density",          "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "density", "isEditable" : False, "stringConverter" : format_float}),
     ("descr"   , {"title" : "Description",      "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
     ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
@@ -78,10 +78,9 @@ def get_columns(cols):
     '''
     Return list of ColumnDefn objects based on the definitions in COLUMNS
 
-    Args
-    ----
-    cols : list of str
-        list of keys from COLUMNS dict
+    Args:
+        cols : list of str
+            list of keys from COLUMNS dict
     '''
 
     return [ColumnDefn(**COLUMNS[col]) for col in cols]

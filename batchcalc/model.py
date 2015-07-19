@@ -298,7 +298,7 @@ class Component(BaseChemical, Base):
 
     @reconstructor
     def init_on_load(self):
-        self.moles = 0.0
+        self.moles = 1.0
 
     @hybrid_property
     def mass(self):

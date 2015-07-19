@@ -546,7 +546,8 @@ class ShowSynthesesFrame(wx.Frame):
 
         # attributes
 
-        self.cols = ["name", "target", "laborant", "reference", "temperature", "descr"]
+        self.cols = ["id", "name", "target", "laborant", "reference",
+                     "temperature", "descr"]
         self.session = ctrl.get_session()
         self.model = BatchCalculator(self.session)
 
@@ -633,6 +634,25 @@ class ShowSynthesesFrame(wx.Frame):
         Load a record into the batch calculator
         """
         print "loading"
+        # reset the calcualtor state
+        sel_row = self.olv.GetSelectedObject()
+        parent = self.GetParent()
+        if sel_row is not None:
+            # add component to the main frame
+            components = [c.component for c in sel_row.components]
+            for comp, synthcomp in zip(components, sel_row.components):
+                comp.moles = synthcomp.moles
+            parent.model.components = components
+            parent.inppanel.comp_olv.SetObjects(parent.model.components)
+            # add chemicals to the main frame
+            chemicals = [c.chemical for c in sel_row.chemicals]
+            for chem, synthchem in zip(chemicals, sel_row.chemicals):
+                chem.mass = synthchem.mass
+            parent.model.chemicals = chemicals
+            parent.inppanel.chem_olv.SetObjects(parent.model.chemicals)
+        else:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
 
     def OnCloseFrame(self, event):
         '''Close the synthesis frame'''
@@ -794,11 +814,13 @@ class InputPanel(wx.Panel):
         rcttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         self.comp_olv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.comp_olv.SetEmptyListMsg('Add Components')
         self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
         self.comp_olv.rowFormatter = compRowFormatter
 
         self.chem_olv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
                 useAlternateBackColors=True)
+        self.chem_olv.SetEmptyListMsg('Add Chemicals')
         self.chem_olv.evenRowsBackColor="#DCF0C7"
         self.chem_olv.oddRowsBackColor="#FFFFFF"
         self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
@@ -815,17 +837,17 @@ class InputPanel(wx.Panel):
         gbs.Add(cmptxt, pos=(0,0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
         gbs.Add(rcttxt, pos=(0,1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
 
-        gbs.Add(self.comp_olv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        gbs.Add(self.chem_olv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.LEFT, border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.RIGHT, border=10)
 
         gbs.Add(zeobtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
         gbs.Add(rctbtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
 
+        self.SetSizerAndFit(gbs)
         gbs.AddGrowableCol(0)
         gbs.AddGrowableCol(1)
         gbs.AddGrowableRow(1)
-
-        self.SetSizerAndFit(gbs)
+        self.Layout()
 
         # Event Handlers
 
@@ -908,45 +930,56 @@ class OutputPanel(wx.Panel):
         self.model = model
         self.gray   = "#939393"
 
-        resulttxt = wx.StaticText(self, -1, label="Results [X]")
+        resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.rescaledtxt = wx.StaticText(self, -1, label="Rescaled")
-        self.rescaledtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
                 useAlternateBackColors=True)
         self.resultOlv.evenRowsBackColor="#DCF0C7"
         self.resultOlv.oddRowsBackColor="#FFFFFF"
-        self.scaledOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.resultOlv.evenRowsBackColor="#DCF0C7"
-        self.resultOlv.oddRowsBackColor="#FFFFFF"
 
         calculateBtn = wx.Button(self, label="Calculate")
-        rescaleAllBtn = wx.Button(self, label="Rescale All")
-        rescaleToSampleBtn = wx.Button(self, label="Rescale To Sample")
-        rescaleToItemBtn = wx.Button(self, label="Rescale To Item")
+
+        scaling_title = wx.StaticBox( self, -1, "Scaling options" )
+        scaling_box = wx.StaticBoxSizer( scaling_title, wx.VERTICAL )
+
+        self.scaling_ctrls = []
+        scalenone = wx.RadioButton(self, -1, label="No scaling", style=wx.RB_GROUP)
+        scaleall = wx.RadioButton(self, -1, label="Scale all")
+        scalesample = wx.RadioButton(self, -1, label="Scale to sample")
+        scaleitem = wx.RadioButton(self, -1, label="Scale to item")
+
+        sn_text = wx.StaticText(self, -1, label="", size=(100, 20), style=wx.ALIGN_RIGHT)
+        sa_text = wx.StaticText(self, -1, label="", size=(70, 20), style=wx.ALIGN_RIGHT)
+        ss_text = wx.StaticText(self, -1, label="", size=(70, 20), style=wx.ALIGN_RIGHT)
+        si_text = wx.StaticText(self, -1, label="", size=(70, 20), style=wx.ALIGN_RIGHT)
+
+        self.scaling_ctrls.append(("none", scalenone, sn_text))
+        self.scaling_ctrls.append(("all", scaleall, sa_text))
+        self.scaling_ctrls.append(("sample", scalesample, ss_text))
+        self.scaling_ctrls.append(("item", scaleitem, si_text))
+
+        scaling_grid = wx.FlexGridSizer( cols=2 )
+        for label, radio, text in self.scaling_ctrls:
+            scaling_grid.Add( radio, 0, wx.ALIGN_LEFT|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+            scaling_grid.Add( text, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+
+        scaling_box.Add(scaling_grid)
 
         self.SetResults()
-        self.SetScaled()
 
         # Layout
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(rescaleAllBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
-        hbox.Add(rescaleToSampleBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
-        hbox.Add(rescaleToItemBtn, 0, flag=wx.LEFT|wx.RIGHT, border=5)
 
         gbs = wx.GridBagSizer(hgap=10, vgap=10)
 
-        gbs.Add(resulttxt, pos=(0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
-        gbs.Add(self.rescaledtxt, pos=(0, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        gbs.Add(resulttxt, pos=(0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
 
-        gbs.Add(self.resultOlv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-        gbs.Add(self.scaledOlv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
+        gbs.Add(self.resultOlv, pos=(1, 0), span=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT|wx.BOTTOM, border=10)
+        gbs.Add(scaling_box, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT|wx.RIGHT, border=10)
 
-        gbs.Add(calculateBtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
-        gbs.Add(hbox, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
+        gbs.Add(calculateBtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_BOTTOM|wx.BOTTOM|wx.LEFT, border=10)
 
         gbs.AddGrowableCol(0)
         #gbs.AddGrowableCol(1)
@@ -954,29 +987,14 @@ class OutputPanel(wx.Panel):
 
         self.SetSizerAndFit(gbs)
 
-#        fgs = wx.FlexGridSizer(rows=3, cols=2, hgap=10, vgap=10)
-#
-#        fgs.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
-#        fgs.Add(self.rescaledtxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-#
-#        fgs.Add(self.resultOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT, border=10)
-#        fgs.Add(self.scaledOlv, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.RIGHT, border=10)
-#
-#        fgs.Add(calculateBtn, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT, border=10)
-#        fgs.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=10)
-#
-#        fgs.AddGrowableCol(0)
-#        fgs.AddGrowableCol(1)
-#        fgs.AddGrowableRow(1)
-#
-#        self.SetSizerAndFit(fgs)
-
         # Event Handlers
 
         calculateBtn.Bind(wx.EVT_BUTTON, self.OnCalculate)
-        rescaleAllBtn.Bind(wx.EVT_BUTTON, self.OnRescaleAll)
-        rescaleToSampleBtn.Bind(wx.EVT_BUTTON, self.OnRescaleToSample)
-        rescaleToItemBtn.Bind(wx.EVT_BUTTON, self.OnRescaleToItem)
+
+        # set default as no scaling
+        scalenone.SetValue(1)
+        for label, radio, text in self.scaling_ctrls[1:]:
+            radio.SetValue(0)
 
     def OnCalculate(self, event):
         '''
@@ -984,10 +1002,26 @@ class OutputPanel(wx.Panel):
         result in the OLV.
         '''
 
-        self.model.calculate_masses()
-        self.resultOlv.SetObjects(self.model.chemicals)
+        # get the checked radio control label and StaticText object
+        scale_type, text = next((x[0], x[2]) for x in self.scaling_ctrls if x[1].GetValue())
 
-    def OnRescaleAll(self, event):
+        self.model.calculate_masses()
+
+        if scale_type == 'none':
+            pass
+        elif scale_type == 'all':
+            self.rescale_all(text)
+        elif scale_type == 'sample':
+            self.rescale_to_sample(text)
+        elif scale_type == 'item':
+            self.rescale_to_item(text)
+        else:
+            raise ValueError('wrong <scale_type>: {}'.format(scale_type))
+
+        self.resultOlv.SetObjects(self.model.chemicals)
+        self.Layout()
+
+    def rescale_all(self, statictext):
         '''
         Retrieve a float from a TextCtrl dialog, rescale the result and print
         it to the ListCtrl.
@@ -999,16 +1033,18 @@ class OutputPanel(wx.Panel):
         if dialog.ShowModal() == wx.ID_OK:
             try:
                 self.model.scale_all = float(dialog.GetValue())
-                self.RescaleAll()
-                self.Layout()
             except:
                 ed = wx.MessageDialog(None, "Scale factor must be a number",
                                       "", wx.OK | wx.ICON_INFORMATION)
                 ed.ShowModal()
                 ed.Destroy()
+            newmasses = self.model.rescale_all()
+            for chemical, newmass in zip(self.model.chemicals, newmasses):
+                chemical.mass = newmass
+            statictext.SetLabel("{0:6.2f}".format(self.model.scale_all))
         dialog.Destroy()
 
-    def OnRescaleToItem(self, event):
+    def rescale_to_item(self, statictext):
         '''
         Retrieve the selected item and the mass for that item to which it
         should be scaled, then rescale all the components and display them.
@@ -1036,15 +1072,12 @@ class OutputPanel(wx.Panel):
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
-                chemicals = copy.deepcopy(self.model.chemicals)
                 newmasses = self.model.rescale_to_chemical(item[0], mass)
-                for c, m  in zip(chemicals, newmasses):
-                    c.mass = m
-                self.scaledOlv.SetObjects(chemicals)
-                self.rescaledtxt.SetLabel("Rescaled to {0:6.2f}g of {1:s}".format(mass, item[0].formula))
-                self.Layout()
+                for chemical, newmass  in zip(self.model.chemicals, newmasses):
+                    chemical.mass = newmass
+                statictext.SetLabel("{0:6.2f}".format(mass))
 
-    def OnRescaleToSample(self, event):
+    def rescale_to_sample(self, statictext):
         '''
         Retrieve the scaling factor and selections from a custom dialog, then
         calculate the scaling factor so that the selected item after rescaling
@@ -1075,23 +1108,10 @@ class OutputPanel(wx.Panel):
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
-                chemicals = copy.deepcopy(self.model.chemicals)
                 newmasses = self.model.rescale_to_sample(selections)
-                for reac, newmass in zip(chemicals, newmasses):
-                    reac.mass = newmass
-                self.scaledOlv.SetObjects(chemicals)
-                self.rescaledtxt.SetLabel("Rescaled to {0:8.3f} [g]".format(self.model.sample_size))
-                self.Layout()
-
-    def RescaleAll(self):
-        '''Recale all the masses by a common factor'''
-
-        chemicals = copy.deepcopy(self.model.chemicals)
-        newmasses = self.model.rescale_all()
-        for chemical, newmass in zip(chemicals, newmasses):
-            chemical.mass = newmass
-        self.scaledOlv.SetObjects(chemicals)
-        self.rescaledtxt.SetLabel("Rescaled by {0:8.3f}".format(self.model.scale_all))
+                for chemical, newmass in zip(self.model.chemicals, newmasses):
+                    chemical.mass = newmass
+                statictext.SetLabel("{0:6.2f}".format(self.model.sample_size))
 
     def SetResults(self):
         '''Set the OLV columns and put current Chemical objects in the OLV'''
@@ -1099,13 +1119,6 @@ class OutputPanel(wx.Panel):
         olv_cols = get_columns(["label", "mass", "volume"])
         self.resultOlv.SetColumns(olv_cols)
         self.resultOlv.SetObjects(self.model.chemicals)
-
-    def SetScaled(self):
-        '''Set the OLV columns and put scaled Chemical objects in the OLV'''
-
-        olv_cols = get_columns(["label", "mass", "volume"])
-        self.scaledOlv.SetColumns(olv_cols)
-        self.scaledOlv.SetObjects(self.model.chemicals)
 
 class MolesOutputPanel(wx.Panel):
 
@@ -1349,17 +1362,29 @@ class MainFrame(wx.Frame):
                                         name)
         # Attributes
 
+
         self.gray = "#939393"
 
+        # global dbpath
+        self.dbpath = crtl.get_dbpath()
         session = ctrl.get_session()
         self.model = BatchCalculator(session)
 
         main_panel = wx.Panel(self)
-        self.inppanel = InputPanel(main_panel, self.model)
-        self.outpanel = OutputPanel(main_panel, self.model)
+        splitter = wx.SplitterWindow(main_panel)
+
+        self.inppanel = InputPanel(splitter, self.model)
+        self.outpanel = OutputPanel(splitter, self.model)
+
+        splitter.SplitHorizontally(self.inppanel, self.outpanel)
+        splitter.SetSashGravity(0.5)
+
+        #self.inppanel = InputPanel(main_panel, self.model)
+        #self.outpanel = OutputPanel(main_panel, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
-        vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
+        vbox.Add(splitter, 1, wx.EXPAND)
+        #vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
+        #vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
         main_panel.SetSizer(vbox)
         main_panel.Fit()
 
@@ -1401,7 +1426,7 @@ class MainFrame(wx.Frame):
         # Synthesis Menu
         synthm = wx.Menu()
         synth_show = synthm.Append(wx.ID_ANY, "Show All\t", "Show all stored syntheses")
-        synth_save = synthm.Append(wx.ID_ANY, "Save\t", "Save current calculation internally")
+        synth_save = synthm.Append(wx.ID_ANY, "Add current\t", "Save current calculation internally")
         menubar.Append(synthm, "Syntheses")
         # About Menu
         aboutm = wx.Menu()
@@ -1693,6 +1718,7 @@ class MainFrame(wx.Frame):
         # components selected
 
         dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
+                                                  model=self.model,
                                                     session=self.model.session,
                                                     title="Add",
                                                     add_record=True)

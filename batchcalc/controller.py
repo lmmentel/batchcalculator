@@ -304,7 +304,7 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         lbl_coeff = wx.StaticText(self.panel, -1, "Coefficient")
         lbl_reaction = wx.StaticText(self.panel, -1, "Reaction")
 
-        self.txtc_coeff = wx.TextCtrl(self.panel, -1, v_coeff)
+        self.txtc_coeff = wx.TextCtrl(self.panel, -1, value=v_coeff, size=(50, 20))
 
         chemicals = parent.model.get_chemicals(showall=True)
         components = parent.model.get_components()
@@ -314,9 +314,9 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         self.components = {i:c for i,c in zip(range(len(components)), components)}
         self.reactions  = {i:c for i,c in zip(range(len(reactions)), reactions)}
 
-        self.ch_chemical  = wx.Choice(self.panel, -1, (50, 20), choices=[x.name for x in chemicals])
-        self.ch_component = wx.Choice(self.panel, -1, (50, 20), choices=[x.name for x in components])
-        self.ch_reaction  = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction for x in reactions])
+        self.ch_chemical  = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:35] for x in chemicals])
+        self.ch_component = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:35] for x in components])
+        self.ch_reaction  = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction[:70] for x in reactions])
 
         if record is not None:
             if self.record.chemical is not None:
@@ -1057,12 +1057,21 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         result = dlg.ShowModal()
         if result == wx.ID_OK:
-            components = dlg.GetCurrentSelections()
-        self.comp_olv.SetObjects(components)
+            self.model.components = dlg.GetCurrentSelections()
+        self.comp_olv.SetObjects(self.model.components)
         dlg.Destroy()
 
     def OnAddRemoveChemical(self, event):
-        pass
+
+        dlg = ChemicalsDialog(parent=self, model=self.model,
+                              cols=get_columns(self.chem_cols),
+                              id=-1, title="Choose Chemicals...")
+
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            self.model.chemicals = dlg.GetCurrentSelections()
+        self.chem_olv.SetObjects(self.model.chemicals)
+        dlg.Destroy()
 
     def SetComponents(self):
 
@@ -1071,8 +1080,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         if self.record is not None:
             components = [c.component for c in self.record.components]
-            for comp, synthchem in zip(components, self.record.components):
-                comp.moles = synthchem.moles
+            for comp, synthcomp in zip(components, self.record.components):
+                comp.moles = synthcomp.moles
             self.comp_olv.SetObjects(components)
         else:
             self.comp_olv.SetObjects([])
@@ -1135,6 +1144,199 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         dialogs.show_message_dlg("Synthesis modified", "Success!", wx.OK|wx.ICON_INFORMATION)
 
         self.Destroy()
+
+    def OnSaveRecord(self, event):
+
+        if self.add_record:
+            self.add_synthesis()
+        else:
+            self.edit_synthesis()
+
+    def OnClose(self, event):
+        '''Close the dialog'''
+
+        self.Destroy()
+
+    def get_data(self):
+        '''
+        Retrieve the data from the dialogs' TextCtrls and ChoiceBoxes
+        and return as a dictionary.
+        '''
+
+        vals = {}
+        for k, v in self.synth.items():
+            vals[k] = v['txtctrl'].GetValue()
+        return vals
+
+class AddSynthesisRecordDialog(wx.Dialog):
+
+    def __init__(self, parent, model, pos=wx.DefaultPosition, size=(500, 720)):
+
+        super(AddSynthesisRecordDialog, self).__init__(parent,
+                id=wx.ID_ANY, title="Save a Synthesis Record", size=size)
+
+        # Attributes
+
+        self.model = model
+        self.panel = wx.Panel(self)
+        self.session = session
+
+        self.synth = OrderedDict([
+            ("name", {"label" : "Name", "required" : True}),
+            ("target_material", {"label" : "Target Material", "required" : False}),
+            ("laborant", {"label" : "Laborant", "required" : True}),
+            ("reference", {"label" : "Reference", "required" : False}),
+            ("temperature", {"label" : "Temperature", "required" : True}),
+            ("crystallization_time", {"label" : "Crystallization Time", "required" : True}),
+            ("stirring", {"label" : "Stirring", "required" : False}),
+            ("description", {"label" : "Description", "required" : True}),
+        ])
+
+        self.comp_cols = ["name", "formula", "molwt", "short", "category"]
+        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
+
+        comptxt = wx.StaticText(self.panel, -1, label="Components")
+        chemtxt = wx.StaticText(self.panel, -1, label="Chemicals")
+        comptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+        chemtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, size=(-1, 200), style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.comp_olv.evenRowsBackColor="#DCF0C7"
+        self.comp_olv.oddRowsBackColor="#FFFFFF"
+        self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+
+        self.chem_olv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
+                useAlternateBackColors=True)
+        self.chem_olv.evenRowsBackColor="#DCF0C7"
+        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
+
+        self.SetComponents()
+        self.SetChemicals()
+
+        gbs = wx.GridBagSizer(vgap=5, hgap=5)
+        gbs.Add(comptxt, pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+        gbs.Add(chemtxt, pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
+        gbs.AddGrowableCol(0)
+        gbs.AddGrowableCol(1)
+
+        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
+
+        lbl_title = wx.StaticText(self.panel, -1, "Save a Synthesis Record")
+        lbl_title.SetFont(font)
+
+        for attr in self.synth.keys():
+            self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
+            if attr == "description":
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"], size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+            else:
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"])
+
+        # create and populate sizer for the text controls
+
+        txtsizer = wx.GridBagSizer(vgap=5, hgap=5)
+        txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
+
+        for i, attr in enumerate(self.synth.keys(), start=1):
+            txtsizer.Add(self.synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+            txtsizer.Add(self.synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+
+        txtsizer.AddGrowableCol(1)
+
+        buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
+        buttonOk.SetDefault()
+        buttonOk.Bind(wx.EVT_BUTTON, self.OnSaveRecord)
+        buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
+        buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
+
+        btnsizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnsizer.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
+        btnsizer.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
+
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        mainsizer.Add(txtsizer, flag=wx.RIGHT|wx.LEFT|wx.GROW, border=5)
+        mainsizer.Add(gbs, flag=wx.RIGHT|wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+
+        self.panel.SetSizerAndFit(mainsizer)
+
+        # Event Handlers
+
+        compbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveComponent)
+        chembtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveChemical)
+
+    def is_empty(self, textctrl, message):
+
+        if len(textctrl.GetValue()) == 0:
+            wx.MessageBox(message, "Error")
+            textctrl.SetBackgroundColour("pink")
+            textctrl.SetFocus()
+            textctrl.Refresh()
+            return True
+        else:
+            textctrl.SetBackgroundColour("white")
+            textctrl.Refresh()
+
+    def is_number(self, textctrl, message):
+        '''
+        Check if the string entered in the `textctrl` can be converted to float.
+        Return True if it can otherwise change the `textctrl` color, show a
+        dialog with the `message` and return False.
+        '''
+
+        try:
+            float(textctrl.GetValue())
+            textctrl.SetBackgroundColour("white")
+            textctrl.Refresh()
+            return True
+        except:
+            wx.MessageBox(message, "Error")
+            textctrl.SetBackgroundColour("pink")
+            textctrl.SetFocus()
+            textctrl.Refresh()
+            return False
+
+    def SetComponents(self):
+
+        olv_cols = get_columns(["label", "moles"])
+        self.comp_olv.SetColumns(olv_cols)
+
+        self.comp_olv.SetObjects(self.model.components)
+
+    def SetChemicals(self):
+
+        olv_cols = get_columns(["label", "mass"])
+        self.chem_olv.SetColumns(olv_cols)
+
+        self.chem_olv.SetObjects(self.model.chemicals)
+
+    def add_synthesis(self):
+        '''
+        Retrieve the values entered in the dialog and insert a record to the db
+        and commit.
+        '''
+
+        for k, v in self.synth.items():
+            if v["required"]:
+                if self.is_empty(v["txtctrl"], "{} is required".format(v["label"])):
+                    return
+                elif k in ["temperature", "crystallization_time"]:
+                    if not self.is_number(v["txtctrl"], "{} must be a number".format(v["label"])):
+                        return
+
+        data = self.get_data()
+
+        add_synthesis_record(self.session, data)
+
+        dialogs.show_message_dlg("Synthesis added", "Success!", wx.OK|wx.ICON_INFORMATION)
+
+        # clear the TextCtrls to add a new record
+        for child in self.panel.GetChildren():
+            if isinstance(child, wx.TextCtrl):
+                child.SetValue("")
 
     def OnSaveRecord(self, event):
 
