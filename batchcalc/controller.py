@@ -39,10 +39,12 @@ from collections import OrderedDict
 
 from ObjectListView import ObjectListView
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, scoped_session
 from batchcalc import dialogs
 from batchcalc.model import Base
-from batchcalc.model import Chemical, Component, Electrolyte, Kind, Category, Reaction, PhysicalForm, Batch, Synthesis
+from batchcalc.model import (Chemical, Component, Electrolyte, Kind, Category,
+        Reaction, PhysicalForm, Batch, Synthesis, SynthesisComponent,
+        SynthesisChemical)
 
 from batchcalc.utils import get_columns
 
@@ -60,7 +62,7 @@ def get_dbpath():
     else:
         raise ValueError("database not found on: {}".format(dbpath))
 
-def get_session(dbpath=None):
+def get_session_object(dbpath=None):
     '''
     When the new database is chosen, close the old session and establish a
     new one.
@@ -70,35 +72,33 @@ def get_session(dbpath=None):
         dbpath = get_dbpath()
 
     engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
-    db_session = sessionmaker(bind=engine)
-    return db_session()
+    Session = sessionmaker(bind=engine, expire_on_commit=True, autoflush=False)
+    return Session
 
-def new_db(dbpath):
-    '''
-    Create a new database under the name stored in "path".
-    '''
+def get_scoped_session(Session):
 
-    engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
-    Base.metadata.create_all(engine)
-    db_session = sessionmaker(bind=engine)
-    return db_session()
+    session = scoped_session(Session)
+    return session()
 
 def get_batches(session):
     '''
     Return all batch records from the database.
     '''
+
     return session.query(Batch).order_by(Batch.id).all()
 
 def get_components(session):
     '''
     Return all component records from the database.
     '''
+
     return session.query(Component).order_by(Component.id).all()
 
 def get_categories(session):
     '''
     Return the list of category records from the database.
     '''
+
     return session.query(Category).order_by(Category.id).all()
 
 def get_chemicals(session, components=None, showall=False):
@@ -106,6 +106,7 @@ def get_chemicals(session, components=None, showall=False):
     Return chemicals that are sources for the components present in the
     components list, of the list is empty return all the components.
     '''
+
 
     if showall:
         query = session.query(Chemical).order_by(Chemical.id).all()
@@ -122,35 +123,40 @@ def get_electrolytes(session):
     '''
     Return the list of electrolyte records from the database.
     '''
+
     return session.query(Electrolyte).order_by(Electrolyte.id).all()
 
 def get_kinds(session):
     '''
     Return the list of kind records from the database.
     '''
+
     return session.query(Kind).order_by(Kind.id).all()
 
 def get_physical_forms(session):
     '''
     Return the list of physicalform records from the database.
     '''
+
     return session.query(PhysicalForm).order_by(PhysicalForm.id).all()
 
 def get_reactions(session):
     '''
     Return the list of reaction records from the database.
     '''
+
     return session.query(Reaction).order_by(Reaction.id).all()
 
 def get_syntheses(session):
     '''
     Return the list of synthesis records from the database.
     '''
+
     return session.query(Synthesis).order_by(Synthesis.id).all()
 
 class ChemicalsDialog(wx.Dialog):
 
-    def __init__(self, parent, model, cols=None, id=wx.ID_ANY, title="",
+    def __init__(self, parent, session, model, cols=None, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(850, 520),
             style=wx.DEFAULT_FRAME_STYLE, name="Chemicals Dialog"):
         '''
@@ -175,7 +181,7 @@ class ChemicalsDialog(wx.Dialog):
         self.chem_olv.oddRowsBackColor="#FFFFFF"
         self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        self.SetChemicals(model, cols)
+        self.SetChemicals(session, model, cols)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.chem_olv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
@@ -191,12 +197,12 @@ class ChemicalsDialog(wx.Dialog):
 
         panel.SetSizerAndFit(self.sizer)
 
-    def SetChemicals(self, model, cols):
+    def SetChemicals(self, session, model, cols):
         '''Set the columns and object in the OLV and display the result'''
 
         self.chem_olv.SetColumns(cols)
         self.chem_olv.CreateCheckStateColumn()
-        data = get_chemicals(model.session, model.components, showall=(len(model.components) == 0))
+        data = get_chemicals(session, model.components, showall=(len(model.components) == 0))
         for item in data:
             if item.id in [r.id for r in model.chemicals]:
                 self.chem_olv.SetCheckState(item, True)
@@ -212,7 +218,7 @@ class ChemicalsDialog(wx.Dialog):
 
 class ComponentsDialog(wx.Dialog):
 
-    def __init__(self, parent, model, cols=None, id=wx.ID_ANY, title="",
+    def __init__(self, parent, dbpath, model, cols=None, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(730, 500),
             style=wx.DEFAULT_FRAME_STYLE, name="Components Dialog"):
         '''
@@ -237,7 +243,7 @@ class ComponentsDialog(wx.Dialog):
         self.comp_olv.oddRowsBackColor="#FFFFFF"
         self.comp_olv.CellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        self.SetComponents(model, cols)
+        self.SetComponents(dbpath, model, cols)
 
         sizer = wx.FlexGridSizer(rows=2, cols=1, hgap=10, vgap=10)
 
@@ -257,12 +263,12 @@ class ComponentsDialog(wx.Dialog):
         panel.SetSizer(sizer)
         panel.Fit()
 
-    def SetComponents(self, model, cols):
+    def SetComponents(self, dbapth, model, cols):
         '''Set the columns and object in the OLV and display the result'''
 
         self.comp_olv.SetColumns(cols)
         self.comp_olv.CreateCheckStateColumn()
-        data = get_components(model.session)
+        data = get_components(dbapth)
         for item in data:
             if item.id in [r.id for r in model.components]:
                 self.comp_olv.SetCheckState(item, True)
@@ -277,7 +283,7 @@ class ComponentsDialog(wx.Dialog):
 
 class AddModifyBatchRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
+    def __init__(self, parent, session, record=None, title="Add", add_record=True,
             pos=wx.DefaultPosition, size=(800, 230)):
 
         super(AddModifyBatchRecordDialog, self).__init__(parent, id=wx.ID_ANY,
@@ -306,9 +312,9 @@ class AddModifyBatchRecordDialog(wx.Dialog):
 
         self.txtc_coeff = wx.TextCtrl(self.panel, -1, value=v_coeff, size=(50, 20))
 
-        chemicals = parent.model.get_chemicals(showall=True)
-        components = parent.model.get_components()
-        reactions = parent.model.get_reactions()
+        chemicals = get_chemicals(session, showall=True)
+        components = get_components(session)
+        reactions = get_reactions(session)
 
         self.chemicals  = {i:c for i,c in zip(range(len(chemicals)), chemicals)}
         self.components = {i:c for i,c in zip(range(len(components)), components)}
@@ -439,7 +445,7 @@ class AddModifyBatchRecordDialog(wx.Dialog):
 
 class AddModifyChemicalRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
+    def __init__(self, parent, session, record=None, title="Add", add_record=True,
             pos=wx.DefaultPosition, size=(400, 480)):
 
         super(AddModifyChemicalRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Chemical Record".format(title), size=size)
@@ -506,11 +512,11 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
         self.txtc_pk = wx.TextCtrl(self.panel, -1, v_pk)
         self.txtc_smiles = wx.TextCtrl(self.panel, -1, v_smiles)
 
-        kinds = parent.model.get_kinds()
+        kinds = get_kinds(self.session)
         kind_choices = ["Undefined"] + [x.name for x in kinds]
-        forms = parent.model.get_physical_forms()
+        forms = get_physical_forms(self.session)
         form_choices = ["Undefined"] + [x.form for x in forms]
-        elecs = parent.model.get_electrolytes()
+        elecs = get_electrolytes(self.session)
         elec_choices = ["Undefined"] + [x.name for x in elecs]
 
         self.ch_kind = wx.Choice(self.panel, -1, size=(80, -1), choices=kind_choices)
@@ -712,7 +718,7 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
 class AddModifyComponentRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session=None, record=None, title="Add", add_record=True,
+    def __init__(self, parent, session, record=None, title="Add", add_record=True,
             pos=wx.DefaultPosition, size=(400, 270)):
 
         super(AddModifyComponentRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Component Record".format(title), size=size)
@@ -746,7 +752,7 @@ class AddModifyComponentRecordDialog(wx.Dialog):
         self.txtc_molwt = wx.TextCtrl(self.panel, -1, v_molwt)
         self.txtc_shname = wx.TextCtrl(self.panel, -1, v_shname)
 
-        categ = parent.model.get_categories()
+        categ = get_categories(self.session)
         categ_choices = ["Undefined"] + [x.name for x in categ]
 
         self.ch_category = wx.Choice(self.panel, -1, (100, 50), choices=categ_choices)
@@ -1170,15 +1176,15 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
 class AddSynthesisRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, model, pos=wx.DefaultPosition, size=(500, 720)):
+    def __init__(self, parent, session, model, pos=wx.DefaultPosition, size=(500, 720)):
 
         super(AddSynthesisRecordDialog, self).__init__(parent,
                 id=wx.ID_ANY, title="Save a Synthesis Record", size=size)
 
         # Attributes
 
-        self.model = model
         self.panel = wx.Panel(self)
+        self.model = model
         self.session = session
 
         self.synth = OrderedDict([
@@ -1231,9 +1237,9 @@ class AddSynthesisRecordDialog(wx.Dialog):
         for attr in self.synth.keys():
             self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
             if attr == "description":
-                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"], size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value="", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
             else:
-                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"])
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value="")
 
         # create and populate sizer for the text controls
 
@@ -1246,7 +1252,7 @@ class AddSynthesisRecordDialog(wx.Dialog):
 
         txtsizer.AddGrowableCol(1)
 
-        buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
+        buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="Add")
         buttonOk.SetDefault()
         buttonOk.Bind(wx.EVT_BUTTON, self.OnSaveRecord)
         buttonCancel = wx.Button(self.panel, id=wx.ID_CANCEL)
@@ -1262,11 +1268,6 @@ class AddSynthesisRecordDialog(wx.Dialog):
         mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
 
         self.panel.SetSizerAndFit(mainsizer)
-
-        # Event Handlers
-
-        compbtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveComponent)
-        chembtn.Bind(wx.EVT_BUTTON, self.OnAddRemoveChemical)
 
     def is_empty(self, textctrl, message):
 
@@ -1340,10 +1341,7 @@ class AddSynthesisRecordDialog(wx.Dialog):
 
     def OnSaveRecord(self, event):
 
-        if self.add_record:
-            self.add_synthesis()
-        else:
-            self.edit_synthesis()
+        self.add_synthesis()
 
     def OnClose(self, event):
         '''Close the dialog'''
@@ -1359,6 +1357,18 @@ class AddSynthesisRecordDialog(wx.Dialog):
         vals = {}
         for k, v in self.synth.items():
             vals[k] = v['txtctrl'].GetValue()
+
+        vals['components'] = []
+        vals['chemicals'] = []
+        for component in self.model.components:
+            vals['components'].append(SynthesisComponent(component_id=component.id,
+                                        component=component,
+                                        moles=component.moles))
+        for chemical in self.model.chemicals:
+            vals['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
+                                        chemical=chemical,
+                                        mass=chemical.mass))
+
         return vals
 
 def print_attrs(inst):

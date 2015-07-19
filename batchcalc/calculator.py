@@ -42,9 +42,7 @@ _MINWIDTH = 15
 
 class BatchCalculator(object):
 
-    def __init__(self, session):
-
-        self.session = session
+    def __init__(self):
 
         self.lists = ["components", "chemicals"]
 
@@ -109,7 +107,7 @@ class BatchCalculator(object):
         else:
             return None
 
-    def calculate_masses(self):
+    def calculate_masses(self, session):
         '''
         Solve the linear system of equations  B * X = C
         '''
@@ -121,12 +119,12 @@ class BatchCalculator(object):
             raise ValueError("No chemicals selected")
 
         for comp in self.components:
-            temp = ctrl.get_chemicals(self.session, components=[comp])
+            temp = ctrl.get_chemicals(session, components=[comp])
             if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some components need their sources: {0:s}".format(comp.name))
 
         self.A = self.get_A_matrix()
-        self.B = self.get_B_matrix()
+        self.B = self.get_B_matrix(session)
 
         try:
             if self.B.shape[0] == self.B.shape[1]:
@@ -144,7 +142,7 @@ class BatchCalculator(object):
         else:
             self.calculated = True
 
-    def calculate_moles(self):
+    def calculate_moles(self, session):
         '''
         Calculate the composition matrix by multiplying C = B * X
         '''
@@ -156,7 +154,7 @@ class BatchCalculator(object):
             raise ValueError("No chemicals selected")
 
         for comp in self.components:
-            temp = ctrl.get_chemicals(self.session, components=[comp])
+            temp = ctrl.get_chemicals(session, components=[comp])
             if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some components need their sources: {0:s}".format(comp.name))
 
@@ -186,7 +184,7 @@ class BatchCalculator(object):
 
         return np.asarray([z.moles*z.molwt for z in self.components], dtype=float)
 
-    def get_B_matrix(self):
+    def get_B_matrix(self, session):
         '''
         Construct and return the batch matrix [B].
         '''
@@ -194,17 +192,17 @@ class BatchCalculator(object):
         B = np.zeros((len(self.chemicals), len(self.components)), dtype=float)
 
         for i, chemical in enumerate(self.chemicals):
-            comps = self.session.query(Batch, Component).\
+            comps = session.query(Batch, Component).\
                     filter(Batch.chemical_id == chemical.id).\
                     filter(Component.id == Batch.component_id).all()
-            wfs = self.get_weight_fractions(i, comps)
+            wfs = self.get_weight_fractions(i, comps, session)
             for j, comp in enumerate(self.components):
                 for cid, wf in wfs:
                     if comp.id == cid:
                         B[i, j] = wf
         return B
 
-    def get_weight_fractions(self, rindex, comps):
+    def get_weight_fractions(self, rindex, comps, session):
         '''
         Calculate the weight fractions corresponding to a specific reactant
         and coupled zolite componts.
@@ -226,7 +224,7 @@ class BatchCalculator(object):
 
             rct = self.chemicals[rindex]
 
-            h2o = self.session.query(Chemical).filter(Chemical.formula=="H2O").one()
+            h2o = session.query(Chemical).filter(Chemical.formula=="H2O").one()
             M_solv = h2o.molwt
 
             M_solu = rct.molwt

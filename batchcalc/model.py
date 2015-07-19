@@ -145,7 +145,6 @@ class Synthesis(ObjRepr, Base):
     components = relationship("SynthesisComponent")
     chemicals = relationship("SynthesisChemical")
 
-
 class SynthesisChemical(ObjRepr, Base):
     __tablename__ = "synthesischemicals"
 
