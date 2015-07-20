@@ -17,6 +17,7 @@ TODO
 * add a hash generator to get a hash based on the calculation input and results
 * use the hash unique for the report to generate a QR code and put it one the
   report and optionally print the qr codes on the stickers for samples
+* add an option to save the current database
 
 DONE
 ====

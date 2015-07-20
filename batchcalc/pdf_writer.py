@@ -106,12 +106,12 @@ def components_table(model, no_moles=False):
     if no_moles:
         data = [['Compound']+[c.formula for c in model.components],
                 ['Weight [g]']+["{0:10.3f}".format(c.mass) for c in model.components],
-                ['Mol. wt. [g/mol]']+["{0:10.3f}".format(c.molwt) for x in model.components]]
+                ['Mol. wt. [g/mol]']+["{0:10.3f}".format(c.molwt) for c in model.components]]
     else:
         data = [['Compound']+[c.formula for c in model.components],
                 ['Mole ratio']+["{0:10.3f}".format(c.moles) for c in model.components],
                 ['Weight [g]']+["{0:10.3f}".format(c.mass) for c in model.components],
-                ['Mol. wt. [g/mol]']+["{0:10.3f}".format(c.molwt) for x in model.components]]
+                ['Mol. wt. [g/mol]']+["{0:10.3f}".format(c.molwt) for c in model.components]]
 
     tab = Table(data)
     tab.setStyle(tab_style)
