@@ -127,10 +127,10 @@ def composition_results_table(model):
     tab.setStyle(tab_style)
     return tab
 
-def batch_table(model):
+def batch_table(session, model):
 
-    temp = np.array(map(lambda x: "{0:8.4f}".format(x), model.get_B_matrix().reshape(model.B.size)))
-    data = temp.reshape(model.get_B_matrix().shape).tolist()
+    temp = np.array(map(lambda x: "{0:8.4f}".format(x), model.get_B_matrix(session).reshape(model.B.size)))
+    data = temp.reshape(model.get_B_matrix(session).shape).tolist()
     for row, chemical in zip(data, model.chemicals):
         row.insert(0, chemical.formula + " ({0:6.2f}%)".format(chemical.concentration*100))
     data.insert(0, ['Compound']+[c.formula for c in model.components])
@@ -171,14 +171,14 @@ def results_table(model, scale=None):
     tab.setStyle(res_tab_style)
     return tab
 
-def create_pdf(path, model, flags):
+def create_pdf(path, session, model, flags):
 
     doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25,leftMargin=25, topMargin=25, bottomMargin=25)
 
     story = []
     header = create_header(model, flags['title'], flags['author'], flags['email'])
     comps = components_table(model)
-    batch = batch_table(model)
+    batch = batch_table(session, model)
 
     story.extend(header)
     story.append(Spacer(1, 15))
