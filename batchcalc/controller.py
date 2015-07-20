@@ -62,7 +62,7 @@ def get_dbpath():
     else:
         raise ValueError("database not found on: {}".format(dbpath))
 
-def get_session_object(dbpath=None):
+def get_session(dbpath=None):
     '''
     When the new database is chosen, close the old session and establish a
     new one.
@@ -72,13 +72,8 @@ def get_session_object(dbpath=None):
         dbpath = get_dbpath()
 
     engine = create_engine("sqlite:///{path:s}".format(path=dbpath), echo=False)
-    Session = sessionmaker(bind=engine, expire_on_commit=True, autoflush=False)
-    return Session
-
-def get_scoped_session(Session):
-
-    session = scoped_session(Session)
-    return session()
+    Session = sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
+    return Session()
 
 def get_batches(session):
     '''

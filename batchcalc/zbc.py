@@ -133,7 +133,7 @@ class AddModifyDBBaseFrame(wx.Frame):
 
 class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, session, **kwargs):
 
         super(AddModifyBatchTableFrame, self).__init__(parent, **kwargs)
 
@@ -141,7 +141,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
         self.model = parent.model
         self.cols = ["id", "chemical", "component", "coeff", "reaction"]
-        self.session = parent.get_session()
+        self.session = session
 
         self.show_all()
 
@@ -204,7 +204,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, session, **kwargs):
 
         super(AddModifyChemicalTableFrame, self).__init__(parent, **kwargs)
 
@@ -213,7 +213,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         self.model = parent.model
         self.cols = ["id", "name", "formula", "conc", "molwt", "short", "kind",
                      "physform", "elect", "cas", "pk", "density", "smiles"]
-        self.session = parent.get_session()
+        self.session = session
 
         self.show_all()
 
@@ -272,7 +272,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, session, **kwargs):
 
         super(AddModifyComponentTableFrame, self).__init__(parent, **kwargs)
 
@@ -280,7 +280,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
         self.model = parent.model
         self.cols = ["id", "name", "formula", "molwt", "short", "category"]
-        self.session = parent.get_session()
+        self.session = session
 
         self.show_all()
 
@@ -347,7 +347,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, session, **kwargs):
 
         super(AddModifyCategoryTableFrame, self).__init__(parent, **kwargs)
 
@@ -355,7 +355,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
         self.model = parent.model
         self.cols = ["id", "categobj"]
-        self.session = parent.get_session()
+        self.session = session
 
         self.show_all()
 
@@ -430,7 +430,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, session, **kwargs):
 
         super(AddModifyReactionTableFrame, self).__init__(parent, **kwargs)
 
@@ -438,7 +438,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
 
         self.model = parent.model
         self.cols = ["id", "reaction"]
-        self.session = parent.get_session()
+        self.session = session
         self.show_all()
 
     def onAddRecord(self, event):
@@ -537,7 +537,7 @@ class ShowBFrame(wx.Frame):
 
 class ShowSynthesesFrame(wx.Frame):
 
-    def __init__(self, parent, cols=None, id=wx.ID_ANY, title="Syntheses",
+    def __init__(self, parent, session, cols=None, id=wx.ID_ANY, title="Syntheses",
             pos=wx.DefaultPosition, size=(500, 300),
             style=wx.DEFAULT_FRAME_STYLE, name=""):
 
@@ -547,7 +547,7 @@ class ShowSynthesesFrame(wx.Frame):
 
         self.cols = ["id", "name", "target", "laborant", "reference",
                      "temperature", "descr"]
-        self.session = parent.get_session()
+        self.session = session
         self.model = BatchCalculator()
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -656,7 +656,6 @@ class ShowSynthesesFrame(wx.Frame):
     def OnCloseFrame(self, event):
         '''Close the synthesis frame'''
 
-        self.session.close()
         self.Destroy()
 
     def set_olv(self, syntheses):
@@ -797,12 +796,13 @@ def compRowFormatter(listItem, Component):
 
 class InputPanel(wx.Panel):
 
-    def __init__(self, parent, model):
+    def __init__(self, parent, session, model):
         super(InputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
 
         self.model = model
+        self.session = session
 
         self.tw = wx.GetTopLevelParent(parent)
 
@@ -861,15 +861,13 @@ class InputPanel(wx.Panel):
         database.
         '''
 
-        session = self.tw.get_scoped_session()
-        self.dlg = ctrl.ComponentsDialog(self, session, self.model,
+        self.dlg = ctrl.ComponentsDialog(self, self.session, self.model,
                     cols=get_columns(self.comp_cols),
                     id=-1, title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.components = self.dlg.GetCurrentSelections()
         self.comp_olv.SetObjects(self.model.components)
-        session.close()
         self.dlg.Destroy()
 
     def OnAddRemoveChemicals(self, event):
@@ -877,15 +875,13 @@ class InputPanel(wx.Panel):
         Show the dialog with the chemicals retrieved from the database.
         '''
 
-        session = self.tw.get_scoped_session()
-        self.dlg = ctrl.ChemicalsDialog(self, session, self.model,
+        self.dlg = ctrl.ChemicalsDialog(self, self.session, self.model,
                     cols=get_columns(self.chem_cols),
                     id=-1, title="Choose Chemicals...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.chemicals = self.dlg.GetCurrentSelections()
         self.chem_olv.SetObjects(self.model.chemicals)
-        session.close()
         self.dlg.Destroy()
 
     def SetComponents(self):
@@ -907,8 +903,8 @@ class MolesInputPanel(InputPanel):
     Input panel for the inverse calculation masses -> moles
     '''
 
-    def __init__(self, parent, model):
-        super(MolesInputPanel, self).__init__(parent, model)
+    def __init__(self, parent, session, model):
+        super(MolesInputPanel, self).__init__(parent, session, model)
 
     def SetComponents(self):
         '''Set the OLV columns and put current Component objects in the OLV'''
@@ -921,18 +917,18 @@ class MolesInputPanel(InputPanel):
         '''Set the OLV columns and put current Chemical objects in the OLV'''
 
         olv_cols = get_columns(["label", "mass", "conc"])
+        olv_cols[1].isEditable = True
         self.chem_olv.SetColumns(olv_cols)
         self.chem_olv.SetObjects(self.model.chemicals)
 
 class OutputPanel(wx.Panel):
 
-    def __init__(self, parent, model):
+    def __init__(self, parent, session, model):
         super(OutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
 
-        self.tw = wx.GetTopLevelParent(parent)
-
+        self.session = session
         self.model = model
         self.gray  = "#939393"
 
@@ -1008,11 +1004,10 @@ class OutputPanel(wx.Panel):
         result in the OLV.
         '''
 
-        session = self.tw.get_scoped_session()
         # get the checked radio control label and StaticText object
         scale_type, text = next((x[0], x[2]) for x in self.scaling_ctrls if x[1].GetValue())
 
-        self.model.calculate_masses(session)
+        self.model.calculate_masses(self.session)
 
         if scale_type == 'none':
             pass
@@ -1129,10 +1124,11 @@ class OutputPanel(wx.Panel):
 
 class MolesOutputPanel(wx.Panel):
 
-    def __init__(self, parent, model):
+    def __init__(self, parent, session, model):
         super(MolesOutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         self.model = model
+        self.session = session
 
         resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -1171,7 +1167,7 @@ class MolesOutputPanel(wx.Panel):
         of chemicals and display the result in the OLV.
         '''
 
-        self.model.calculate_moles()
+        self.model.calculate_moles(self.session)
         self.resultOlv.SetObjects(self.model.components)
 
     def OnRescaleMoles(self, event):
@@ -1223,12 +1219,12 @@ class InverseBatch(wx.Frame):
                                            style=wx.DEFAULT_FRAME_STYLE,
                                            name="")
 
-        self.Session = ctrl.get_session_object()
+        self.session = ctrl.get_session()
         self.model = BatchCalculator()
 
         panel = wx.Panel(self)
-        self.inppanel = MolesInputPanel(panel, self.model)
-        self.outpanel = MolesOutputPanel(panel, self.model)
+        self.inppanel = MolesInputPanel(panel, self.session, self.model)
+        self.outpanel = MolesOutputPanel(panel, self.session, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
         vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
@@ -1266,10 +1262,6 @@ class InverseBatch(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
 
-    def get_session(self, **kwargs):
-
-        return self.Session(**kwargs)
-
     # Menu Bindings ------------------------------------------------------------
 
     def OnChangeDB(self, event):
@@ -1291,7 +1283,7 @@ class InverseBatch(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.Session = ctrl.get_session_object(path)
+            self.session = ctrl.get_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
@@ -1376,15 +1368,15 @@ class MainFrame(wx.Frame):
         self.gray = "#939393"
 
         # global dbpath
-        self.Session = ctrl.get_session_object()
+        self.session = ctrl.get_session()
 
         self.model = BatchCalculator()
 
         main_panel = wx.Panel(self)
         splitter = wx.SplitterWindow(main_panel)
 
-        self.inppanel = InputPanel(splitter, self.model)
-        self.outpanel = OutputPanel(splitter, self.model)
+        self.inppanel = InputPanel(splitter, self.session, self.model)
+        self.outpanel = OutputPanel(splitter, self.session, self.model)
 
         splitter.SplitHorizontally(self.inppanel, self.outpanel)
         splitter.SetSashGravity(0.5)
@@ -1466,14 +1458,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnSaveCalculation, synth_save)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
 
-    def get_session(self, **kwargs):
-
-        return self.Session(**kwargs)
-
-    def get_scoped_session(self):
-
-        return ctrl.get_scoped_session(self.Session)
-
     # Menu Bindings ------------------------------------------------------------
 
     def OnAbout(self, event):
@@ -1554,7 +1538,7 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.Session = ctrl.get_session_object(path)
+            self.session = ctrl.get_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
@@ -1565,6 +1549,10 @@ class MainFrame(wx.Frame):
         '''
         Open the dialog with options about the TeX document to be written.
         '''
+        # recalculate the masses since the scaling is done in the printing
+        # functions
+        self.model.calculate_masses(self.session)
+
         etexdialog = dialogs.ExportTexDialog(parent=self, id=-1)
         result = etexdialog.ShowModal()
         if result == wx.ID_OK:
@@ -1577,13 +1565,18 @@ class MainFrame(wx.Frame):
         '''
         Open the dialog with options about the pdf document to be written.
         '''
+
+        # recalculate the masses since the scaling is done in the printing
+        # functions
+        self.model.calculate_masses(self.session)
+
         dlg = dialogs.ExportPdfDialog(parent=self, id=-1, size=(400, 520))
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()
             path = self.OnSavePdf()
             try:
-                create_pdf(path, self.model, flags)
+                create_pdf(path, self.session, self.model, flags)
             except:
                 dlg = wx.MessageDialog(None, "An error occured while generating pdf",
                                         "", wx.OK | wx.ICON_ERROR)
@@ -1735,11 +1728,9 @@ class MainFrame(wx.Frame):
         # check if any calcualtion was done or if there are some chemicals and
         # components selected
 
-        session = self.get_scoped_session()
-
         dlg = ctrl.AddSynthesisRecordDialog(parent=self,
                                                   model=self.model,
-                                                    session=session)
+                                                    session=self.session)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -1824,7 +1815,7 @@ class MainFrame(wx.Frame):
     def OnShowSyntheses(self, event):
         '''Show a frame with all stored syntheses'''
 
-        frame = ShowSynthesesFrame(parent=self, size=(1000, 600))
+        frame = ShowSynthesesFrame(parent=self, size=(1000, 600), session=self.session)
         frame.Show(True)
 
     def update_all_objectlistviews(self):

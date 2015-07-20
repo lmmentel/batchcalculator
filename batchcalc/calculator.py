@@ -166,7 +166,7 @@ class BatchCalculator(object):
                 masses.append(chemical.mass)
 
         self.X = np.array(masses, dtype=float)
-        self.B = self.get_B_matrix()
+        self.B = self.get_B_matrix(session)
 
         try:
             self.A = np.dot(np.transpose(self.B), self.X)
