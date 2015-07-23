@@ -105,8 +105,8 @@ The same slides are also included in the repository files under
 Help
 ====
 
-If you have some questions, remarks or requests email me at
-`<lmmentel@gmail.com> <mailto:lmmentel@gmail.com>`_.
+If you have questions, remarks or requests use submit an `issue <https://github.com/lmmentel/batchcalculator/issues>`_
+or contact me via github.
 
 License
 =======
