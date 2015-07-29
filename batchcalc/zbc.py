@@ -55,9 +55,8 @@ from batchcalc import dialogs
 
 from batchcalc.utils import get_columns
 
-# uncomment for debugging
-import wx.lib.inspection
-
+# uncomment the line below for debugging
+#import wx.lib.inspection
 
 def clean_tex(fname):
     '''Clean the auxiliary tex files.'''
@@ -133,15 +132,15 @@ class AddModifyDBBaseFrame(wx.Frame):
 
 class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, session, **kwargs):
+    def __init__(self, parent, **kwargs):
 
         super(AddModifyBatchTableFrame, self).__init__(parent, **kwargs)
 
         # attributes
 
+        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "chemical", "component", "coeff", "reaction"]
-        self.session = session
 
         self.show_all()
 
@@ -204,16 +203,17 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, session, **kwargs):
+    def __init__(self, parent, **kwargs):
 
         super(AddModifyChemicalTableFrame, self).__init__(parent, **kwargs)
 
         # attributes
 
+        self.session = parent.get_session()
+
         self.model = parent.model
         self.cols = ["id", "name", "formula", "conc", "molwt", "short", "kind",
                      "physform", "elect", "cas", "pk", "density", "smiles"]
-        self.session = session
 
         self.show_all()
 
@@ -272,15 +272,15 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, session, **kwargs):
+    def __init__(self, parent, **kwargs):
 
         super(AddModifyComponentTableFrame, self).__init__(parent, **kwargs)
 
         # attributes
 
+        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "name", "formula", "molwt", "short", "category"]
-        self.session = session
 
         self.show_all()
 
@@ -347,15 +347,15 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, session, **kwargs):
+    def __init__(self, parent, **kwargs):
 
         super(AddModifyCategoryTableFrame, self).__init__(parent, **kwargs)
 
         # attributes
 
+        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "categobj"]
-        self.session = session
 
         self.show_all()
 
@@ -430,15 +430,15 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
 class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
 
-    def __init__(self, parent, session, **kwargs):
+    def __init__(self, parent, **kwargs):
 
         super(AddModifyReactionTableFrame, self).__init__(parent, **kwargs)
 
         # attributes
 
+        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "reaction"]
-        self.session = session
         self.show_all()
 
     def onAddRecord(self, event):
@@ -796,15 +796,12 @@ def compRowFormatter(listItem, Component):
 
 class InputPanel(wx.Panel):
 
-    def __init__(self, parent, session, model):
+    def __init__(self, parent, model):
         super(InputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
 
         self.model = model
-        self.session = session
-
-        self.tw = wx.GetTopLevelParent(parent)
 
         self.comp_cols = ["name", "formula", "molwt", "short", "category"]
         self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
@@ -861,6 +858,9 @@ class InputPanel(wx.Panel):
         database.
         '''
 
+        tw = wx.GetTopLevelParent(self)
+        self.session = tw.get_session()
+
         self.dlg = ctrl.ComponentsDialog(self, self.session, self.model,
                     cols=get_columns(self.comp_cols),
                     id=-1, title="Choose Zeolite Components...")
@@ -874,6 +874,9 @@ class InputPanel(wx.Panel):
         '''
         Show the dialog with the chemicals retrieved from the database.
         '''
+
+        tw = wx.GetTopLevelParent(self)
+        self.session = tw.get_session()
 
         self.dlg = ctrl.ChemicalsDialog(self, self.session, self.model,
                     cols=get_columns(self.chem_cols),
@@ -903,8 +906,8 @@ class MolesInputPanel(InputPanel):
     Input panel for the inverse calculation masses -> moles
     '''
 
-    def __init__(self, parent, session, model):
-        super(MolesInputPanel, self).__init__(parent, session, model)
+    def __init__(self, parent, model):
+        super(MolesInputPanel, self).__init__(parent, model)
 
     def SetComponents(self):
         '''Set the OLV columns and put current Component objects in the OLV'''
@@ -923,12 +926,11 @@ class MolesInputPanel(InputPanel):
 
 class OutputPanel(wx.Panel):
 
-    def __init__(self, parent, session, model):
+    def __init__(self, parent, model):
         super(OutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
 
-        self.session = session
         self.model = model
         self.gray  = "#939393"
 
@@ -1003,6 +1005,10 @@ class OutputPanel(wx.Panel):
         Calculate the masses of chemicals in the batch and display the
         result in the OLV.
         '''
+
+        tw = wx.GetTopLevelParent(self)
+        self.session = tw.get_session()
+        #self.model = tw.get_model()
 
         # get the checked radio control label and StaticText object
         scale_type, text = next((x[0], x[2]) for x in self.scaling_ctrls if x[1].GetValue())
@@ -1124,11 +1130,10 @@ class OutputPanel(wx.Panel):
 
 class MolesOutputPanel(wx.Panel):
 
-    def __init__(self, parent, session, model):
+    def __init__(self, parent, model):
         super(MolesOutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         self.model = model
-        self.session = session
 
         resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
@@ -1166,6 +1171,9 @@ class MolesOutputPanel(wx.Panel):
         Calculate the number moles of the batch components based on the masses
         of chemicals and display the result in the OLV.
         '''
+
+        tw = wx.GetTopLevelParent(self)
+        self.session = tw.get_session()
 
         self.model.calculate_moles(self.session)
         self.resultOlv.SetObjects(self.model.components)
@@ -1375,8 +1383,8 @@ class MainFrame(wx.Frame):
         main_panel = wx.Panel(self)
         splitter = wx.SplitterWindow(main_panel)
 
-        self.inppanel = InputPanel(splitter, self.session, self.model)
-        self.outpanel = OutputPanel(splitter, self.session, self.model)
+        self.inppanel = InputPanel(splitter, self.model)
+        self.outpanel = OutputPanel(splitter, self.model)
 
         splitter.SplitHorizontally(self.inppanel, self.outpanel)
         splitter.SetSashGravity(0.5)
@@ -1457,6 +1465,9 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnShowSyntheses, synth_show)
         self.Bind(wx.EVT_MENU, self.OnSaveCalculation, synth_save)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
+
+    def get_session(self):
+        return self.session
 
     # Menu Bindings ------------------------------------------------------------
 
@@ -1539,6 +1550,8 @@ class MainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.session = ctrl.get_session(path)
+            self.model = BatchCalculator()
+            self.update_all_objectlistviews()
         dlg.Destroy()
 
     def OnExit(self, event):
@@ -1863,6 +1876,7 @@ class ZeoGui(wx.App):
 if __name__ == "__main__":
 
     app = ZeoGui(False)
-    # uncomment for debugging
-    wx.lib.inspection.InspectionTool().Show()
+    # uncomment the line below for debugging
+    #wx.lib.inspection.InspectionTool().Show()
+
     app.MainLoop()

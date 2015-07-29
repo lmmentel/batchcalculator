@@ -32,6 +32,7 @@ setup(
         'numpy>=1.8.1',
         'sqlalchemy>=0.9.7',
         'jinja2>=2.7.3',
+        'reportlab',
     ],
     long_description = readme(),
     packages = ["batchcalc"],
