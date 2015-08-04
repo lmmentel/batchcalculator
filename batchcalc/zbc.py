@@ -591,11 +591,9 @@ class ShowSynthesesFrame(wx.Frame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
+        dlg = ctrl.AddSynthesisRecordDialog(parent=self,
                                                   model=self.model,
-                                                  session=self.session,
-                                                  title="Add",
-                                                  add_record=True)
+                                                  session=self.session)
         dlg.ShowModal()
         dlg.Destroy()
         self.show_all()

@@ -34,6 +34,7 @@ __version__ = "0.2.2"
 import wx
 import os
 import sys
+import copy
 
 from collections import OrderedDict
 
@@ -213,7 +214,7 @@ class ChemicalsDialog(wx.Dialog):
 
 class ComponentsDialog(wx.Dialog):
 
-    def __init__(self, parent, dbpath, model, cols=None, id=wx.ID_ANY, title="",
+    def __init__(self, parent, session, model, cols=None, id=wx.ID_ANY, title="",
             pos=wx.DefaultPosition, size=(730, 500),
             style=wx.DEFAULT_FRAME_STYLE, name="Components Dialog"):
         '''
@@ -238,7 +239,7 @@ class ComponentsDialog(wx.Dialog):
         self.comp_olv.oddRowsBackColor="#FFFFFF"
         self.comp_olv.CellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
-        self.SetComponents(dbpath, model, cols)
+        self.SetComponents(session, model, cols)
 
         sizer = wx.FlexGridSizer(rows=2, cols=1, hgap=10, vgap=10)
 
@@ -258,12 +259,12 @@ class ComponentsDialog(wx.Dialog):
         panel.SetSizer(sizer)
         panel.Fit()
 
-    def SetComponents(self, dbapth, model, cols):
+    def SetComponents(self, session, model, cols):
         '''Set the columns and object in the OLV and display the result'''
 
         self.comp_olv.SetColumns(cols)
         self.comp_olv.CreateCheckStateColumn()
-        data = get_components(dbapth)
+        data = get_components(session)
         for item in data:
             if item.id in [r.id for r in model.components]:
                 self.comp_olv.SetCheckState(item, True)
@@ -894,7 +895,7 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, model, session, record=None, title="Add",
+    def __init__(self, parent, model=None, session=None, record=None, title="Add",
             add_record=True, pos=wx.DefaultPosition, size=(500, 720)):
 
         super(AddModifySynthesisRecordDialog, self).__init__(parent,
@@ -902,8 +903,6 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         # Attributes
 
-        if model is None:
-            self.model = BatchCalculator()
         self.model = model
         self.record = record
         self.add_record = add_record
@@ -1052,7 +1051,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def OnAddRemoveComponent(self, event):
 
-        dlg = ComponentsDialog(parent=self, model=self.model,
+        dlg = ComponentsDialog(parent=self, session=self.session,
+                               model=self.model,
                                cols=get_columns(self.comp_cols),
                                id=-1, title="Choose Zeolite Components...")
 
@@ -1064,7 +1064,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def OnAddRemoveChemical(self, event):
 
-        dlg = ChemicalsDialog(parent=self, model=self.model,
+        dlg = ChemicalsDialog(parent=self, session=self.session,
+                              model=self.model,
                               cols=get_columns(self.chem_cols),
                               id=-1, title="Choose Chemicals...")
 
@@ -1098,7 +1099,7 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
                 chem.mass = synthchem.mass
             self.chem_olv.SetObjects(chemicals)
         else:
-            self.comp_olv.SetObjects([])
+            self.chem_olv.SetObjects([])
 
     def add_synthesis(self):
         '''
@@ -1124,6 +1125,9 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         for child in self.panel.GetChildren():
             if isinstance(child, wx.TextCtrl):
                 child.SetValue("")
+        self.model.reset()
+        self.comp_olv.SetObjects([])
+        self.chem_olv.SetObjects([])
 
     def edit_synthesis(self):
         '''
