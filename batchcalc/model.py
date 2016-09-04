@@ -27,7 +27,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.1"
 
 import re
 
@@ -37,7 +36,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 
+__version__ = "0.2.1"
+
 Base = declarative_base()
+
 
 class ObjRepr(object):
 
@@ -45,8 +47,9 @@ class ObjRepr(object):
         return "%s(\n%s)" % (
                (self.__class__.__name__),
                ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
-                          for key in sorted(self.__dict__.keys())
-                          if not key.startswith('_')]))
+                         for key in sorted(self.__dict__.keys())
+                         if not key.startswith('_')]))
+
 
 class BaseChemical(object):
 
@@ -102,6 +105,7 @@ class BaseChemical(object):
         else:
             return False
 
+
 class Synthesis(ObjRepr, Base):
     '''
     Synthesis object
@@ -140,28 +144,31 @@ class Synthesis(ObjRepr, Base):
     target_material = Column(String)
     description = Column(String)
     stirring = Column(String)
-    #startedon = Column(DateTime)
+    # startedon = Column(DateTime)
 
     components = relationship("SynthesisComponent")
     chemicals = relationship("SynthesisChemical")
+
 
 class SynthesisChemical(ObjRepr, Base):
     __tablename__ = "synthesischemicals"
 
     id = Column(Integer, primary_key=True)
     synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    chemical_id  = Column(Integer, ForeignKey("chemicals.id"))
+    chemical_id = Column(Integer, ForeignKey("chemicals.id"))
     chemical = relationship("Chemical")
     mass = Column(Float, nullable=False)
+
 
 class SynthesisComponent(ObjRepr, Base):
     __tablename__ = "synthesiscomponents"
 
     id = Column(Integer, primary_key=True)
     synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
-    component_id  = Column(Integer, ForeignKey("components.id"))
+    component_id = Column(Integer, ForeignKey("components.id"))
     component = relationship("Component")
     moles = Column(Float, nullable=False)
+
 
 class SEMimage(ObjRepr, Base):
     __tablename__ = "semimages"
@@ -170,24 +177,28 @@ class SEMimage(ObjRepr, Base):
     synthesis_id = Column(Integer, ForeignKey("synthesis.id"))
     name = Column(String)
 
+
 class Category(ObjRepr, Base):
     __tablename__ = 'categories'
 
-    id        = Column(Integer, primary_key=True)
-    name      = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
     full_name = Column(String)
+
 
 class Electrolyte(ObjRepr, Base):
     __tablename__ = 'electrolytes'
 
-    id   = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
+
 
 class PhysicalForm(ObjRepr, Base):
     __tablename__ = 'physical_forms'
 
-    id   = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     form = Column(String, nullable=False)
+
 
 class Kind(Base):
     '''
@@ -205,11 +216,12 @@ class Kind(Base):
 
     __tablename__ = 'kinds'
 
-    id   = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
 
     def __repr__(self):
         return "<Kind(id={i}, name={n})>".format(i=self.id, n=self.name)
+
 
 class Reaction(Base):
     '''
@@ -223,11 +235,13 @@ class Reaction(Base):
 
     __tablename__ = 'reactions'
 
-    id       = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     reaction = Column(String, nullable=False)
 
     def __repr__(self):
-        return "<Reaction(id={i}, reaction={n})>".format(i=self.id, n=self.reaction)
+        return "<Reaction(id={i}, reaction={n})>".format(i=self.id,
+                                                         n=self.reaction)
+
 
 class Batch(Base):
     '''
@@ -248,11 +262,11 @@ class Batch(Base):
 
     __tablename__ = 'batch'
 
-    id           = Column(Integer, primary_key=True)
-    chemical_id  = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
+    id = Column(Integer, primary_key=True)
+    chemical_id = Column(Integer, ForeignKey('chemicals.id'), nullable=False)
     component_id = Column(Integer, ForeignKey('components.id'), nullable=False)
-    reaction_id  = Column(Integer, ForeignKey('reactions.id'), nullable=True)
-    coefficient  = Column(Float, nullable=True)
+    reaction_id = Column(Integer, ForeignKey('reactions.id'), nullable=True)
+    coefficient = Column(Float, nullable=True)
 
     _chemical = relationship("Chemical")
     chemical = association_proxy("_chemical", "name")
@@ -264,6 +278,7 @@ class Batch(Base):
     def __repr__(self):
         return "<Batch(id={i:>2d}, chemical_id='{n:>5d}', component_id='{z:>5d}', coefficient={c:8.2f})>".format(
                 i=self.id, n=self.chemical_id, z=self.component_id, c=self.coefficient)
+
 
 class Component(BaseChemical, Base):
     '''
@@ -285,10 +300,10 @@ class Component(BaseChemical, Base):
 
     __tablename__ = 'components'
 
-    id         = Column(Integer, primary_key=True)
-    name       = Column(String, nullable=False)
-    formula    = Column(String, nullable=False)
-    molwt      = Column(Float, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    formula = Column(String, nullable=False)
+    molwt = Column(Float, nullable=False)
     short_name = Column(String)
 
     _category_id = Column("category_id", Integer, ForeignKey('categories.id'))
@@ -304,13 +319,14 @@ class Component(BaseChemical, Base):
         '''
         Return mass calculated from number of moles and molecular weight.
         '''
-        return self.moles*self.molwt
+        return self.moles * self.molwt
 
     def __repr__(self):
         return "<Component(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
                i=self.id, n=self.name, f=self.formula)
 
-class Chemical(BaseChemical, Base):
+
+class Chemical(BaseChemical, Base, ObjRepr):
     '''
     Chemical object
 
@@ -337,16 +353,16 @@ class Chemical(BaseChemical, Base):
     '''
     __tablename__ = 'chemicals'
 
-    id            = Column(Integer, primary_key=True)
-    name          = Column(String, nullable=False)
-    formula       = Column(String, nullable=False)
-    molwt         = Column(Float, nullable=False)
-    short_name    = Column(String)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    formula = Column(String, nullable=False)
+    molwt = Column(Float, nullable=False)
+    short_name = Column(String)
     concentration = Column(Float)
-    cas           = Column(String)
-    density       = Column(Float)
-    pk            = Column(Float)
-    smiles        = Column(String)
+    cas = Column(String)
+    density = Column(Float)
+    pk = Column(Float)
+    smiles = Column(String)
 
     _kind_id = Column("kind_id", Integer, ForeignKey('kinds.id'), nullable=False)
     _kind = relationship("Kind")
@@ -369,7 +385,7 @@ class Chemical(BaseChemical, Base):
         '''
         Return number of moles calculated from mass and molecular weight.
         '''
-        return self.mass/self.molwt
+        return self.mass / self.molwt
 
     @hybrid_property
     def volume(self):
@@ -377,7 +393,7 @@ class Chemical(BaseChemical, Base):
         Return volume calculated from mass and density if chemical is a liquid.
         '''
         if self.density is not None and self.physical_form == "liquid":
-            return self.mass/self.density
+            return self.mass / self.density
         else:
             return None
 
@@ -386,9 +402,9 @@ class Chemical(BaseChemical, Base):
         Return a label to be used in printable tables in html format.
         '''
         if self.is_undefined(self.short_name):
-            res = self.formula_to_html() + u" ({0:>4.1f}%)".format(100*self.concentration)
+            res = self.formula_to_html() + u" ({0:>4.1f}%)".format(100.0 * self.concentration)
         else:
-            res = self.short_name + u" ({0:>4.1f}%)".format(100*self.concentration)
+            res = self.short_name + u" ({0:>4.1f}%)".format(100.0 * self.concentration)
         return res
 
     def tex_label(self):
@@ -396,14 +412,7 @@ class Chemical(BaseChemical, Base):
         Return a label to be used in printable tables in tex format.
         '''
         if self.is_undefined(self.short_name):
-            res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100*self.concentration)
+            res = self.formula_to_tex() + u" ({0:>4.1f}\%)".format(100.0 * self.concentration)
         else:
-            res = self.short_name + u" ({0:>4.1f}\%)".format(100*self.concentration)
+            res = self.short_name + u" ({0:>4.1f}\%)".format(100.0 * self.concentration)
         return res
-
-    def __repr__(self):
-        return "%s(\n%s)" % (
-                 (self.__class__.__name__),
-                 ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
-                            for key in sorted(self.__dict__.keys())
-                            if not key.startswith('_')]))

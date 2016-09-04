@@ -34,6 +34,7 @@ from ObjectListView import ColumnDefn
 
 __version__ = "0.2.1"
 
+
 def format_float(item):
     '''Convert a float to string or None to empty string'''
 
@@ -54,7 +55,7 @@ COLUMNS = OrderedDict([
     ("descr"   , {"title" : "Description",      "minimumWidth" : 200, "width" : 200, "align" : "left",  "valueGetter" : "description", "isEditable" : False}),
     ("elect"   , {"title" : "Electrolyte",      "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "electrolyte", "isEditable" : False, "isSpaceFilling" : True}),
     ("formula" , {"title" : "Formula",          "minimumWidth" : 120, "width" : 120, "align" : "left",  "valueGetter" : "formula", "isEditable" : False, "isSpaceFilling" : True}),
-    ("id"      , {"title" : "Id",               "minimumWidth" : 50,  "width" : 50,  "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
+    ("id"      , {"title" : "Id",               "minimumWidth" :  50, "width" :  50, "align" : "left",  "valueGetter" : "id", "isEditable" : False}),
     ("kind"    , {"title" : "Kind",             "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "kind", "isEditable" : False}),
     ("label"   , {"title" : "Label",            "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "listctrl_label", "isEditable" : False, "isSpaceFilling" : True}),
     ("laborant", {"title" : "Laborant",         "minimumWidth" : 100, "width" : 100, "align" : "left",  "valueGetter" : "laborant", "isEditable" : False, "isSpaceFilling" : False}),
@@ -74,6 +75,7 @@ COLUMNS = OrderedDict([
     ("volume"  , {"title" : "Volume [cm3]",     "minimumWidth" : 120, "width" : 120, "align" : "right", "valueGetter" : "volume", "isEditable" : False, "stringConverter" : format_float}),
 ])
 
+
 def get_columns(cols):
     '''
     Return list of ColumnDefn objects based on the definitions in COLUMNS
@@ -84,4 +86,3 @@ def get_columns(cols):
     '''
 
     return [ColumnDefn(**COLUMNS[col]) for col in cols]
-

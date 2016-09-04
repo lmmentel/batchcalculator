@@ -27,7 +27,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.1"
 
 import datetime
 import numpy as np
@@ -37,6 +36,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.platypus.flowables import KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+
+__version__ = "0.2.1"
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
@@ -68,13 +69,15 @@ res_tab_style = TableStyle([
     ('LINEBELOW', (-1, 1), (-1, -1), 0.5, colors.black),
     ])
 
+
 def volume2str(vol, scale=1.0, fmt="{0:10.4f}"):
     '''Convert volume to string'''
 
     if vol is not None:
-        return fmt.format(vol/scale)
+        return fmt.format(vol / scale)
     else:
         return ""
+
 
 def create_header(model, title, author, email, no_moles=False):
     story = []
@@ -91,6 +94,7 @@ def create_header(model, title, author, email, no_moles=False):
     story.append(Paragraph(email, styles['CenterJ']))
     return story
 
+
 def chemicals_table(model):
 
     data = [['Chemical', 'Mass [g]', 'Concentration', 'Mol. wt. [g/mol]']]
@@ -100,6 +104,7 @@ def chemicals_table(model):
     tab = Table(data)
     tab.setStyle(tab_style)
     return tab
+
 
 def components_table(model, no_moles=False):
 
@@ -117,6 +122,7 @@ def components_table(model, no_moles=False):
     tab.setStyle(tab_style)
     return tab
 
+
 def composition_results_table(model):
 
     data = [['Component', 'Moles', 'Mass [g]']]
@@ -126,6 +132,7 @@ def composition_results_table(model):
     tab = Table(data)
     tab.setStyle(tab_style)
     return tab
+
 
 def batch_table(session, model):
 
@@ -137,6 +144,7 @@ def batch_table(session, model):
     tab = Table(data)
     tab.setStyle(tab_style)
     return tab
+
 
 def results_table(model, scale=None):
     '''
@@ -165,15 +173,17 @@ def results_table(model, scale=None):
     data = [["Substance", "Formula", "Mass [g]", "Volume [cm3]", "Weighted Mass [g]"]]
     for chem in model.chemicals:
         data.append([chem.listctrl_label(), chem.formula, "{0:10.4f}".format(chem.mass/scale), volume2str(chem.volume, scale=scale), ""])
-    data.append(["Sum", "", "{0:10.4f}".format(masssum/scale),
-                        "{0:10.4f}".format(volusum/scale), ""])
+    data.append(["Sum", "", "{0:10.4f}".format(masssum / scale),
+                        "{0:10.4f}".format(volusum / scale), ""])
     tab = Table(data)
     tab.setStyle(res_tab_style)
     return tab
 
+
 def create_pdf(path, session, model, flags):
 
-    doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25,leftMargin=25, topMargin=25, bottomMargin=25)
+    doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25, leftMargin=25,
+                            topMargin=25, bottomMargin=25)
 
     story = []
     header = create_header(model, flags['title'], flags['author'], flags['email'])
@@ -204,13 +214,15 @@ def create_pdf(path, session, model, flags):
                                    Paragraph(flags['comment'], styles['Normal'])]))
     doc.build(story)
 
+
 def create_pdf_composition(path, model, flags):
 
     if not model.calculated:
         raise ValueError('Calculation was not performed yet.')
         return
 
-    doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25,leftMargin=25, topMargin=25, bottomMargin=25)
+    doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25, leftMargin=25,
+                            topMargin=25, bottomMargin=25)
 
     story = []
     header = create_header(model, flags['title'], flags['author'], flags['email'], no_moles=True)

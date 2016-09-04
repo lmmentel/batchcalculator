@@ -27,7 +27,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.1"
 
 import os
 import sys
@@ -36,6 +35,10 @@ from ObjectListView import ObjectListView
 
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
+
+
+__version__ = "0.2.1"
+
 
 def which(prog):
     '''
@@ -50,12 +53,14 @@ def which(prog):
         if os.path.exists(fprog) and os.access(fprog, os.X_OK):
             return fprog
 
+
 class ExceptionDialog(GMD.GenericMessageDialog):
 
     def __init__(self, msg):
         '''constructor'''
         GMD.GenericMessageDialog.__init__(self, None, msg, "Exception!",
-                                              wx.OK|wx.ICON_ERROR)
+                                          wx.OK | wx.ICON_ERROR)
+
 
 class ExportPdfMinimalDialog(wx.Dialog):
     '''
@@ -63,11 +68,11 @@ class ExportPdfMinimalDialog(wx.Dialog):
     '''
 
     def __init__(self, parent, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(400, 550),
-            style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
+                 pos=wx.DefaultPosition, size=(400, 550),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
 
-        super(ExportPdfMinimalDialog, self).__init__(parent, id, title, pos, size,
-                                              style, name)
+        super(ExportPdfMinimalDialog, self).__init__(parent, id, title, pos,
+                                                     size, style, name)
 
         panel = wx.Panel(self)
 
@@ -80,41 +85,42 @@ class ExportPdfMinimalDialog(wx.Dialog):
         email_lbl = wx.StaticText(panel, -1, "Email:")
         email = wx.TextCtrl(panel, -1, "")
         comment_lbl = wx.StaticText(panel, -1, "Comment:")
-        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100),
+                              style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
 
         export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
         cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
 
         self.widgets = {
-            "title"   : title,
-            "author"  : author,
-            "email"   : email,
-            "comment" : comment,
+            "title": title,
+            "author": author,
+            "email": email,
+            "comment": comment,
         }
 
         # layout
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(top_lbl, 0, wx.ALL, 5)
-        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.TOP | wx.BOTTOM, 5)
         fgs_title = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         fgs_title.AddGrowableCol(1)
-        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(title, 0, wx.EXPAND)
-        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(author, 0, wx.EXPAND)
-        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(email, 0, wx.EXPAND)
-        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(comment, 0, wx.GROW)
 
-        main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
+        main_sizer.Add(fgs_title, 0, wx.EXPAND | wx.ALL, 10)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(cancel_btn, 0, wx.LEFT|wx.RIGHT, 10)
-        hbox.Add(export_btn, 0, wx.LEFT|wx.RIGHT, 10)
+        hbox.Add(cancel_btn, 0, wx.LEFT | wx.RIGHT, 10)
+        hbox.Add(export_btn, 0, wx.LEFT | wx.RIGHT, 10)
 
-        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, 10)
+        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT, 10)
         panel.SetSizerAndFit(main_sizer)
 
     def get_data(self):
@@ -124,14 +130,15 @@ class ExportPdfMinimalDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
+
 class ExportPdfDialog(wx.Dialog):
     '''
     A dialog for setting the options of the pdf report (using reportlab).
     '''
 
     def __init__(self, parent, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(450, 600),
-            style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
+                 pos=wx.DefaultPosition, size=(450, 600),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
 
         super(ExportPdfDialog, self).__init__(parent, id, title, pos, size,
                                               style, name)
@@ -147,16 +154,20 @@ class ExportPdfDialog(wx.Dialog):
         email_lbl = wx.StaticText(panel, -1, "Email:")
         email = wx.TextCtrl(panel, -1, "")
         comment_lbl = wx.StaticText(panel, -1, "Comment:")
-        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100),
+                              style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
 
         export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
         cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
 
         cb_cmpm = wx.CheckBox(panel, label="Composition Matrix")
         cb_bmat = wx.CheckBox(panel, label="Batch Matrix")
-        cb_rescaleAll = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
-        cb_rescaleTo = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
-        cb_rescaleItem = wx.CheckBox(panel, label="Result vector X (rescaled to an item)")
+        cb_rescaleAll = wx.CheckBox(panel,
+                                label="Result vector X (rescaled by a factor)")
+        cb_rescaleTo = wx.CheckBox(panel,
+                                label="Result vector X (rescaled to the sample size)")
+        cb_rescaleItem = wx.CheckBox(panel,
+                                label="Result vector X (rescaled to an item)")
 
         cb_cmpm.SetValue(True)
         cb_bmat.SetValue(True)
@@ -166,48 +177,48 @@ class ExportPdfDialog(wx.Dialog):
 
         sb_calculation = wx.StaticBox(panel, label="Include")
         sbc_bs = wx.StaticBoxSizer(sb_calculation, wx.VERTICAL)
-        sbc_bs.Add(cb_cmpm, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_bmat, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleItem, flag=wx.LEFT|wx.TOP, border=5)
+        sbc_bs.Add(cb_cmpm, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_bmat, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleItem, flag=wx.LEFT | wx.TOP, border=5)
 
         self.widgets = {
-            "title" : title,
-            "author" : author,
-            "email" : email,
-            "comment" : comment,
-            "composition" : cb_cmpm,
-            "batch" : cb_bmat,
-            "rescale_all" : cb_rescaleAll,
-            "rescale_to" : cb_rescaleTo,
-            "rescale_item" : cb_rescaleItem,
+            "title": title,
+            "author": author,
+            "email": email,
+            "comment": comment,
+            "composition": cb_cmpm,
+            "batch": cb_bmat,
+            "rescale_all": cb_rescaleAll,
+            "rescale_to": cb_rescaleTo,
+            "rescale_item": cb_rescaleItem,
         }
 
         # layout
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(top_lbl, 0, wx.ALL, 5)
-        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.TOP | wx.BOTTOM, 5)
         fgs_title = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         fgs_title.AddGrowableCol(1)
-        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(title, 0, wx.EXPAND)
-        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(author, 0, wx.EXPAND)
-        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(email, 0, wx.EXPAND)
-        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(comment, 0, wx.GROW)
 
-        main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
-        main_sizer.Add(sbc_bs, 0, wx.EXPAND|wx.ALL, 10)
+        main_sizer.Add(fgs_title, 0, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(sbc_bs, 0, wx.EXPAND | wx.ALL, 10)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(cancel_btn, 0, wx.LEFT|wx.RIGHT, 10)
-        hbox.Add(export_btn, 0, wx.LEFT|wx.RIGHT, 10)
+        hbox.Add(cancel_btn, 0, wx.LEFT | wx.RIGHT, 10)
+        hbox.Add(export_btn, 0, wx.LEFT | wx.RIGHT, 10)
 
-        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, 10)
+        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT, 10)
         panel.SetSizerAndFit(main_sizer)
 
     def get_data(self):
@@ -217,14 +228,15 @@ class ExportPdfDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
+
 class ExportTexDialog(wx.Dialog):
     '''
     A dialog for setting the options of the tex report.
     '''
 
     def __init__(self, parent, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(400, 650),
-            style=wx.DEFAULT_FRAME_STYLE, name="Export Tex Dialog"):
+                 pos=wx.DefaultPosition, size=(400, 650),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Export Tex Dialog"):
 
         super(ExportTexDialog, self).__init__(parent, id, title, pos, size,
                                               style, name)
@@ -240,15 +252,18 @@ class ExportTexDialog(wx.Dialog):
         email_lbl = wx.StaticText(panel, -1, "Email:")
         email = wx.TextCtrl(panel, -1, "")
         comment_lbl = wx.StaticText(panel, -1, "Comment:")
-        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+        comment = wx.TextCtrl(panel, -1, "", size=(-1, 100),
+                              style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
 
         export_btn = wx.Button(panel, id=wx.ID_OK, label="Export")
         cancel_btn = wx.Button(panel, id=wx.ID_CANCEL)
 
         cb_cmpm = wx.CheckBox(panel, label="Composition Matrix")
         cb_bmat = wx.CheckBox(panel, label="Batch Matrix")
-        cb_rescaleAll = wx.CheckBox(panel, label="Result vector X (rescaled by a factor)")
-        cb_rescaleTo = wx.CheckBox(panel, label="Result vector X (rescaled to the sample size)")
+        cb_rescaleAll = wx.CheckBox(panel,
+                            label="Result vector X (rescaled by a factor)")
+        cb_rescaleTo = wx.CheckBox(panel,
+                            label="Result vector X (rescaled to the sample size)")
 
         cb_cmpm.SetValue(True)
         cb_bmat.SetValue(True)
@@ -271,78 +286,82 @@ class ExportTexDialog(wx.Dialog):
 
         sb_calculation = wx.StaticBox(panel, label="Include")
         sbc_bs = wx.StaticBoxSizer(sb_calculation, wx.VERTICAL)
-        sbc_bs.Add(cb_cmpm, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_bmat, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT|wx.TOP, border=5)
-        sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT|wx.TOP, border=5)
+        sbc_bs.Add(cb_cmpm, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_bmat, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleAll, flag=wx.LEFT | wx.TOP, border=5)
+        sbc_bs.Add(cb_rescaleTo, flag=wx.LEFT | wx.TOP, border=5)
 
         sb_synthesis = wx.StaticBox(panel, label="Synthesis")
         sbs_bs = wx.StaticBoxSizer(sb_synthesis, wx.VERTICAL)
-        sbs_bs.Add(cb_calo, flag=wx.LEFT|wx.TOP, border=5)
-        sbs_bs.Add(cb_ione, flag=wx.LEFT|wx.TOP, border=5)
-        sbs_bs.Add(cb_calt, flag=wx.LEFT|wx.TOP, border=5)
+        sbs_bs.Add(cb_calo, flag=wx.LEFT | wx.TOP, border=5)
+        sbs_bs.Add(cb_ione, flag=wx.LEFT | wx.TOP, border=5)
+        sbs_bs.Add(cb_calt, flag=wx.LEFT | wx.TOP, border=5)
 
         sb_analysis = wx.StaticBox(panel, label="Analysis")
         sba_bs = wx.StaticBoxSizer(sb_analysis, wx.VERTICAL)
-        sba_bs.Add(cb_xrd, flag=wx.LEFT|wx.TOP, border=5)
-        sba_bs.Add(cb_sem, flag=wx.LEFT|wx.TOP, border=5)
+        sba_bs.Add(cb_xrd, flag=wx.LEFT | wx.TOP, border=5)
+        sba_bs.Add(cb_sem, flag=wx.LEFT | wx.TOP, border=5)
 
         self.widgets = {
-            "title" : title,
-            "author" : author,
-            "email" : email,
-            "comment" : comment,
-            "composition" : cb_cmpm,
-            "batch" : cb_bmat,
-            "rescale_all" : cb_rescaleAll,
-            "rescale_to" : cb_rescaleTo,
-            "calcination_i" : cb_calo,
-            "ion_exchange" : cb_ione,
-            "calcination_ii" : cb_calt,
-            "xrd" : cb_xrd,
-            "sem" : cb_sem,
-            "typeset" : cb_pdf,
-            "pdflatex" : self.pdflatex,
+            "title": title,
+            "author": author,
+            "email": email,
+            "comment": comment,
+            "composition": cb_cmpm,
+            "batch": cb_bmat,
+            "rescale_all": cb_rescaleAll,
+            "rescale_to": cb_rescaleTo,
+            "calcination_i": cb_calo,
+            "ion_exchange": cb_ione,
+            "calcination_ii": cb_calt,
+            "xrd": cb_xrd,
+            "sem": cb_sem,
+            "typeset": cb_pdf,
+            "pdflatex": self.pdflatex,
         }
 
         # layout
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(top_lbl, 0, wx.ALL, 5)
-        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+        main_sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.TOP | wx.BOTTOM, 5)
         fgs_title = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         fgs_title.AddGrowableCol(1)
-        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(title_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(title, 0, wx.EXPAND)
-        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(author, 0, wx.EXPAND)
-        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(email, 0, wx.EXPAND)
-        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(comment, 0, wx.GROW)
 
-        main_sizer.Add(fgs_title, 0, wx.EXPAND|wx.ALL, 10)
-        main_sizer.Add(sbc_bs, 0, wx.EXPAND|wx.ALL, 10)
+        main_sizer.Add(fgs_title, 0, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(sbc_bs, 0, wx.EXPAND | wx.ALL, 10)
 
         gbs = wx.GridBagSizer(hgap=5, vgap=5)
-        gbs.Add(sbs_bs, pos=(0, 0), flag=wx.ALIGN_RIGHT|wx.GROW|wx.ALL, border=10)
-        gbs.Add(sba_bs, pos=(0, 1), flag=wx.ALIGN_LEFT|wx.EXPAND|wx.ALL, border=10)
+        gbs.Add(sbs_bs, pos=(0, 0), flag=wx.ALIGN_RIGHT | wx.GROW | wx.ALL,
+                border=10)
+        gbs.Add(sba_bs, pos=(0, 1), flag=wx.ALIGN_LEFT | wx.EXPAND | wx.ALL,
+                border=10)
         gbs.AddGrowableCol(0)
         gbs.AddGrowableCol(1)
 
-        main_sizer.Add(gbs, 0, wx.EXPAND|wx.ALL, border=10)
+        main_sizer.Add(gbs, 0, wx.EXPAND | wx.ALL, border=10)
 
         fgs0 = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         fgs0.AddGrowableCol(1)
-        fgs0.Add(cb_pdf, flag=wx.ALIGN_LEFT|wx.LEFT|wx.BOTTOM, border=10)
-        fgs0.Add(self.pdflatex, flag=wx.EXPAND|wx.LEFT|wx.BOTTOM|wx.RIGHT, border=10)
-        main_sizer.Add(fgs0, flag=wx.EXPAND|wx.ALL, border=5)
+        fgs0.Add(cb_pdf, flag=wx.ALIGN_LEFT | wx.LEFT | wx.BOTTOM,
+                 border=10)
+        fgs0.Add(self.pdflatex, flag=wx.EXPAND | wx.LEFT | wx.BOTTOM | wx.RIGHT,
+                 border=10)
+        main_sizer.Add(fgs0, flag=wx.EXPAND | wx.ALL, border=5)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(cancel_btn, 0, wx.LEFT|wx.RIGHT, 10)
-        hbox.Add(export_btn, 0, wx.LEFT|wx.RIGHT, 10)
+        hbox.Add(cancel_btn, 0, wx.LEFT | wx.RIGHT, 10)
+        hbox.Add(export_btn, 0, wx.LEFT | wx.RIGHT, 10)
 
-        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, 10)
+        main_sizer.Add(hbox, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT, 10)
         panel.SetSizerAndFit(main_sizer)
 
         # events
@@ -361,12 +380,13 @@ class ExportTexDialog(wx.Dialog):
             res[name] = attr.GetValue()
         return res
 
+
 class RescaleToItemDialog(wx.Dialog):
 
     def __init__(self, parent, objects, cols=None, id=wx.ID_ANY,
-            title="Choose an item and the amount",
-            pos=wx.DefaultPosition, size=(400, 400),
-            style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Item Dialog"):
+                 title="Choose an item and the amount",
+                 pos=wx.DefaultPosition, size=(400, 400),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Item Dialog"):
         '''
         A dialog to get the selected objects (components or chemicals) and the
         amount (moles or grams). The dialog is used in the conventional batch
@@ -374,14 +394,16 @@ class RescaleToItemDialog(wx.Dialog):
         moles).
         '''
 
-        super(RescaleToItemDialog, self).__init__(parent, id, title, pos, size, style, name)
+        super(RescaleToItemDialog, self).__init__(parent, id, title, pos, size,
+                                                  style, name)
 
         panel = wx.Panel(self)
 
-        self.olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.olv.evenRowsBackColor="#DCF0C7"
-        self.olv.oddRowsBackColor="#FFFFFF"
+        self.olv = ObjectListView(panel, wx.ID_ANY,
+                                  style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                  useAlternateBackColors=True)
+        self.olv.evenRowsBackColor = "#DCF0C7"
+        self.olv.oddRowsBackColor = "#FFFFFF"
 
         self.SetObjects(objects, cols)
 
@@ -395,11 +417,16 @@ class RescaleToItemDialog(wx.Dialog):
         # layout
 
         sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW|wx.ALL, border=5)
-        sizer.Add(scalelbl,  pos=(1, 0), flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-        sizer.Add(self.amount, pos=(1, 1), span=(1, 2), flag=wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW | wx.ALL,
+                  border=5)
+        sizer.Add(scalelbl,  pos=(1, 0),
+                  flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+                  border=10)
+        sizer.Add(self.amount, pos=(1, 1), span=(1, 2),
+                  flag=wx.EXPAND | wx.ALIGN_LEFT | wx.RIGHT | wx.BOTTOM,
+                  border=10)
         sizer.Add(buttonCancel, pos=(2, 2), flag=wx.BOTTOM, border=10)
-        sizer.Add(buttonOk, pos=(2, 3), flag=wx.BOTTOM|wx.RIGHT, border=10)
+        sizer.Add(buttonOk, pos=(2, 3), flag=wx.BOTTOM | wx.RIGHT, border=10)
         sizer.AddGrowableCol(1)
         sizer.AddGrowableRow(0)
         panel.SetSizer(sizer)
@@ -416,21 +443,25 @@ class RescaleToItemDialog(wx.Dialog):
 
         return self.amount.GetValue(), self.olv.GetCheckedObjects()
 
+
 class RescaleToSampleDialog(wx.Dialog):
 
     def __init__(self, parent, model, cols=None, id=wx.ID_ANY,
                  title="Choose compounds and sample size ...",
                  pos=wx.DefaultPosition, size=(400, 400),
-                 style=wx.DEFAULT_FRAME_STYLE, name="Rescale to Sample Dialog"):
+                 style=wx.DEFAULT_FRAME_STYLE,
+                 name="Rescale to Sample Dialog"):
 
-        super(RescaleToSampleDialog, self).__init__(parent, id, title, pos, size, style, name)
+        super(RescaleToSampleDialog, self).__init__(parent, id, title, pos,
+                                                    size, style, name)
 
         panel = wx.Panel(self)
 
-        self.olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.olv.evenRowsBackColor="#DCF0C7"
-        self.olv.oddRowsBackColor="#FFFFFF"
+        self.olv = ObjectListView(panel, wx.ID_ANY,
+                                  style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                  useAlternateBackColors=True)
+        self.olv.evenRowsBackColor = "#DCF0C7"
+        self.olv.oddRowsBackColor = "#FFFFFF"
 
         self.SetChemicals(model, cols)
 
@@ -444,11 +475,16 @@ class RescaleToSampleDialog(wx.Dialog):
         # layout
 
         sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW|wx.ALL, border=5)
-        sizer.Add(scalelbl,  pos=(1, 0), flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=10)
-        sizer.Add(self.sample_size, pos=(1, 1), span=(1, 2), flag=wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT|wx.BOTTOM, border=10)
+        sizer.Add(self.olv, pos=(0, 0), span=(1, 4), flag=wx.GROW | wx.ALL,
+                  border=5)
+        sizer.Add(scalelbl, pos=(1, 0),
+                  flag=wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT | wx.BOTTOM,
+                  border=10)
+        sizer.Add(self.sample_size, pos=(1, 1), span=(1, 2),
+                  flag=wx.EXPAND | wx.ALIGN_LEFT | wx.RIGHT | wx.BOTTOM,
+                  border=10)
         sizer.Add(buttonCancel, pos=(2, 2), flag=wx.BOTTOM, border=10)
-        sizer.Add(buttonOk, pos=(2, 3), flag=wx.BOTTOM|wx.RIGHT, border=10)
+        sizer.Add(buttonOk, pos=(2, 3), flag=wx.BOTTOM | wx.RIGHT, border=10)
         sizer.AddGrowableCol(1)
         sizer.AddGrowableRow(0)
         panel.SetSizer(sizer)
@@ -463,11 +499,14 @@ class RescaleToSampleDialog(wx.Dialog):
         self.olv.SetObjects(model.chemicals)
 
     def GetCurrentSelections(self):
-        '''Return the entered sample size and objects selected in the dialog.'''
+        '''
+        Return the entered sample size and objects selected in the dialog.
+        '''
 
         return self.sample_size.GetValue(), self.olv.GetCheckedObjects()
 
-def show_message_dlg(message, caption, flag=wx.ICON_ERROR|wx.OK):
+
+def show_message_dlg(message, caption, flag=wx.ICON_ERROR | wx.OK):
     """"""
     msg = wx.MessageDialog(None, message=message,
                            caption=caption, style=flag)
@@ -475,7 +514,7 @@ def show_message_dlg(message, caption, flag=wx.ICON_ERROR|wx.OK):
     msg.Destroy()
 
 
-### Validators
+# Validators
 
 
 class NumberValidator(wx.PyValidator):
@@ -509,6 +548,7 @@ class NumberValidator(wx.PyValidator):
 
     def TransferFromWindow(self):
         return True
+
 
 class NonEmptyValidator(wx.PyValidator):
 
@@ -544,58 +584,57 @@ class NonEmptyValidator(wx.PyValidator):
     def TransferFromWindow(self):
         return True
 
+
 class TextObjectValidator(wx.PyValidator):
-     """ This validator is used to ensure that the user has entered something
-         into the text object editor dialog's text field.
-     """
-     def __init__(self):
-         """ Standard constructor.
-         """
-         wx.PyValidator.__init__(self)
+    """
+    This validator is used to ensure that the user has entered something
+    into the text object editor dialog's text field.
+    """
 
+    def __init__(self):
+        """
+        Standard constructor.
+        """
 
+        wx.PyValidator.__init__(self)
 
-     def Clone(self):
-         """ Standard cloner.
+    def Clone(self):
+        """
+        Standard cloner.
 
-             Note that every validator must implement the Clone() method.
-         """
-         return TextObjectValidator()
+        Note that every validator must implement the Clone() method.
+        """
+        return TextObjectValidator()
 
+    def Validate(self, win):
+        """ Validate the contents of the given text control.
+        """
 
-     def Validate(self, win):
-         """ Validate the contents of the given text control.
-         """
-         textCtrl = self.GetWindow()
-         text = textCtrl.GetValue()
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
 
-         if len(text) == 0:
-             wx.MessageBox("A text object must contain some text!", "Error")
-             textCtrl.SetBackgroundColour("pink")
-             textCtrl.SetFocus()
-             textCtrl.Refresh()
-             return False
-         else:
-             textCtrl.SetBackgroundColour(
-                 wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
-             textCtrl.Refresh()
-             return True
+        if len(text) == 0:
+            wx.MessageBox("A text object must contain some text!", "Error")
+            textCtrl.SetBackgroundColour("pink")
+            textCtrl.SetFocus()
+            textCtrl.Refresh()
+            return False
+        else:
+            textCtrl.SetBackgroundColour(
+                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            textCtrl.Refresh()
+            return True
 
+    def TransferToWindow(self):
+        """ Transfer data from validator to window.
+            The default implementation returns False, indicating that an error
+            occurred.  We simply return True, as we don't do any data transfer.
+        """
+        return True  # Prevent wxDialog from complaining.
 
-     def TransferToWindow(self):
-         """ Transfer data from validator to window.
-
-             The default implementation returns False, indicating that an error
-             occurred.  We simply return True, as we don't do any data transfer.
-         """
-         return True # Prevent wxDialog from complaining.
-
-
-     def TransferFromWindow(self):
-         """ Transfer data from window to validator.
-
-             The default implementation returns False, indicating that an error
-             occurred.  We simply return True, as we don't do any data transfer.
-         """
-         return True # Prevent wxDialog from complaining.
-
+    def TransferFromWindow(self):
+        """ Transfer data from window to validator.
+            The default implementation returns False, indicating that an error
+            occurred.  We simply return True, as we don't do any data transfer.
+        """
+        return True  # Prevent wxDialog from complaining.

@@ -29,7 +29,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.1"
 
 import wx
 import os
@@ -39,28 +38,35 @@ from collections import OrderedDict
 
 from ObjectListView import ObjectListView
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker
 from batchcalc import dialogs
 from batchcalc.model import Base
 from batchcalc.model import (Chemical, Component, Electrolyte, Kind, Category,
-        Reaction, PhysicalForm, Batch, Synthesis, SynthesisComponent,
-        SynthesisChemical)
+                             Reaction, PhysicalForm, Batch, Synthesis,
+                             SynthesisComponent, SynthesisChemical)
 
 from batchcalc.utils import get_columns
+
+
+__version__ = "0.2.1"
+
 
 def get_dbpath():
     '''
     Depending on the execution environment get the proper database path.
     '''
 
-    dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "data", "zeolite.db")
+    dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                          "data", "zeolite.db")
     if os.path.exists(dbpath):
         return dbpath
     elif sys.executable is not None:
-        dbpath = os.path.join(os.path.dirname(sys.executable), "data", "zeolite.db")
+        dbpath = os.path.join(os.path.dirname(sys.executable),
+                              "data", "zeolite.db")
         return dbpath
     else:
         raise ValueError("database not found on: {}".format(dbpath))
+
 
 def get_session(dbpath=None):
     '''
@@ -75,12 +81,14 @@ def get_session(dbpath=None):
     Session = sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
     return Session()
 
+
 def get_batches(session):
     '''
     Return all batch records from the database.
     '''
 
     return session.query(Batch).order_by(Batch.id).all()
+
 
 def get_components(session):
     '''
@@ -89,6 +97,7 @@ def get_components(session):
 
     return session.query(Component).order_by(Component.id).all()
 
+
 def get_categories(session):
     '''
     Return the list of category records from the database.
@@ -96,12 +105,12 @@ def get_categories(session):
 
     return session.query(Category).order_by(Category.id).all()
 
+
 def get_chemicals(session, components=None, showall=False):
     '''
     Return chemicals that are sources for the components present in the
     components list, of the list is empty return all the components.
     '''
-
 
     if showall:
         query = session.query(Chemical).order_by(Chemical.id).all()
@@ -114,12 +123,14 @@ def get_chemicals(session, components=None, showall=False):
             query = sorted(list(compset), key=lambda x: x.id)
     return query
 
+
 def get_electrolytes(session):
     '''
     Return the list of electrolyte records from the database.
     '''
 
     return session.query(Electrolyte).order_by(Electrolyte.id).all()
+
 
 def get_kinds(session):
     '''
@@ -128,12 +139,14 @@ def get_kinds(session):
 
     return session.query(Kind).order_by(Kind.id).all()
 
+
 def get_physical_forms(session):
     '''
     Return the list of physicalform records from the database.
     '''
 
     return session.query(PhysicalForm).order_by(PhysicalForm.id).all()
+
 
 def get_reactions(session):
     '''
@@ -142,6 +155,7 @@ def get_reactions(session):
 
     return session.query(Reaction).order_by(Reaction.id).all()
 
+
 def get_syntheses(session):
     '''
     Return the list of synthesis records from the database.
@@ -149,11 +163,12 @@ def get_syntheses(session):
 
     return session.query(Synthesis).order_by(Synthesis.id).all()
 
+
 class ChemicalsDialog(wx.Dialog):
 
-    def __init__(self, parent, session, model, cols=None, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(850, 520),
-            style=wx.DEFAULT_FRAME_STYLE, name="Chemicals Dialog"):
+    def __init__(self, parent, session, model, cols=None, id=wx.ID_ANY,
+                 title="", pos=wx.DefaultPosition, size=(850, 520),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Chemicals Dialog"):
         '''
         Dialog to select chemicals from the database.
 
@@ -162,24 +177,28 @@ class ChemicalsDialog(wx.Dialog):
         model :
             BatchCalcualtor object instance
         cols : list
-            List of OLV ColumnDefn objects with columns to be displayed in the dialog
+            List of OLV ColumnDefn objects with columns to be displayed in the
+            dialog
         '''
 
         dlgwidth = sum([c.minimumWidth for c in cols]) + 60
-        super(ChemicalsDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
+        super(ChemicalsDialog, self).__init__(parent, id, title, pos,
+                                              (dlgwidth, 500), style, name)
 
         panel = wx.Panel(self)
 
-        self.chem_olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.chem_olv.evenRowsBackColor="#DCF0C7"
-        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv = ObjectListView(panel, wx.ID_ANY,
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
+        self.chem_olv.evenRowsBackColor = "#DCF0C7"
+        self.chem_olv.oddRowsBackColor = "#FFFFFF"
         self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetChemicals(session, model, cols)
 
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.chem_olv, proportion=1, flag=wx.EXPAND | wx.ALL, border=5)
+        self.sizer.Add(self.chem_olv, proportion=1, flag=wx.EXPAND | wx.ALL,
+                       border=5)
 
         buttonOk = wx.Button(panel, id=wx.ID_OK)
         buttonOk.SetDefault()
@@ -188,7 +207,7 @@ class ChemicalsDialog(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(buttonCancel, flag=wx.RIGHT, border=10)
         hbox.Add(buttonOk)
-        self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
+        self.sizer.Add(hbox, flag=wx.ALIGN_RIGHT | wx.ALL, border=10)
 
         panel.SetSizerAndFit(self.sizer)
 
@@ -211,11 +230,12 @@ class ChemicalsDialog(wx.Dialog):
 
         return self.chem_olv.GetCheckedObjects()
 
+
 class ComponentsDialog(wx.Dialog):
 
-    def __init__(self, parent, dbpath, model, cols=None, id=wx.ID_ANY, title="",
-            pos=wx.DefaultPosition, size=(730, 500),
-            style=wx.DEFAULT_FRAME_STYLE, name="Components Dialog"):
+    def __init__(self, parent, dbpath, model, cols=None, id=wx.ID_ANY,
+                 title="", pos=wx.DefaultPosition, size=(730, 500),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Components Dialog"):
         '''
         Dialog to select chemicals from the database.
 
@@ -224,18 +244,21 @@ class ComponentsDialog(wx.Dialog):
         model :
             BatchCalcualtor object instance
         cols : list
-            List of OLV ColumnDefn objects with columns to be displayed in the dialog
+            List of OLV ColumnDefn objects with columns to be displayed in the
+            dialog
         '''
 
         dlgwidth = sum([c.minimumWidth for c in cols]) + 60
-        super(ComponentsDialog, self).__init__(parent, id, title, pos, (dlgwidth, 500), style, name)
+        super(ComponentsDialog, self).__init__(parent, id, title, pos,
+                                               (dlgwidth, 500), style, name)
 
         panel = wx.Panel(self)
 
-        self.comp_olv = ObjectListView(panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.comp_olv.evenRowsBackColor="#DCF0C7"
-        self.comp_olv.oddRowsBackColor="#FFFFFF"
+        self.comp_olv = ObjectListView(panel, wx.ID_ANY,
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
+        self.comp_olv.evenRowsBackColor = "#DCF0C7"
+        self.comp_olv.oddRowsBackColor = "#FFFFFF"
         self.comp_olv.CellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetComponents(dbpath, model, cols)
@@ -244,7 +267,8 @@ class ComponentsDialog(wx.Dialog):
 
         sizer.AddGrowableCol(0)
         sizer.AddGrowableRow(0)
-        sizer.Add(self.comp_olv, flag=wx.GROW | wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        sizer.Add(self.comp_olv,
+                  flag=wx.GROW | wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=5)
 
         buttonok = wx.Button(panel, id=wx.ID_OK)
         buttonok.SetDefault()
@@ -253,7 +277,7 @@ class ComponentsDialog(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(buttoncancel, flag=wx.RIGHT, border=10)
         hbox.Add(buttonok)
-        sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.BOTTOM|wx.RIGHT, border=10)
+        sizer.Add(hbox, flag=wx.ALIGN_RIGHT | wx.BOTTOM | wx.RIGHT, border=10)
 
         panel.SetSizer(sizer)
         panel.Fit()
@@ -276,13 +300,14 @@ class ComponentsDialog(wx.Dialog):
 
         return self.comp_olv.GetCheckedObjects()
 
+
 class AddModifyBatchRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(800, 230)):
+    def __init__(self, parent, session, record=None, title="Add",
+                 add_record=True, pos=wx.DefaultPosition, size=(800, 230)):
 
         super(AddModifyBatchRecordDialog, self).__init__(parent, id=wx.ID_ANY,
-                title="{0:s} a Batch Record".format(title), size=size)
+            title="{0:s} a Batch Record".format(title), size=size)
 
         # attributes
 
@@ -305,19 +330,20 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         lbl_coeff = wx.StaticText(self.panel, -1, "Coefficient")
         lbl_reaction = wx.StaticText(self.panel, -1, "Reaction")
 
-        self.txtc_coeff = wx.TextCtrl(self.panel, -1, value=v_coeff, size=(50, 20))
+        self.txtc_coeff = wx.TextCtrl(self.panel, -1, value=v_coeff,
+                                      size=(50, 20))
 
         chemicals = get_chemicals(session, showall=True)
         components = get_components(session)
         reactions = get_reactions(session)
 
-        self.chemicals  = {i:c for i,c in zip(range(len(chemicals)), chemicals)}
-        self.components = {i:c for i,c in zip(range(len(components)), components)}
-        self.reactions  = {i:c for i,c in zip(range(len(reactions)), reactions)}
+        self.chemicals = {i: c for i, c in zip(range(len(chemicals)), chemicals)}
+        self.components = {i: c for i, c in zip(range(len(components)), components)}
+        self.reactions = {i: c for i, c in zip(range(len(reactions)), reactions)}
 
-        self.ch_chemical  = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:35] for x in chemicals])
+        self.ch_chemical = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:35] for x in chemicals])
         self.ch_component = wx.Choice(self.panel, -1, (50, 20), choices=[x.name[:35] for x in components])
-        self.ch_reaction  = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction[:70] for x in reactions])
+        self.ch_reaction = wx.Choice(self.panel, -1, (50, 20), choices=[x.reaction[:70] for x in reactions])
 
         if record is not None:
             if self.record.chemical is not None:
@@ -346,9 +372,11 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
-        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
-        sizer.Add(hbox, pos=(5, 0), span=(1, 3), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=10)
+        hbox.Add(buttonOk, flag=wx.RIGHT | wx.LEFT, border=5)
+        hbox.Add(buttonCancel, flag=wx.RIGHT | wx.LEFT, border=5)
+        sizer.Add(hbox, pos=(5, 0), span=(1, 3),
+                  flag=wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM | wx.TOP,
+                  border=10)
 
         sizer.AddGrowableCol(0)
         sizer.AddGrowableCol(1)
@@ -369,7 +397,8 @@ class AddModifyBatchRecordDialog(wx.Dialog):
 
         data = self.get_data()
         add_batch_record(self.session, data)
-        dialogs.show_message_dlg("Batch record added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Batch record added", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
@@ -385,9 +414,9 @@ class AddModifyBatchRecordDialog(wx.Dialog):
 
         data = self.get_data()
         modify_batch_record(self.session, self.record.id, data)
-        dialogs.show_message_dlg("Batch record modified", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Batch record modified", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
-
 
     def get_data(self):
 
@@ -407,7 +436,8 @@ class AddModifyBatchRecordDialog(wx.Dialog):
             try:
                 coefficient = float(coefficient)
             except:
-                wx.MessageBox("Coefficient must be a number", "Error!", style=wx.ICON_ERROR)
+                wx.MessageBox("Coefficient must be a number", "Error!",
+                              style=wx.ICON_ERROR)
                 self.txtc_coeff.SetBackgroundColour("pink")
                 self.txtc_coeff.SetFocus()
                 self.txtc_coeff.Refresh()
@@ -415,7 +445,8 @@ class AddModifyBatchRecordDialog(wx.Dialog):
             self.txtc_coeff.SetBackgroundColour("white")
             self.txtc_coeff.Refresh()
         else:
-            wx.MessageBox("No coefficient entered", "Error!", style=wx.ICON_ERROR)
+            wx.MessageBox("No coefficient entered", "Error!",
+                          style=wx.ICON_ERROR)
             self.txtc_coeff.SetBackgroundColour("pink")
             self.txtc_coeff.SetFocus()
             self.txtc_coeff.Refresh()
@@ -427,10 +458,10 @@ class AddModifyBatchRecordDialog(wx.Dialog):
             reaction_id = self.reactions[self.ch_reaction.GetSelection()].id
 
         data = {
-            "chemical_id"  : chemical_id,
-            "component_id" : component_id,
-            "coefficient"  : coefficient,
-            "reaction_id"  : reaction_id,
+            "chemical_id": chemical_id,
+            "component_id": component_id,
+            "coefficient": coefficient,
+            "reaction_id": reaction_id,
         }
 
         return data
@@ -438,12 +469,15 @@ class AddModifyBatchRecordDialog(wx.Dialog):
     def OnClose(self, event):
         self.Destroy()
 
+
 class AddModifyChemicalRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(400, 480)):
+    def __init__(self, parent, session, record=None, title="Add",
+                 add_record=True, pos=wx.DefaultPosition, size=(400, 480)):
 
-        super(AddModifyChemicalRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Chemical Record".format(title), size=size)
+        super(AddModifyChemicalRecordDialog, self).__init__(parent,
+            id=wx.ID_ANY, title="{0:s} a Chemical Record".format(title),
+            size=size)
 
         self.panel = wx.Panel(self)
 
@@ -514,9 +548,12 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
         elecs = get_electrolytes(self.session)
         elec_choices = ["Undefined"] + [x.name for x in elecs]
 
-        self.ch_kind = wx.Choice(self.panel, -1, size=(80, -1), choices=kind_choices)
-        self.ch_form = wx.Choice(self.panel, -1, size=(80, -1), choices=form_choices)
-        self.ch_elects = wx.Choice(self.panel, -1, size=(80, -1), choices=elec_choices)
+        self.ch_kind = wx.Choice(self.panel, -1, size=(80, -1),
+                                 choices=kind_choices)
+        self.ch_form = wx.Choice(self.panel, -1, size=(80, -1),
+                                 choices=form_choices)
+        self.ch_elects = wx.Choice(self.panel, -1, size=(80, -1),
+                                   choices=elec_choices)
 
         if record is not None:
             if self.record.kind is not None:
@@ -552,18 +589,18 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
         sizer.Add(lbl_form,    pos=(11, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
         sizer.Add(lbl_elect,   pos=(12, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
 
-        sizer.Add(self.txtc_name,    pos=( 1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_formula, pos=( 2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_molwt,   pos=( 3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_shname,  pos=( 4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_conc,    pos=( 5, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_cas,     pos=( 6, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_density, pos=( 7, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_pk,      pos=( 8, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_smiles,  pos=( 9, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_kind,      pos=(10, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_form,      pos=(11, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_elects,    pos=(12, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_name,    pos=( 1, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_formula, pos=( 2, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_molwt,   pos=( 3, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_shname,  pos=( 4, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_conc,    pos=( 5, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_cas,     pos=( 6, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_density, pos=( 7, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_pk,      pos=( 8, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_smiles,  pos=( 9, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.ch_kind,      pos=(10, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.ch_form,      pos=(11, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.ch_elects,    pos=(12, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
 
         buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
         buttonOk.SetDefault()
@@ -572,9 +609,11 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
         buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
-        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
-        sizer.Add(hbox, pos=(13, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=5)
+        hbox.Add(buttonOk, flag=wx.RIGHT | wx.LEFT, border=5)
+        hbox.Add(buttonCancel, flag=wx.RIGHT | wx.LEFT, border=5)
+        sizer.Add(hbox, pos=(13, 0), span=(1, 2),
+                  flag=wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM | wx.TOP,
+                  border=5)
 
         sizer.AddGrowableCol(1)
         self.panel.SetSizerAndFit(sizer)
@@ -641,7 +680,8 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
         add_chemical_record(self.session, data)
 
-        dialogs.show_message_dlg("Chemical added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Chemical added", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
@@ -711,12 +751,15 @@ class AddModifyChemicalRecordDialog(wx.Dialog):
 
         return chem_dict
 
+
 class AddModifyComponentRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session, record=None, title="Add", add_record=True,
-            pos=wx.DefaultPosition, size=(400, 270)):
+    def __init__(self, parent, session, record=None, title="Add",
+                 add_record=True, pos=wx.DefaultPosition, size=(400, 270)):
 
-        super(AddModifyComponentRecordDialog, self).__init__(parent, id=wx.ID_ANY, title="{0:s} a Component Record".format(title), size=size)
+        super(AddModifyComponentRecordDialog, self).__init__(parent,
+            id=wx.ID_ANY, title="{0:s} a Component Record".format(title),
+            size=size)
 
         self.panel = wx.Panel(self)
 
@@ -762,17 +805,17 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
         sizer = wx.GridBagSizer(vgap=5, hgap=5)
         sizer.Add(lbl_title,    pos=(0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
-        sizer.Add(lbl_name,     pos=(1, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_formula,  pos=(2, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_molwt,    pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_shname,   pos=(4, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-        sizer.Add(lbl_category, pos=(5, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
+        sizer.Add(lbl_name,     pos=(1, 0), span=(1, 1), flag=wx.LEFT | wx.RIGHT, border=10)
+        sizer.Add(lbl_formula,  pos=(2, 0), span=(1, 1), flag=wx.LEFT | wx.RIGHT, border=10)
+        sizer.Add(lbl_molwt,    pos=(3, 0), span=(1, 1), flag=wx.LEFT | wx.RIGHT, border=10)
+        sizer.Add(lbl_shname,   pos=(4, 0), span=(1, 1), flag=wx.LEFT | wx.RIGHT, border=10)
+        sizer.Add(lbl_category, pos=(5, 0), span=(1, 1), flag=wx.LEFT | wx.RIGHT, border=10)
 
-        sizer.Add(self.txtc_name,    pos=(1, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_formula, pos=(2, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_molwt,   pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.txtc_shname,  pos=(4, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
-        sizer.Add(self.ch_category,  pos=(5, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+        sizer.Add(self.txtc_name,    pos=(1, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_formula, pos=(2, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_molwt,   pos=(3, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.txtc_shname,  pos=(4, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
+        sizer.Add(self.ch_category,  pos=(5, 1), span=(1, 1), flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
 
         buttonOk = wx.Button(self.panel, id=wx.ID_ANY, label="{0:s}".format(title))
         buttonOk.SetDefault()
@@ -781,9 +824,11 @@ class AddModifyComponentRecordDialog(wx.Dialog):
         buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
-        hbox.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
-        sizer.Add(hbox, pos=(6, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.TOP, border=5)
+        hbox.Add(buttonOk, flag=wx.RIGHT | wx.LEFT, border=5)
+        hbox.Add(buttonCancel, flag=wx.RIGHT | wx.LEFT, border=5)
+        sizer.Add(hbox, pos=(6, 0), span=(1, 2),
+                  flag=wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM | wx.TOP,
+                  border=5)
 
         sizer.AddGrowableCol(1)
         self.panel.SetSizerAndFit(sizer)
@@ -843,7 +888,8 @@ class AddModifyComponentRecordDialog(wx.Dialog):
 
         add_component_record(self.session, data)
 
-        dialogs.show_message_dlg("Component added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Component added", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
@@ -873,7 +919,8 @@ class AddModifyComponentRecordDialog(wx.Dialog):
         data = self.get_data()
 
         modify_component_record(self.session, self.record.id, data)
-        dialogs.show_message_dlg("Component modified", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Component modified", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         self.Destroy()
 
@@ -883,22 +930,24 @@ class AddModifyComponentRecordDialog(wx.Dialog):
     def get_data(self):
 
         comp_dict = {
-            "name"          : self.txtc_name.GetValue(),
-            "formula"       : self.txtc_formula.GetValue(),
-            "molwt"         : self.txtc_molwt.GetValue(),
-            "short_name"    : self.txtc_shname.GetValue(),
-            "category"      : self.ch_category.GetStringSelection(),
+            "name": self.txtc_name.GetValue(),
+            "formula": self.txtc_formula.GetValue(),
+            "molwt": self.txtc_molwt.GetValue(),
+            "short_name": self.txtc_shname.GetValue(),
+            "category": self.ch_category.GetStringSelection(),
         }
 
         return comp_dict
 
+
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def __init__(self, parent, model, session, record=None, title="Add",
-            add_record=True, pos=wx.DefaultPosition, size=(500, 720)):
+                 add_record=True, pos=wx.DefaultPosition, size=(500, 720)):
 
         super(AddModifySynthesisRecordDialog, self).__init__(parent,
-                id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title), size=size)
+            id=wx.ID_ANY, title="{0:s} a Synthesis Record".format(title),
+            size=size)
 
         # Attributes
 
@@ -913,14 +962,14 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         self.session = session
 
         self.synth = OrderedDict([
-            ("name", {"label" : "Name", "required" : True}),
-            ("target_material", {"label" : "Target Material", "required" : False}),
-            ("laborant", {"label" : "Laborant", "required" : True}),
-            ("reference", {"label" : "Reference", "required" : False}),
-            ("temperature", {"label" : "Temperature", "required" : True}),
-            ("crystallization_time", {"label" : "Crystallization Time", "required" : True}),
-            ("stirring", {"label" : "Stirring", "required" : False}),
-            ("description", {"label" : "Description", "required" : True}),
+            ("name", {"label": "Name", "required": True}),
+            ("target_material", {"label": "Target Material", "required": False}),
+            ("laborant", {"label": "Laborant", "required": True}),
+            ("reference", {"label": "Reference", "required": False}),
+            ("temperature", {"label": "Temperature", "required": True}),
+            ("crystallization_time", {"label": "Crystallization Time", "required": True}),
+            ("stirring", {"label": "Stirring", "required": False}),
+            ("description", {"label": "Description", "required": True}),
         ])
 
         self.comp_cols = ["name", "formula", "molwt", "short", "category"]
@@ -931,16 +980,18 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         comptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         chemtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, size=(-1, 200), style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.comp_olv.evenRowsBackColor="#DCF0C7"
-        self.comp_olv.oddRowsBackColor="#FFFFFF"
+        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, size=(-1, 200),
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
+        self.comp_olv.evenRowsBackColor = "#DCF0C7"
+        self.comp_olv.oddRowsBackColor = "#FFFFFF"
         self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
 
-        self.chem_olv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.chem_olv.evenRowsBackColor="#DCF0C7"
-        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv = ObjectListView(self.panel, wx.ID_ANY,
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
+        self.chem_olv.evenRowsBackColor = "#DCF0C7"
+        self.chem_olv.oddRowsBackColor = "#FFFFFF"
         self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
 
         self.SetComponents()
@@ -982,18 +1033,25 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         for attr in self.synth.keys():
             self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
             if attr == "description":
-                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"], size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
+                                                value=self.synth[attr]["value"],
+                                                size=(-1, 100),
+                                                style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
             else:
-                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value=self.synth[attr]["value"])
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
+                                                value=self.synth[attr]["value"])
 
         # create and populate sizer for the text controls
 
         txtsizer = wx.GridBagSizer(vgap=5, hgap=5)
-        txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
+        txtsizer.Add(lbl_title, pos=(0, 0), span=(1, 2),
+                     flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, border=10)
 
         for i, attr in enumerate(self.synth.keys(), start=1):
-            txtsizer.Add(self.synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-            txtsizer.Add(self.synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+            txtsizer.Add(self.synth[attr]["sttext"], pos=(i, 0), span=(1, 1),
+                         flag=wx.LEFT | wx.RIGHT, border=10)
+            txtsizer.Add(self.synth[attr]["txtctrl"], pos=(i, 1), span=(1, 1),
+                         flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
 
         txtsizer.AddGrowableCol(1)
 
@@ -1004,13 +1062,17 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
 
         btnsizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnsizer.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
-        btnsizer.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
+        btnsizer.Add(buttonOk, flag=wx.RIGHT | wx.LEFT, border=5)
+        btnsizer.Add(buttonCancel, flag=wx.RIGHT | wx.LEFT, border=5)
 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
-        mainsizer.Add(txtsizer, flag=wx.RIGHT|wx.LEFT|wx.GROW, border=5)
-        mainsizer.Add(gbs, flag=wx.RIGHT|wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, border=5)
-        mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+        mainsizer.Add(txtsizer, flag=wx.RIGHT | wx.LEFT | wx.GROW, border=5)
+        mainsizer.Add(gbs,
+                      flag=wx.RIGHT | wx.LEFT | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL,
+                      border=5)
+        mainsizer.Add(btnsizer,
+                      flag=wx.RIGHT | wx.LEFT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                      border=10)
 
         self.panel.SetSizerAndFit(mainsizer)
 
@@ -1033,9 +1095,9 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def is_number(self, textctrl, message):
         '''
-        Check if the string entered in the `textctrl` can be converted to float.
-        Return True if it can otherwise change the `textctrl` color, show a
-        dialog with the `message` and return False.
+        Check if the string entered in the `textctrl` can be converted to
+        float. Return True if it can otherwise change the `textctrl` color,
+        show a dialog with the `message` and return False.
         '''
 
         try:
@@ -1118,7 +1180,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         add_synthesis_record(self.session, data)
 
-        dialogs.show_message_dlg("Synthesis added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Synthesis added", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
@@ -1127,7 +1190,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def edit_synthesis(self):
         '''
-        Get the vlues enter in the dialog and insert a record to the db and commit.
+        Get the vlues enter in the dialog and insert a record to the db and
+        commit.
         '''
 
         for k, v in self.synth.items():
@@ -1142,7 +1206,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         modify_synthesis_record(self.session, self.record.id, data)
 
-        dialogs.show_message_dlg("Synthesis modified", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Synthesis modified", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         self.Destroy()
 
@@ -1169,12 +1234,14 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
             vals[k] = v['txtctrl'].GetValue()
         return vals
 
+
 class AddSynthesisRecordDialog(wx.Dialog):
 
-    def __init__(self, parent, session, model, pos=wx.DefaultPosition, size=(500, 720)):
+    def __init__(self, parent, session, model, pos=wx.DefaultPosition,
+                 size=(500, 720)):
 
         super(AddSynthesisRecordDialog, self).__init__(parent,
-                id=wx.ID_ANY, title="Save a Synthesis Record", size=size)
+            id=wx.ID_ANY, title="Save a Synthesis Record", size=size)
 
         # Attributes
 
@@ -1201,16 +1268,18 @@ class AddSynthesisRecordDialog(wx.Dialog):
         comptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         chemtxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, size=(-1, 200), style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.comp_olv.evenRowsBackColor="#DCF0C7"
-        self.comp_olv.oddRowsBackColor="#FFFFFF"
+        self.comp_olv = ObjectListView(self.panel, wx.ID_ANY, size=(-1, 200),
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
+        self.comp_olv.evenRowsBackColor = "#DCF0C7"
+        self.comp_olv.oddRowsBackColor = "#FFFFFF"
         self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
 
-        self.chem_olv = ObjectListView(self.panel, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.chem_olv.evenRowsBackColor="#DCF0C7"
-        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv = ObjectListView(self.panel, wx.ID_ANY,
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
+        self.chem_olv.evenRowsBackColor = "#DCF0C7"
+        self.chem_olv.oddRowsBackColor = "#FFFFFF"
         self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
 
         self.SetComponents()
@@ -1232,7 +1301,8 @@ class AddSynthesisRecordDialog(wx.Dialog):
         for attr in self.synth.keys():
             self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
             if attr == "description":
-                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value="", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
+                    value="", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
             else:
                 self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value="")
 
@@ -1254,13 +1324,17 @@ class AddSynthesisRecordDialog(wx.Dialog):
         buttonCancel.Bind(wx.EVT_BUTTON, self.OnClose)
 
         btnsizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnsizer.Add(buttonOk, flag=wx.RIGHT|wx.LEFT, border=5)
-        btnsizer.Add(buttonCancel, flag=wx.RIGHT|wx.LEFT, border=5)
+        btnsizer.Add(buttonOk, flag=wx.RIGHT | wx.LEFT, border=5)
+        btnsizer.Add(buttonCancel, flag=wx.RIGHT | wx.LEFT, border=5)
 
         mainsizer = wx.BoxSizer(wx.VERTICAL)
-        mainsizer.Add(txtsizer, flag=wx.RIGHT|wx.LEFT|wx.GROW, border=5)
-        mainsizer.Add(gbs, flag=wx.RIGHT|wx.LEFT|wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, border=5)
-        mainsizer.Add(btnsizer, flag=wx.RIGHT|wx.LEFT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+        mainsizer.Add(txtsizer, flag=wx.RIGHT | wx.LEFT | wx.GROW, border=5)
+        mainsizer.Add(gbs,
+                      flag=wx.RIGHT | wx.LEFT | wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL,
+                      border=5)
+        mainsizer.Add(btnsizer,
+                      flag=wx.RIGHT | wx.LEFT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                      border=10)
 
         self.panel.SetSizerAndFit(mainsizer)
 
@@ -1278,9 +1352,9 @@ class AddSynthesisRecordDialog(wx.Dialog):
 
     def is_number(self, textctrl, message):
         '''
-        Check if the string entered in the `textctrl` can be converted to float.
-        Return True if it can otherwise change the `textctrl` color, show a
-        dialog with the `message` and return False.
+        Check if the string entered in the `textctrl` can be converted to
+        float. Return True if it can otherwise change the `textctrl` color,
+        show a dialog with the `message` and return False.
         '''
 
         try:
@@ -1327,7 +1401,8 @@ class AddSynthesisRecordDialog(wx.Dialog):
 
         add_synthesis_record(self.session, data)
 
-        dialogs.show_message_dlg("Synthesis added", "Success!", wx.OK|wx.ICON_INFORMATION)
+        dialogs.show_message_dlg("Synthesis added", "Success!",
+                                 wx.OK | wx.ICON_INFORMATION)
 
         # clear the TextCtrls to add a new record
         for child in self.panel.GetChildren():
@@ -1357,14 +1432,15 @@ class AddSynthesisRecordDialog(wx.Dialog):
         vals['chemicals'] = []
         for component in self.model.components:
             vals['components'].append(SynthesisComponent(component_id=component.id,
-                                        component=component,
-                                        moles=component.moles))
+                                                         component=component,
+                                                         moles=component.moles))
         for chemical in self.model.chemicals:
             vals['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
-                                        chemical=chemical,
-                                        mass=chemical.mass))
+                                                       chemical=chemical,
+                                                       mass=chemical.mass))
 
         return vals
+
 
 def print_attrs(inst):
 
@@ -1373,15 +1449,18 @@ def print_attrs(inst):
         if not key.startswith("_"):
             print "{0:s} : {1:s}".format(key, str(getattr(inst, key)))
 
+
 ################################################################################
 # controller methods
 ################################################################################
 
-########## Batch controller methods
+# Batch controller methods
+
 
 def add_batch_record(session, data):
     """
-    Add a Batch record to the database, the data should be in the form of a dictionary:
+    Add a Batch record to the database, the data should be in the form of
+    a dictionary:
 
     data = {'chemical_id' : '1', 'component_id' : '1', 'coefficient' : 0.5,
             'reaction_id' : 3,}
@@ -1391,6 +1470,7 @@ def add_batch_record(session, data):
     session.add(batch)
     session.commit()
 
+
 def delete_batch_record(session, id_num):
     """
     Delete an exisitng Batch record.
@@ -1399,6 +1479,7 @@ def delete_batch_record(session, id_num):
     batch = session.query(Batch).get(id_num)
     session.delete(batch)
     session.commit()
+
 
 def modify_batch_record(session, id_num, data):
     """
@@ -1416,11 +1497,14 @@ def modify_batch_record(session, id_num, data):
     session.add(batch)
     session.commit()
 
-########## Chemical controller methods
+
+# Chemical controller methods
+
 
 def add_chemical_record(session, data):
     """
-    Add a Chemical record to the database, the data should be in the form of a dictionary:
+    Add a Chemical record to the database, the data should be in the form of
+    a dictionary:
 
     data = {'name' : 'water', 'formula' : 'H2O', 'molwt' : 18.0152,
             '_kind_id' : 3, 'concentration' : 1.0, 'cas' : '7732-18-5',
@@ -1451,6 +1535,7 @@ def add_chemical_record(session, data):
     session.add(chemical)
     session.commit()
 
+
 def delete_chemical_record(session, id_num):
     """
     Delete a Chemical record.
@@ -1459,6 +1544,7 @@ def delete_chemical_record(session, id_num):
     chemical = session.query(Chemical).get(id_num)
     session.delete(chemical)
     session.commit()
+
 
 def modify_chemical_record(session, id_num, data):
     """
@@ -1491,11 +1577,14 @@ def modify_chemical_record(session, id_num, data):
     session.add(chemical)
     session.commit()
 
-########## Compoment controller methods
+
+# Compoment controller methods
+
 
 def add_component_record(session, data):
     """
-    Add a Component record to the database, the data should be in the form of a dictionary:
+    Add a Component record to the database, the data should be in the form of
+    a dictionary:
 
     data = {'name' : 'water', 'formula' : 'H2O', 'molwt' : 18.0152,
             '_catgory_id' : 3, 'short_name' : ''}
@@ -1513,6 +1602,7 @@ def add_component_record(session, data):
     session.add(component)
     session.commit()
 
+
 def delete_component_record(session, id_num):
     """
     Delete a Component record.
@@ -1521,6 +1611,7 @@ def delete_component_record(session, id_num):
     component = session.query(Component).get(id_num)
     session.delete(component)
     session.commit()
+
 
 def modify_component_record(session, id_num, data):
     """
@@ -1542,13 +1633,16 @@ def modify_component_record(session, id_num, data):
     session.add(component)
     session.commit()
 
-########## Reaction controller methods
+
+# Reaction controller methods
+
 
 def add_reaction_record(session, data):
 
     reaction = Reaction(reaction=data)
     session.add(reaction)
     session.commit()
+
 
 def delete_reaction_record(session, id_num):
     """
@@ -1558,6 +1652,7 @@ def delete_reaction_record(session, id_num):
     reaction = session.query(Reaction).get(id_num)
     session.delete(reaction)
     session.commit()
+
 
 def modify_reaction_record(session, id_num, data):
     """
@@ -1569,13 +1664,16 @@ def modify_reaction_record(session, id_num, data):
     session.add(reaction)
     session.commit()
 
-########## Category controller methods
+
+# Category controller methods
+
 
 def add_category_record(session, data):
 
     category = Category(name=data)
     session.add(category)
     session.commit()
+
 
 def delete_category_record(session, id_num):
     """
@@ -1585,6 +1683,7 @@ def delete_category_record(session, id_num):
     category = session.query(Category).get(id_num)
     session.delete(category)
     session.commit()
+
 
 def modify_category_record(session, id_num, data):
     """
@@ -1596,7 +1695,9 @@ def modify_category_record(session, id_num, data):
     session.add(category)
     session.commit()
 
-########## Kinds controller methods
+
+# Kinds controller methods
+
 
 def fill_kinds_table(session):
     """
@@ -1608,6 +1709,7 @@ def fill_kinds_table(session):
     for kind in kinds:
         add_kind_record(session, kind)
 
+
 def add_kind_record(session, data):
     """
     Add a Kind record.
@@ -1617,6 +1719,7 @@ def add_kind_record(session, data):
     session.add(kind)
     session.commit()
 
+
 def delete_kind_record(session, id_num):
     """
     Delete a Kind record.
@@ -1625,6 +1728,7 @@ def delete_kind_record(session, id_num):
     kind = session.query(Kind).get(id_num)
     session.delete(kind)
     session.commit()
+
 
 def modify_kind_record(session, id_num, data):
     """
@@ -1636,7 +1740,9 @@ def modify_kind_record(session, id_num, data):
     session.add(kind)
     session.commit()
 
-########## Physical_forms controller methods
+
+# Physical_forms controller methods
+
 
 def fill_physical_forms_table(session):
     """
@@ -1648,6 +1754,7 @@ def fill_physical_forms_table(session):
     for phf in phfs:
         add_physical_form_record(session, phf)
 
+
 def add_physical_form_record(session, data):
     """
     Add a PhysicalForm record.
@@ -1657,6 +1764,7 @@ def add_physical_form_record(session, data):
     session.add(phf)
     session.commit()
 
+
 def delete_physical_form_record(session, id_num):
     """
     Delete a PhysicalForm record.
@@ -1665,6 +1773,7 @@ def delete_physical_form_record(session, id_num):
     phf = session.query(PhysicalForm).get(id_num)
     session.delete(phf)
     session.commit()
+
 
 def modify_physical_form_record(session, id_num, data):
     """
@@ -1676,17 +1785,21 @@ def modify_physical_form_record(session, id_num, data):
     session.add(phf)
     session.commit()
 
-########## Electrolyte controller methods
+
+# Electrolyte controller methods
+
 
 def fill_electrolytes_table(session):
     """
     Fill the electrolyte table with allowed values
     """
 
-    elecs = ["nonelectrolyte", "strong acid", "strong base", "weak acid", "weak base"]
+    elecs = ["nonelectrolyte", "strong acid", "strong base", "weak acid",
+             "weak base"]
 
     for elec in elecs:
         add_electrolyte_record(session, elec)
+
 
 def add_electrolyte_record(session, data):
     """
@@ -1697,6 +1810,7 @@ def add_electrolyte_record(session, data):
     session.add(elec)
     session.commit()
 
+
 def delete_electrolyte_record(session, id_num):
     """
     Delete a Electrolyte record.
@@ -1705,6 +1819,7 @@ def delete_electrolyte_record(session, id_num):
     elec = session.query(Electrolyte).get(id_num)
     session.delete(elec)
     session.commit()
+
 
 def modify_electrolyte_record(session, id_num, data):
     """
@@ -1716,7 +1831,9 @@ def modify_electrolyte_record(session, id_num, data):
     session.add(elec)
     session.commit()
 
-########## Synthesis controller methods
+
+# Synthesis controller methods
+
 
 def add_synthesis_record(session, data):
     """
@@ -1726,6 +1843,7 @@ def add_synthesis_record(session, data):
     synth = Synthesis(**data)
     session.add(synth)
     session.commit()
+
 
 def modify_synthesis_record(session, id_num, data):
     """
@@ -1739,6 +1857,7 @@ def modify_synthesis_record(session, id_num, data):
 
     session.add(synth)
     session.commit()
+
 
 def delete_synthesis_record(session, id_num):
     """
