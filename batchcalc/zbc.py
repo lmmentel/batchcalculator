@@ -546,16 +546,18 @@ class ShowBFrame(wx.Frame):
 
 class ShowSynthesesFrame(wx.Frame):
 
-    def __init__(self, parent, session, cols=None, id=wx.ID_ANY, title="Syntheses",
-            pos=wx.DefaultPosition, size=(500, 300),
-            style=wx.DEFAULT_FRAME_STYLE, name=""):
+    def __init__(self, parent, session, cols=None, id=wx.ID_ANY,
+                 title="Syntheses", pos=wx.DefaultPosition, size=(500, 300),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Syntheses"):
 
-        super(ShowSynthesesFrame, self).__init__(parent, id, title, pos, size, style, name)
+        super(ShowSynthesesFrame, self).__init__(parent, id, title, pos,
+                                                 size, style, name)
 
         # attributes
 
         self.cols = ["id", "name", "target", "laborant", "reference",
                      "temperature", "descr"]
+
         self.session = session
         self.model = BatchCalculator()
 
@@ -598,7 +600,7 @@ class ShowSynthesesFrame(wx.Frame):
         self.show_all()
 
     def onAddRecord(self, event):
-        '''Add a record to the database'''
+        'Add a record to the database'
 
         dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                   model=self.model,
@@ -610,7 +612,7 @@ class ShowSynthesesFrame(wx.Frame):
         self.show_all()
 
     def onEditRecord(self, event):
-        '''Edit a record'''
+        'Edit a record'
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
@@ -638,9 +640,7 @@ class ShowSynthesesFrame(wx.Frame):
         self.show_all()
 
     def onLoadRecord(self, event):
-        """
-        Load a record into the batch calculator
-        """
+        'Load a record into the batch calculator'
 
         # reset the calcualtor state
         sel_row = self.olv.GetSelectedObject()
@@ -1712,8 +1712,8 @@ class MainFrame(wx.Frame):
 
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", wildcard=wildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
-            )
+            defaultFile="", wildcard=wildcard,
+            style=wx.SAVE | wx.OVERWRITE_PROMPT)
 
         # This sets the default filter that the user will initially see. Otherwise,
         # the first filter in the list will be used by default.
@@ -1731,7 +1731,7 @@ class MainFrame(wx.Frame):
                     self.model.A, self.model.B, self.model.X,
                     self.model.scale_all, self.model.sample_scale,
                     self.model.sample_size, self.model.selections)
-            fp = file(path, 'wb') # Create file anew
+            fp = file(path, 'wb')  # Create file anew
             pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
             fp.close()
 
@@ -1746,8 +1746,8 @@ class MainFrame(wx.Frame):
         # components selected
 
         dlg = ctrl.AddSynthesisRecordDialog(parent=self,
-                                                  model=self.model,
-                                                    session=self.session)
+                                            model=self.model,
+                                            session=self.session)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -1883,5 +1883,6 @@ def main():
 
     app = ZeoGui(False)
     # uncomment for debugging
-    # wx.lib.inspection.InspectionTool().Show()
+    import wx.lib.inspection
+    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()

@@ -940,6 +940,19 @@ class AddModifyComponentRecordDialog(wx.Dialog):
         return comp_dict
 
 
+
+SYNTH_FIELDS = OrderedDict([
+    ("name", {"label": "Name", "required": True}),
+    ("target_material", {"label": "Target Material", "required": False}),
+    ("laborant", {"label": "Laborant", "required": True}),
+    ("reference", {"label": "Reference", "required": False}),
+    ("temperature", {"label": "Temperature in [K]", "required": False}),
+    ("crystallization_time", {"label": "Crystallization Time [h]", "required": False}),
+    ("stirring", {"label": "Stirring", "required": False}),
+    ("description", {"label": "Description", "required": True}),
+])
+
+
 class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def __init__(self, parent, model, session, record=None, title="Add",
@@ -961,19 +974,11 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         self.session = session
 
-        self.synth = OrderedDict([
-            ("name", {"label": "Name", "required": True}),
-            ("target_material", {"label": "Target Material", "required": False}),
-            ("laborant", {"label": "Laborant", "required": True}),
-            ("reference", {"label": "Reference", "required": False}),
-            ("temperature", {"label": "Temperature", "required": True}),
-            ("crystallization_time", {"label": "Crystallization Time", "required": True}),
-            ("stirring", {"label": "Stirring", "required": False}),
-            ("description", {"label": "Description", "required": True}),
-        ])
+        self.synth = SYNTH_FIELDS
 
         self.comp_cols = ["name", "formula", "molwt", "short", "category"]
-        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
+        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind",
+                          "physform", "cas"]
 
         comptxt = wx.StaticText(self.panel, -1, label="Components")
         chemtxt = wx.StaticText(self.panel, -1, label="Chemicals")
@@ -1001,12 +1006,24 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         chembtn = wx.Button(self.panel, -1, label="Add/Remove")
 
         gbs = wx.GridBagSizer(vgap=5, hgap=5)
-        gbs.Add(comptxt, pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
-        gbs.Add(chemtxt, pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
-        gbs.Add(self.comp_olv, pos=(1, 0), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
-        gbs.Add(self.chem_olv, pos=(1, 1), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
-        gbs.Add(compbtn, pos=(3, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
-        gbs.Add(chembtn, pos=(3, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=5)
+        gbs.Add(comptxt, pos=(0, 0), span=(1, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                border=10)
+        gbs.Add(chemtxt, pos=(0, 1), span=(1, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0), span=(2, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
+                border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), span=(2, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
+                border=10)
+        gbs.Add(compbtn, pos=(3, 0), span=(1, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                border=5)
+        gbs.Add(chembtn, pos=(3, 1), span=(1, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                border=5)
         gbs.AddGrowableCol(0)
         gbs.AddGrowableCol(1)
 
@@ -1031,7 +1048,8 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         lbl_title.SetFont(font)
 
         for attr in self.synth.keys():
-            self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
+            self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1,
+                                                       self.synth[attr]["label"])
             if attr == "description":
                 self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
                                                 value=self.synth[attr]["value"],
@@ -1170,10 +1188,12 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
         for k, v in self.synth.items():
             if v["required"]:
-                if self.is_empty(v["txtctrl"], "{} is required".format(v["label"])):
+                if self.is_empty(v["txtctrl"],
+                                 "{} is required".format(v["label"])):
                     return
                 elif k in ["temperature", "crystallization_time"]:
-                    if not self.is_number(v["txtctrl"], "{} must be a number".format(v["label"])):
+                    if not self.is_number(v["txtctrl"],
+                                          "{} must be a number".format(v["label"])):
                         return
 
         data = self.get_data()
@@ -1190,7 +1210,7 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
     def edit_synthesis(self):
         '''
-        Get the vlues enter in the dialog and insert a record to the db and
+        Get the values entered in the dialog and insert a record to the db and
         commit.
         '''
 
@@ -1229,10 +1249,28 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         and return as a dictionary.
         '''
 
-        vals = {}
+        values = {}
         for k, v in self.synth.items():
-            vals[k] = v['txtctrl'].GetValue()
-        return vals
+            values[k] = v['txtctrl'].GetValue()
+
+        for item in ["temperature", "crystallization_time"]:
+            try:
+                values[item] = float(values[item])
+            except:
+                values[item] = None
+
+        values['components'] = []
+        values['chemicals'] = []
+        for component in self.model.components:
+            values['components'].append(SynthesisComponent(component_id=component.id,
+                                                         component=component,
+                                                         moles=component.moles))
+        for chemical in self.model.chemicals:
+            values['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
+                                                       chemical=chemical,
+                                                       mass=chemical.mass))
+
+        return values
 
 
 class AddSynthesisRecordDialog(wx.Dialog):
@@ -1249,19 +1287,11 @@ class AddSynthesisRecordDialog(wx.Dialog):
         self.model = model
         self.session = session
 
-        self.synth = OrderedDict([
-            ("name", {"label" : "Name", "required" : True}),
-            ("target_material", {"label" : "Target Material", "required" : False}),
-            ("laborant", {"label" : "Laborant", "required" : True}),
-            ("reference", {"label" : "Reference", "required" : False}),
-            ("temperature", {"label" : "Temperature", "required" : True}),
-            ("crystallization_time", {"label" : "Crystallization Time", "required" : True}),
-            ("stirring", {"label" : "Stirring", "required" : False}),
-            ("description", {"label" : "Description", "required" : True}),
-        ])
+        self.synth = SYNTH_FIELDS
 
         self.comp_cols = ["name", "formula", "molwt", "short", "category"]
-        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
+        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind",
+                          "physform", "cas"]
 
         comptxt = wx.StaticText(self.panel, -1, label="Components")
         chemtxt = wx.StaticText(self.panel, -1, label="Chemicals")
@@ -1286,10 +1316,18 @@ class AddSynthesisRecordDialog(wx.Dialog):
         self.SetChemicals()
 
         gbs = wx.GridBagSizer(vgap=5, hgap=5)
-        gbs.Add(comptxt, pos=(0, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
-        gbs.Add(chemtxt, pos=(0, 1), span=(1, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, border=10)
-        gbs.Add(self.comp_olv, pos=(1, 0), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
-        gbs.Add(self.chem_olv, pos=(1, 1), span=(2, 1), flag=wx.LEFT|wx.RIGHT|wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND, border=10)
+        gbs.Add(comptxt, pos=(0, 0), span=(1, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                border=10)
+        gbs.Add(chemtxt, pos=(0, 1), span=(1, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL,
+                border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0), span=(2, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
+                border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1), span=(2, 1),
+                flag=wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
+                border=10)
         gbs.AddGrowableCol(0)
         gbs.AddGrowableCol(1)
 
@@ -1302,18 +1340,21 @@ class AddSynthesisRecordDialog(wx.Dialog):
             self.synth[attr]["sttext"] = wx.StaticText(self.panel, -1, self.synth[attr]["label"])
             if attr == "description":
                 self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
-                    value="", size=(-1, 100), style=wx.TE_MULTILINE|wx.TE_PROCESS_ENTER)
+                    value="", size=(-1, 100), style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
             else:
                 self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value="")
 
         # create and populate sizer for the text controls
 
         txtsizer = wx.GridBagSizer(vgap=5, hgap=5)
-        txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=10)
+        txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2),
+                     flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, border=10)
 
         for i, attr in enumerate(self.synth.keys(), start=1):
-            txtsizer.Add(self.synth[attr]["sttext"], pos=( i, 0), span=(1, 1), flag=wx.LEFT|wx.RIGHT, border=10)
-            txtsizer.Add(self.synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1), flag=wx.LEFT|wx.EXPAND|wx.RIGHT, border=10)
+            txtsizer.Add(self.synth[attr]["sttext"], pos=( i, 0), span=(1, 1),
+                         flag=wx.LEFT | wx.RIGHT, border=10)
+            txtsizer.Add(self.synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1),
+                         flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
 
         txtsizer.AddGrowableCol(1)
 
@@ -1424,22 +1465,28 @@ class AddSynthesisRecordDialog(wx.Dialog):
         and return as a dictionary.
         '''
 
-        vals = {}
+        values = {}
         for k, v in self.synth.items():
-            vals[k] = v['txtctrl'].GetValue()
+            values[k] = v['txtctrl'].GetValue()
 
-        vals['components'] = []
-        vals['chemicals'] = []
+        for item in ["temperature", "crystallization_time"]:
+            try:
+                values[item] = float(values[item])
+            except:
+                values[item] = None
+
+        values['components'] = []
+        values['chemicals'] = []
         for component in self.model.components:
-            vals['components'].append(SynthesisComponent(component_id=component.id,
+            values['components'].append(SynthesisComponent(component_id=component.id,
                                                          component=component,
                                                          moles=component.moles))
         for chemical in self.model.chemicals:
-            vals['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
+            values['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
                                                        chemical=chemical,
                                                        mass=chemical.mass))
 
-        return vals
+        return values
 
 
 def print_attrs(inst):

@@ -144,7 +144,6 @@ class Synthesis(ObjRepr, Base):
     target_material = Column(String)
     description = Column(String)
     stirring = Column(String)
-    # startedon = Column(DateTime)
 
     components = relationship("SynthesisComponent")
     chemicals = relationship("SynthesisChemical")
