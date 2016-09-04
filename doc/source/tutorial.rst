@@ -1,8 +1,8 @@
 Tutorial
 ========
 
-To illustrate the usage of the *Batch Calculator* we will calculate the the amounts
-of reactants required to perform the synthesis of ZSM-22 described by Ernst et al [1]_.
+To illustrate the usage of the **Batch Calculator** we will calculate the the amounts
+of reactants required to perform the synthesis of ZSM-22 described by Ernst et al. [1]_.
 
 The batch composition is given as (p. 139 of [1]_):
 
@@ -17,7 +17,7 @@ The reactants used are:
 - silica sol (40% silica; Ludox AS40, DuPont) was
 - Al\ :sub:`2`\ (SO\ :sub:`4`\ )\ :sub:`3`\ \* 18H\ :sub:`2` O
 - KOH
-- 1,6-diaminohexane
+- 1,6-diaminohexane (HMDA)
 - water
 
 The amounts of reactants used in the synthesis are presented in the
@@ -37,7 +37,7 @@ table below for reference
 | HDMA       |       16.7 |
 +------------+------------+
 
-After starting the *Batch Calculator* te main window appears. As a first
+After starting the **Batch Calculator** the main window appears. As a first
 step we need to add the components by clicking on the **Add/Remove** button
 in the **Components** panel.
 
@@ -63,7 +63,7 @@ as shown below and click the **OK** button.
     :alt: alternate text
 
 By doing that the selected components are now shown in the main window
-with the default amounts eqaul to 1.
+with the default amounts equal to 1.
 
 .. image:: img/tutorial/BC_006.png
     :width: 800px
@@ -95,7 +95,7 @@ the first column and click **OK**.
     :align: center
     :alt: alternate text
 
-We can see that the chemical we succesfully added to the main window
+We can see that the chemical we successfully added to the main window
 with their default concentration/purities depending on the kind of
 chemical. The concentrations/purities can be adjusted in the same way
 as the amounts of components by double clicking the fields and entering
@@ -106,7 +106,7 @@ the desired values.
     :align: center
     :alt: alternate text
 
-By clicking the **Calculate** button, the calcualtion will be performed
+By clicking the **Calculate** button, the calculation will be performed
 and the result will appear in the **Results** panel.
 
 .. image:: img/tutorial/BC_011.png
@@ -125,8 +125,8 @@ using the **Scale to item** option.
     :alt: alternate text
 
 After selecting that option and clicking **Calculate** again a dialog will
-appear where we will select **HDMA** and enter a value of **16.7** to scale
-all the masses (and volumes) to 16.7 g of **HDMA** and click **OK**.
+appear where we will select **HMDA** and enter a value of **16.7** to scale
+all the masses (and volumes) to 16.7 g of **HMDA** and click **OK**.
 
 .. image:: img/tutorial/BC_013.png
     :width: 400px
@@ -165,7 +165,7 @@ the information in the internal database.
     :align: center
     :alt: alternate text
 
-The dialog confirminig the success of the modification should be displayed.
+The dialog confirming the success of the modification should be displayed.
 
 .. image:: img/tutorial/BC_022.png
     :width: 200px
@@ -182,7 +182,7 @@ or modified.
     :align: center
     :alt: alternate text
 
-To finalize we can export a lab report for this sythesis by selecting the
+To finalize we can export a lab report for this synthesis by selecting the
 **Export to pdf** option from the **File** menu
 
 .. image:: img/tutorial/BC_015.png
@@ -206,14 +206,14 @@ After filling out the details and clicking **Export**
     :alt: alternate text
 
 a dialog will appear to choose the file name and finally a message
-should appear that the pdf was succesfully generated.
+should appear that the pdf was successfully generated.
 
 .. image:: img/tutorial/BC_018.png
     :width: 250px
     :align: center
     :alt: alternate text
 
-The repport should like similar to the one below
+The report should like similar to the one below
 
 .. image:: img/tutorial/BC_report-0.png
     :width: 800px

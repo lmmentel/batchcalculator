@@ -11,4 +11,3 @@ Dependencies
 - `numpy <http://www.numpy.org/>`_
 - `jinja2 <http://jinja.pocoo.org/>`_
 - `SQLAlchemy <http://www.sqlalchemy.org/>`_
-
