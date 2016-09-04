@@ -106,7 +106,7 @@ Help
 ====
 
 If you have some questions, remarks or requests email me at
-`<lmmentel@gmail.com> <mailto:lmmentel@gmail.com>`_.
+`<lmmentel-AT-gmail-DOT-com> <mailto:lmmentel-AT-gmail-DOT-com>`_.
 
 License
 =======
