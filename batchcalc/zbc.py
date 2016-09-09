@@ -563,7 +563,6 @@ class ShowSynthesesFrame(wx.Frame):
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
         self.olv = ObjectListView(self, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.olv.evenRowsBackColor = "#DCF0C7"
@@ -1831,7 +1830,8 @@ class MainFrame(wx.Frame):
     def OnShowSyntheses(self, event):
         '''Show a frame with all stored syntheses'''
 
-        frame = ShowSynthesesFrame(parent=self, size=(1000, 600), session=self.session)
+        frame = ShowSynthesesFrame(parent=self, size=(1000, 600),
+                                   session=self.session)
         frame.Show(True)
 
     def update_all_objectlistviews(self):
@@ -1883,6 +1883,6 @@ def main():
 
     app = ZeoGui(False)
     # uncomment for debugging
-    import wx.lib.inspection
-    wx.lib.inspection.InspectionTool().Show()
+    # import wx.lib.inspection
+    # wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
