@@ -940,7 +940,6 @@ class AddModifyComponentRecordDialog(wx.Dialog):
         return comp_dict
 
 
-
 SYNTH_FIELDS = OrderedDict([
     ("name", {"label": "Name", "required": True}),
     ("target_material", {"label": "Target Material", "required": False}),
@@ -1263,12 +1262,12 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
         values['chemicals'] = []
         for component in self.model.components:
             values['components'].append(SynthesisComponent(component_id=component.id,
-                                                         component=component,
-                                                         moles=component.moles))
+                                                           component=component,
+                                                           moles=component.moles))
         for chemical in self.model.chemicals:
             values['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
-                                                       chemical=chemical,
-                                                       mass=chemical.mass))
+                                                         chemical=chemical,
+                                                         mass=chemical.mass))
 
         return values
 
@@ -1342,18 +1341,19 @@ class AddSynthesisRecordDialog(wx.Dialog):
                 self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
                     value="", size=(-1, 100), style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
             else:
-                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1, value="")
+                self.synth[attr]["txtctrl"] = wx.TextCtrl(self.panel, -1,
+                                                          value="")
 
         # create and populate sizer for the text controls
 
         txtsizer = wx.GridBagSizer(vgap=5, hgap=5)
-        txtsizer.Add(lbl_title, pos=( 0, 0), span=(1, 2),
+        txtsizer.Add(lbl_title, pos=(0, 0), span=(1, 2),
                      flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, border=10)
 
         for i, attr in enumerate(self.synth.keys(), start=1):
-            txtsizer.Add(self.synth[attr]["sttext"], pos=( i, 0), span=(1, 1),
+            txtsizer.Add(self.synth[attr]["sttext"], pos=(i, 0), span=(1, 1),
                          flag=wx.LEFT | wx.RIGHT, border=10)
-            txtsizer.Add(self.synth[attr]["txtctrl"], pos=( i, 1), span=(1, 1),
+            txtsizer.Add(self.synth[attr]["txtctrl"], pos=(i, 1), span=(1, 1),
                          flag=wx.LEFT | wx.EXPAND | wx.RIGHT, border=10)
 
         txtsizer.AddGrowableCol(1)
@@ -1479,12 +1479,12 @@ class AddSynthesisRecordDialog(wx.Dialog):
         values['chemicals'] = []
         for component in self.model.components:
             values['components'].append(SynthesisComponent(component_id=component.id,
-                                                         component=component,
-                                                         moles=component.moles))
+                                                           component=component,
+                                                           moles=component.moles))
         for chemical in self.model.chemicals:
             values['chemicals'].append(SynthesisChemical(chemical_id=chemical.id,
-                                                       chemical=chemical,
-                                                       mass=chemical.mass))
+                                                         chemical=chemical,
+                                                         mass=chemical.mass))
 
         return values
 
@@ -1888,6 +1888,10 @@ def add_synthesis_record(session, data):
     """
 
     synth = Synthesis(**data)
+    if 'chemicals' in data.keys():
+        synth.chemicals = data['chemicals']
+    if 'components' in data.keys():
+        synth.components = data['components']
     session.add(synth)
     session.commit()
 
