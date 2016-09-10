@@ -48,7 +48,7 @@ from batchcalc.model import (Chemical, Component, Electrolyte, Kind, Category,
 from batchcalc.utils import get_columns
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 
 def get_dbpath():

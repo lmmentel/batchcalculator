@@ -52,7 +52,7 @@ from batchcalc import dialogs
 
 from batchcalc.utils import get_columns
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 
 def clean_tex(fname):

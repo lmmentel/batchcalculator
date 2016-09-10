@@ -37,7 +37,7 @@ import wx
 import wx.lib.agw.genericmessagedialog as GMD
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 
 def which(prog):
