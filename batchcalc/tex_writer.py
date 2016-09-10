@@ -27,26 +27,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.2"
 
 import os
 import sys
 import datetime
 from jinja2 import Environment, FileSystemLoader
 
+__version__ = "0.2.1"
+
+
 def get_temppath():
     '''
     Depending on the execution environment get the proper template path.
     '''
 
-    path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "templates", "tex")
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                        "templates", "tex")
     if os.path.exists(path):
         return path
     elif sys.executable is not None:
-        path = os.path.join(os.path.dirname(sys.executable), "templates", "tex")
+        path = os.path.join(os.path.dirname(sys.executable),
+                            "templates", "tex")
         return path
     else:
         raise ValueError("template path doesn't exist: {}".format(path))
+
 
 def get_report_as_string(flags, model):
     '''
@@ -54,9 +59,9 @@ def get_report_as_string(flags, model):
     '''
 
     env = Environment('<*', '*>', '<<', '>>', '<#', '#>',
-                    autoescape=False,
-                    extensions=['jinja2.ext.autoescape'],
-                    loader=FileSystemLoader(get_temppath()))
+                      autoescape=False,
+                      extensions=['jinja2.ext.autoescape'],
+                      loader=FileSystemLoader(get_temppath()))
     template = env.get_template('report_color.tex')
 
     flags['date'] = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
@@ -75,19 +80,20 @@ def get_report_as_string(flags, model):
     if flags['comment'] != "":
         flags['comment_on'] = True
 
-
     tex = template.render(flags)
     return tex
 
+
 def tex_A(model):
 
-    tshape = u'{l'+u'R'*len(model.components)+u'}'
+    tshape = u'{l' + u'R' * len(model.components) + u'}'
     table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}'+tshape+ur'\toprule'+u'\n'
     table += u'Compound &' + ' & '.join([ur'\multicolumn{1}{c}{'+c.tex_label()+ur'}' for c in model.components]) + ur'\\ \midrule' + u'\n'
     table += u'Mole ratio &' + ' & '.join(["{0:10.3f}".format(c.moles) for c in model.components]) + ur'\\ ' + u'\n'
     table += u'Weight [g] &' + ' & '.join(["{0:10.3f}".format(c.mass) for c in model.components]) + ur'\\ ' + u'\n'
     table += u'Mol. wt. [g/mol] &' + ' & '.join(["{0:10.3f}".format(c.molwt) for c in model.components]) + ur'\\ ' + u'\n'
     return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+
 
 def tex_B(model):
 
@@ -97,6 +103,7 @@ def tex_B(model):
     for reactant, row in zip(model.chemicals, model.B):
         table += reactant.tex_label() + u' & ' + u' & '.join(["{0:10.4f}".format(x) for x in row]) + ur'\\' + u'\n'
     return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+
 
 def tex_X(model):
 
@@ -116,6 +123,7 @@ def tex_X(model):
     table += ur'\midrule Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' +\
              "{0:>15.4f}".format(masssum/model.scale_all) + ur' & \\ ' + u'\n'
     return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+
 
 def tex_X_rescale(model):
 

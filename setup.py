@@ -12,31 +12,35 @@ URL = "https://bitbucket.org/lukaszmentel/batchcalc"
 VERSION = "0.2.2"
 YEAR = "2014"
 
+
 def readme():
     with open('README.rst') as txt:
         return txt.read()
 
 
 setup(
-    author = AUTHOR,
-    author_email = AUTHOR_EMAIL,
-    description = DESCRIPTION,
-    license = LICENSE,
-    name = NAME,
-    url = URL,
-    version = VERSION,
-    scripts=[
-        'batchcalc/zbc.py'],
-    include_package_data = True,
-    install_requires = [
+    author=AUTHOR,
+    author_email=AUTHOR_EMAIL,
+    description=DESCRIPTION,
+    license=LICENSE,
+    name=NAME,
+    url=URL,
+    version=VERSION,
+    entry_points={
+        'console_scripts': [
+            'zbc = batchcalc.zbc:main',
+        ],
+    },
+    include_package_data=True,
+    install_requires=[
         'numpy>=1.8.1',
         'sqlalchemy>=0.9.7',
         'jinja2>=2.7.3',
         'reportlab',
     ],
-    long_description = readme(),
-    packages = ["batchcalc"],
-    classifiers = [
+    long_description=readme(),
+    packages=["batchcalc"],
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'License :: MIT',

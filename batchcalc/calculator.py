@@ -27,7 +27,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.2"
 
 import operator
 import re
@@ -38,7 +37,11 @@ import numpy as np
 from batchcalc import controller as ctrl
 from batchcalc.model import Chemical, Component, Batch
 
+__version__ = "0.2.1"
+
+
 _MINWIDTH = 15
+
 
 class BatchCalculator(object):
 
@@ -134,7 +137,7 @@ class BatchCalculator(object):
             # assign calculated masses to the chemicals
             for chemical, x in zip(self.chemicals, self.X):
                 if chemical.kind == "reactant":
-                    chemical.mass = x/chemical.concentration
+                    chemical.mass = x / chemical.concentration
                 else:
                     chemical.mass = x
         except Exception as e:
@@ -161,7 +164,7 @@ class BatchCalculator(object):
         masses = []
         for chemical in self.chemicals:
             if chemical.kind == "reactant":
-                masses.append(chemical.mass*chemical.concentration)
+                masses.append(chemical.mass * chemical.concentration)
             else:
                 masses.append(chemical.mass)
 
@@ -171,7 +174,7 @@ class BatchCalculator(object):
         try:
             self.A = np.dot(np.transpose(self.B), self.X)
             for comp, a in zip(self.components, self.A):
-                comp.moles = a/comp.molwt
+                comp.moles = a / comp.molwt
         except Exception as e:
             raise e
         else:
@@ -182,7 +185,8 @@ class BatchCalculator(object):
         Compose the [A] matrix with masses of zeolite components.
         '''
 
-        return np.asarray([z.moles*z.molwt for z in self.components], dtype=float)
+        return np.asarray([z.moles * z.molwt for z in self.components],
+                          dtype=float)
 
     def get_B_matrix(self, session):
         '''
@@ -224,14 +228,14 @@ class BatchCalculator(object):
 
             rct = self.chemicals[rindex]
 
-            h2o = session.query(Chemical).filter(Chemical.formula=="H2O").one()
+            h2o = session.query(Chemical).filter(Chemical.formula == "H2O").one()
             M_solv = h2o.molwt
 
             M_solu = rct.molwt
 
             if abs(rct.concentration - 1.0) > 0.0001:
-                n_solu = M_solu*M_solv/(M_solv + (1.0-rct.concentration)*M_solu/rct.concentration)/M_solu
-                n_solv = M_solu*M_solv/(M_solu + rct.concentration*M_solv/(1.0-rct.concentration))/M_solv
+                n_solu = M_solu * M_solv / (M_solv + (1.0 - rct.concentration) * M_solu / rct.concentration) / M_solu
+                n_solv = M_solu * M_solv / (M_solu + rct.concentration * M_solv / (1.0 - rct.concentration)) / M_solv
             else:
                 n_solu = 1.0
                 n_solv = 0.0
@@ -240,23 +244,23 @@ class BatchCalculator(object):
 
             for batch, comp in comps:
                 if comp.formula != "H2O":
-                    masses.append(batch.coefficient*n_solu*comp.molwt)
+                    masses.append(batch.coefficient * n_solu * comp.molwt)
                 else:
-                    masses.append((batch.coefficient*n_solu + n_solv)*comp.molwt)
+                    masses.append((batch.coefficient * n_solu + n_solv) * comp.molwt)
 
             tot_mass = sum(masses)
             for batch, comp in comps:
                 if comp.formula != "H2O":
-                    res.append((comp.id, batch.coefficient*n_solu*comp.molwt/tot_mass))
+                    res.append((comp.id, batch.coefficient * n_solu * comp.molwt / tot_mass))
                 else:
-                    res.append((comp.id, (batch.coefficient*n_solu + n_solv)*comp.molwt/tot_mass))
+                    res.append((comp.id, (batch.coefficient * n_solu + n_solv) * comp.molwt / tot_mass))
             return res
 
         elif self.chemicals[rindex].kind == "reactant":
             if len(comps) > 1:
-                tot_mass = sum([b.coefficient*c.molwt for b, c in comps])
+                tot_mass = sum([b.coefficient * c.molwt for b, c in comps])
                 for batch, comp in comps:
-                    res.append((comp.id, batch.coefficient*comp.molwt/tot_mass))
+                    res.append((comp.id, batch.coefficient * comp.molwt / tot_mass))
             else:
                 res.append((comps[0][1].id, 1.0))
             return res
@@ -269,7 +273,7 @@ class BatchCalculator(object):
         Rescale all masses of chemicals by a `scale_all` factor.
         '''
 
-        res = [s.mass/self.scale_all for s in self.chemicals]
+        res = [s.mass / self.scale_all for s in self.chemicals]
         return res
 
     def rescale_to_chemical(self, chemical, desired_mass):
@@ -278,10 +282,9 @@ class BatchCalculator(object):
         specified by the user.
         '''
 
-        self.item_scale = chemical.mass/float(desired_mass)
-        res = [s.mass/self.item_scale for s in self.chemicals]
+        self.item_scale = chemical.mass / float(desired_mass)
+        res = [s.mass / self.item_scale for s in self.chemicals]
         return res
-
 
     def rescale_to_sample(self, selected):
         '''
@@ -290,8 +293,8 @@ class BatchCalculator(object):
         size.
         '''
 
-        self.sample_scale = sum([s.mass for s in selected])/float(self.sample_size)
-        res = [s.mass/self.sample_scale for s in self.chemicals]
+        self.sample_scale = sum([s.mass for s in selected]) / float(self.sample_size)
+        res = [s.mass / self.sample_scale for s in self.chemicals]
         return res
 
     def rescale_to_item(self, component, desired_moles):
@@ -300,8 +303,8 @@ class BatchCalculator(object):
         selected *item* has th number of moles equal to *amount*.
         '''
 
-        self.item_scale = component.moles/desired_moles
-        res = [s.moles/self.item_scale for s in self.components]
+        self.item_scale = component.moles / desired_moles
+        res = [s.moles / self.item_scale for s in self.components]
         return res
 
     def print_A(self):

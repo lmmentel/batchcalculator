@@ -29,15 +29,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__version__ = "0.2.2"
 
-import copy
 import os
 import pickle
 import subprocess
 import sys
 import traceback
-from collections import OrderedDict
 
 import numpy as np
 
@@ -45,7 +42,7 @@ import wx
 import wx.grid as gridlib
 from wx.lib.wordwrap import wordwrap
 
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView import ObjectListView
 
 from batchcalc.tex_writer import get_report_as_string
 from batchcalc.pdf_writer import create_pdf, create_pdf_composition
@@ -55,8 +52,8 @@ from batchcalc import dialogs
 
 from batchcalc.utils import get_columns
 
-# uncomment the line below for debugging
-#import wx.lib.inspection
+__version__ = "0.2.1"
+
 
 def clean_tex(fname):
     '''Clean the auxiliary tex files.'''
@@ -67,10 +64,11 @@ def clean_tex(fname):
         if os.path.exists(fil):
             os.remove(fil)
 
+
 class AddModifyDBBaseFrame(wx.Frame):
     def __init__(self, parent, cols=None, id=wx.ID_ANY, title="Edit Database",
-            pos=wx.DefaultPosition, size=(500, 300),
-            style=wx.DEFAULT_FRAME_STYLE, name=""):
+                 pos=wx.DefaultPosition, size=(500, 300),
+                 style=wx.DEFAULT_FRAME_STYLE, name=""):
 
         super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos, size, style, name)
 
@@ -78,9 +76,9 @@ class AddModifyDBBaseFrame(wx.Frame):
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
-        self.olv = ObjectListView(self, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.olv.evenRowsBackColor="#DCF0C7"
-        self.olv.oddRowsBackColor="#FFFFFF"
+        self.olv = ObjectListView(self, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.olv.evenRowsBackColor = "#DCF0C7"
+        self.olv.oddRowsBackColor = "#FFFFFF"
         self.olv.SetEmptyListMsg("No Records Found")
 
         # create the button row
@@ -100,7 +98,7 @@ class AddModifyDBBaseFrame(wx.Frame):
         showAllBtn.Bind(wx.EVT_BUTTON, self.onShowAllRecords)
         btnSizer.Add(showAllBtn, 0, wx.ALL, 5)
 
-        mainSizer.Add(self.olv, 1, wx.ALL|wx.EXPAND, 5)
+        mainSizer.Add(self.olv, 1, wx.ALL | wx.EXPAND, 5)
         mainSizer.Add(btnSizer, 0, wx.CENTER)
         self.SetSizer(mainSizer)
 
@@ -129,6 +127,7 @@ class AddModifyDBBaseFrame(wx.Frame):
         '''Updates the record list to show all of them'''
 
         print "showing all"
+
 
 class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
@@ -201,6 +200,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         batches = ctrl.get_batches(self.session)
         self.set_olv(batches)
 
+
 class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
     def __init__(self, parent, **kwargs):
@@ -267,8 +267,10 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
         '''Get all chemical records and put them in the OLV'''
 
-        chemicals = ctrl.get_chemicals(self.session, components=None, showall=True)
+        chemicals = ctrl.get_chemicals(self.session, components=None,
+                                       showall=True)
         self.set_olv(chemicals)
+
 
 class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
@@ -428,6 +430,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         categories = ctrl.get_categories(self.session)
         self.set_olv(categories)
 
+
 class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
 
     def __init__(self, parent, **kwargs):
@@ -510,12 +513,15 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         reactions = ctrl.get_reactions(self.session)
         self.set_olv(reactions)
 
+
 class ShowBFrame(wx.Frame):
     def __init__(self, parent, log, id=wx.ID_ANY, title="Batch Matrix",
-            pos=wx.DefaultPosition, size=(500, 300),
-            style=wx.DEFAULT_FRAME_STYLE, name="Show Batch Matrix Dialog"):
+                 pos=wx.DefaultPosition, size=(500, 300),
+                 style=wx.DEFAULT_FRAME_STYLE,
+                 name="Show Batch Matrix Dialog"):
 
-        super(ShowBFrame, self).__init__(parent, id, title, pos, size, style, name)
+        super(ShowBFrame, self).__init__(parent, id, title, pos, size, style,
+                                         name)
 
         panel = wx.Panel(self, -1, style=0)
         grid = CustTableGrid(panel, parent.model)
@@ -523,10 +529,10 @@ class ShowBFrame(wx.Frame):
         okbtn.Bind(wx.EVT_BUTTON, self.OnOKButton)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(grid, 1, wx.GROW|wx.ALL, 5)
+        sizer.Add(grid, 1, wx.GROW | wx.ALL, 5)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(okbtn)
-        sizer.Add(hbox, flag=wx.ALIGN_RIGHT|wx.ALL, border=10)
+        sizer.Add(hbox, flag=wx.ALIGN_RIGHT | wx.ALL, border=10)
         panel.SetSizer(sizer)
 
     def OnOKButton(self, evt):
@@ -535,28 +541,30 @@ class ShowBFrame(wx.Frame):
     def OnButtonFocus(self, evt):
         pass
 
+
 class ShowSynthesesFrame(wx.Frame):
 
-    def __init__(self, parent, session, cols=None, id=wx.ID_ANY, title="Syntheses",
-            pos=wx.DefaultPosition, size=(500, 300),
-            style=wx.DEFAULT_FRAME_STYLE, name=""):
+    def __init__(self, parent, session, cols=None, id=wx.ID_ANY,
+                 title="Syntheses", pos=wx.DefaultPosition, size=(600, 400),
+                 style=wx.DEFAULT_FRAME_STYLE, name="Syntheses"):
 
-        super(ShowSynthesesFrame, self).__init__(parent, id, title, pos, size, style, name)
+        super(ShowSynthesesFrame, self).__init__(parent, id, title, pos,
+                                                 size, style, name)
 
         # attributes
 
         self.cols = ["id", "name", "target", "laborant", "reference",
                      "temperature", "descr"]
+
         self.session = session
         self.model = BatchCalculator()
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
-        self.olv = ObjectListView(self, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.olv.evenRowsBackColor="#DCF0C7"
-        self.olv.oddRowsBackColor="#FFFFFF"
+        self.olv = ObjectListView(self, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.olv.evenRowsBackColor = "#DCF0C7"
+        self.olv.oddRowsBackColor = "#FFFFFF"
         self.olv.SetEmptyListMsg("No Records Found")
 
         # create the button row
@@ -564,10 +572,6 @@ class ShowSynthesesFrame(wx.Frame):
         loadRecordBtn = wx.Button(self, label="Load")
         loadRecordBtn.Bind(wx.EVT_BUTTON, self.onLoadRecord)
         btnSizer.Add(loadRecordBtn, 0, wx.ALL, 5)
-
-        addRecordBtn = wx.Button(self, label="Add")
-        addRecordBtn.Bind(wx.EVT_BUTTON, self.onAddRecord)
-        btnSizer.Add(addRecordBtn, 0, wx.ALL, 5)
 
         editRecordBtn = wx.Button(self, label="Edit")
         editRecordBtn.Bind(wx.EVT_BUTTON, self.onEditRecord)
@@ -577,29 +581,23 @@ class ShowSynthesesFrame(wx.Frame):
         deleteRecordBtn.Bind(wx.EVT_BUTTON, self.onDelete)
         btnSizer.Add(deleteRecordBtn, 0, wx.ALL, 5)
 
+        exportRecordBtn = wx.Button(self, label="Export")
+        exportRecordBtn.Bind(wx.EVT_BUTTON, self.onExportRecord)
+        btnSizer.Add(exportRecordBtn, 0, wx.ALL, 5)
+
         cancelBtn = wx.Button(self, label="Cancel")
         cancelBtn.Bind(wx.EVT_BUTTON, self.OnCloseFrame)
         self.Bind(wx.EVT_CLOSE, self.OnCloseFrame)
         btnSizer.Add(cancelBtn, 0, wx.ALL, 5)
 
-        mainSizer.Add(self.olv, 1, wx.ALL|wx.EXPAND, 5)
+        mainSizer.Add(self.olv, 1, wx.ALL | wx.EXPAND, 5)
         mainSizer.Add(btnSizer, 0, wx.CENTER)
         self.SetSizerAndFit(mainSizer)
 
         self.show_all()
 
-    def onAddRecord(self, event):
-        '''Add a record to the database'''
-
-        dlg = ctrl.AddSynthesisRecordDialog(parent=self,
-                                                  model=self.model,
-                                                  session=self.session)
-        dlg.ShowModal()
-        dlg.Destroy()
-        self.show_all()
-
     def onEditRecord(self, event):
-        '''Edit a record'''
+        'Edit a record'
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
@@ -616,6 +614,18 @@ class ShowSynthesesFrame(wx.Frame):
         dlg.Destroy()
         self.show_all()
 
+    def onExportRecord(self, event):
+        'Add a record to the database'
+
+        # TODO: finish this
+
+        sel_row = self.olv.GetSelectedObject()
+        if sel_row is None:
+            dialogs.show_message_dlg("No row selected", "Error")
+            return
+
+        print "exporting synthesis: ", sel_row
+
     def onDelete(self, event):
         '''Delete a synthesis record'''
 
@@ -627,9 +637,7 @@ class ShowSynthesesFrame(wx.Frame):
         self.show_all()
 
     def onLoadRecord(self, event):
-        """
-        Load a record into the batch calculator
-        """
+        'Load a record into the batch calculator'
 
         # reset the calcualtor state
         sel_row = self.olv.GetSelectedObject()
@@ -669,6 +677,7 @@ class ShowSynthesesFrame(wx.Frame):
         syntheses = ctrl.get_syntheses(self.session)
         self.set_olv(syntheses)
 
+
 class CustomDataTable(gridlib.PyGridTableBase):
     def __init__(self, model):
         gridlib.PyGridTableBase.__init__(self)
@@ -676,7 +685,7 @@ class CustomDataTable(gridlib.PyGridTableBase):
         self.col_labels = [x.listctrl_label() for x in model.components]
         self.row_labels = [x.listctrl_label() for x in model.chemicals]
 
-        self.data_types = [gridlib.GRID_VALUE_FLOAT]*len(model.chemicals)
+        self.data_types = [gridlib.GRID_VALUE_FLOAT] * len(model.chemicals)
 
         self.data = model.B.tolist()
 
@@ -751,6 +760,7 @@ class CustomDataTable(gridlib.PyGridTableBase):
     def CanSetValueAs(self, row, col, typeName):
         return self.CanGetValueAs(row, col, typeName)
 
+
 class CustTableGrid(gridlib.Grid):
     def __init__(self, parent, model):
         gridlib.Grid.__init__(self, parent, -1)
@@ -758,12 +768,12 @@ class CustTableGrid(gridlib.Grid):
         table = CustomDataTable(model)
 
         # The second parameter means that the grid is to take ownership of the
-        # table and will destroy it when done.  Otherwise you would need to keep
-        # a reference to it and call it's Destroy method later.
+        # table and will destroy it when done.  Otherwise you would need to
+        # keep a reference to it and call it's Destroy method later.
         self.SetTable(table, True)
 
-        #self.SetRowLabelSize(0)
-        self.SetMargins(5,5)
+        # self.SetRowLabelSize(0)
+        self.SetMargins(5, 5)
         self.AutoSizeColumns(True)
         for i in range(self.GetNumberRows()):
             self.SetColFormatFloat(i, width=10, precision=4)
@@ -771,19 +781,19 @@ class CustTableGrid(gridlib.Grid):
 
         gridlib.EVT_GRID_CELL_LEFT_DCLICK(self, self.OnLeftDClick)
 
-
     # I do this because I don't like the default behaviour of not starting the
     # cell editor on double clicks, but only a second click.
     def OnLeftDClick(self, evt):
         if self.CanEnableCellControl():
             self.EnableCellEditControl()
 
+
 def compRowFormatter(listItem, Component):
-    red    = "#FF6B66"
+    red = "#FF6B66"
     yellow = "#FFDE66"
     orange = "#FF9166"
-    green  = "#D4FF66"
-    gray   = "#939393"
+    green = "#D4FF66"
+    gray = "#939393"
 
     if Component.category == "zeolite":
         listItem.SetBackgroundColour(red)
@@ -791,6 +801,7 @@ def compRowFormatter(listItem, Component):
         listItem.SetBackgroundColour(yellow)
     elif Component.category == "zgm":
         listItem.SetBackgroundColour(orange)
+
 
 class InputPanel(wx.Panel):
 
@@ -802,23 +813,26 @@ class InputPanel(wx.Panel):
         self.model = model
 
         self.comp_cols = ["name", "formula", "molwt", "short", "category"]
-        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind", "physform", "cas"]
+        self.chem_cols = ["name", "formula", "conc", "molwt", "short", "kind",
+                          "physform", "cas"]
 
         cmptxt = wx.StaticText(self, -1, label="Components")
         rcttxt = wx.StaticText(self, -1, label="Chemicals")
         cmptxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
         rcttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        self.comp_olv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.comp_olv = ObjectListView(self, wx.ID_ANY,
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.comp_olv.SetEmptyListMsg('Add Components')
         self.comp_olv.cellEditMode = ObjectListView.CELLEDIT_DOUBLECLICK
         self.comp_olv.rowFormatter = compRowFormatter
 
-        self.chem_olv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
+        self.chem_olv = ObjectListView(self, wx.ID_ANY,
+                                       style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                       useAlternateBackColors=True)
         self.chem_olv.SetEmptyListMsg('Add Chemicals')
-        self.chem_olv.evenRowsBackColor="#DCF0C7"
-        self.chem_olv.oddRowsBackColor="#FFFFFF"
+        self.chem_olv.evenRowsBackColor = "#DCF0C7"
+        self.chem_olv.oddRowsBackColor = "#FFFFFF"
         self.chem_olv.cellEditMode = ObjectListView.CELLEDIT_SINGLECLICK
 
         self.SetComponents()
@@ -830,14 +844,22 @@ class InputPanel(wx.Panel):
 
         gbs = wx.GridBagSizer(hgap=10, vgap=10)
 
-        gbs.Add(cmptxt, pos=(0,0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
-        gbs.Add(rcttxt, pos=(0,1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP, border=5)
+        gbs.Add(cmptxt, pos=(0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.TOP,
+                border=5)
+        gbs.Add(rcttxt, pos=(0, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.TOP,
+                border=5)
 
-        gbs.Add(self.comp_olv, pos=(1, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.LEFT, border=10)
-        gbs.Add(self.chem_olv, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.RIGHT, border=10)
+        gbs.Add(self.comp_olv, pos=(1, 0),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.LEFT,
+                border=10)
+        gbs.Add(self.chem_olv, pos=(1, 1),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.RIGHT,
+                border=10)
 
-        gbs.Add(zeobtn, pos=(2, 0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
-        gbs.Add(rctbtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM, border=5)
+        gbs.Add(zeobtn, pos=(2, 0),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, border=5)
+        gbs.Add(rctbtn, pos=(2, 1),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.BOTTOM, border=5)
 
         self.SetSizerAndFit(gbs)
         gbs.AddGrowableCol(0)
@@ -899,6 +921,7 @@ class InputPanel(wx.Panel):
         self.chem_olv.SetColumns(olv_cols)
         self.chem_olv.SetObjects(self.model.chemicals)
 
+
 class MolesInputPanel(InputPanel):
     '''
     Input panel for the inverse calculation masses -> moles
@@ -921,6 +944,7 @@ class MolesInputPanel(InputPanel):
         olv_cols[1].isEditable = True
         self.chem_olv.SetColumns(olv_cols)
         self.chem_olv.SetObjects(self.model.chemicals)
+
 
 class OutputPanel(wx.Panel):
 
@@ -1074,12 +1098,12 @@ class OutputPanel(wx.Panel):
 
             if len(item) == 0 or len(item) > 1:
                 dlg = wx.MessageDialog(None, "Precisely one item has to be selected.",
-                                      "", wx.OK | wx.ICON_INFORMATION)
+                                       "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
                 newmasses = self.model.rescale_to_chemical(item[0], mass)
-                for chemical, newmass  in zip(self.model.chemicals, newmasses):
+                for chemical, newmass in zip(self.model.chemicals, newmasses):
                     chemical.mass = newmass
                 statictext.SetLabel("{0:6.2f}".format(mass))
 
@@ -1110,7 +1134,7 @@ class OutputPanel(wx.Panel):
             self.model.selections = selections
             if len(selections) == 0:
                 dlg = wx.MessageDialog(None, "At least one reactant must be selected.",
-                                      "", wx.OK | wx.ICON_INFORMATION)
+                                       "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
@@ -1126,6 +1150,7 @@ class OutputPanel(wx.Panel):
         self.resultOlv.SetColumns(olv_cols)
         self.resultOlv.SetObjects(self.model.chemicals)
 
+
 class MolesOutputPanel(wx.Panel):
 
     def __init__(self, parent, model):
@@ -1135,10 +1160,10 @@ class MolesOutputPanel(wx.Panel):
 
         resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.resultOlv.evenRowsBackColor="#DCF0C7"
-        self.resultOlv.oddRowsBackColor="#FFFFFF"
+        self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                        useAlternateBackColors=True)
+        self.resultOlv.evenRowsBackColor = "#DCF0C7"
+        self.resultOlv.oddRowsBackColor = "#FFFFFF"
         calculatebtn = wx.Button(self, label="Calculate")
         rescalebtn = wx.Button(self, label="Rescale")
 
@@ -1147,14 +1172,14 @@ class MolesOutputPanel(wx.Panel):
         # Layout
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, border=5)
-        vbox.Add(self.resultOlv, 1, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND|wx.LEFT|wx.RIGHT, border=10)
+        vbox.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, border=5)
+        vbox.Add(self.resultOlv, 1, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.LEFT | wx.RIGHT, border=10)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(calculatebtn, 0, flag=wx.ALL, border=5)
         hbox.Add(rescalebtn, 0, flag=wx.ALL, border=5)
 
-        vbox.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.RIGHT, border=10)
+        vbox.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT, border=10)
 
         self.SetSizer(vbox)
         self.Fit()
@@ -1199,12 +1224,12 @@ class MolesOutputPanel(wx.Panel):
 
             if len(item) == 0 or len(item) > 1:
                 dlg = wx.MessageDialog(None, "Precisely one item has to be selected.",
-                                      "", wx.OK | wx.ICON_INFORMATION)
+                                       "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
             else:
                 newmoles = self.model.rescale_to_item(item[0], amount)
-                for c, m  in zip(self.model.components, newmoles):
+                for c, m in zip(self.model.components, newmoles):
                     c.moles = m
                 self.resultOlv.SetObjects(self.model.components)
                 self.Layout()
@@ -1215,6 +1240,7 @@ class MolesOutputPanel(wx.Panel):
         olv_cols = get_columns(["label", "moles", "mass"])
         self.resultOlv.SetColumns(olv_cols)
         self.resultOlv.SetObjects(self.model.components)
+
 
 class InverseBatch(wx.Frame):
 
@@ -1330,8 +1356,8 @@ class InverseBatch(wx.Frame):
         Open the file dialog to choose the name of the pdf file.
         '''
 
-        pdfwildcard =  "pdf Files (*.pdf)|*pdf|"     \
-                       "All files (*.*)|*.*"
+        pdfwildcard = "pdf Files (*.pdf)|*pdf|"     \
+                      "All files (*.*)|*.*"
 
 
         dlg = wx.FileDialog(
@@ -1357,6 +1383,7 @@ class InverseBatch(wx.Frame):
         elif type(self.model.B).__module__ == np.__name__:
             frame = ShowBFrame(self, sys.stdout)
             frame.Show(True)
+
 
 class MainFrame(wx.Frame):
     '''
@@ -1706,8 +1733,8 @@ class MainFrame(wx.Frame):
 
         dlg = wx.FileDialog(
             self, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", wildcard=wildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
-            )
+            defaultFile="", wildcard=wildcard,
+            style=wx.SAVE | wx.OVERWRITE_PROMPT)
 
         # This sets the default filter that the user will initially see. Otherwise,
         # the first filter in the list will be used by default.
@@ -1725,7 +1752,7 @@ class MainFrame(wx.Frame):
                     self.model.A, self.model.B, self.model.X,
                     self.model.scale_all, self.model.sample_scale,
                     self.model.sample_size, self.model.selections)
-            fp = file(path, 'wb') # Create file anew
+            fp = file(path, 'wb')  # Create file anew
             pickle.dump(data, fp, protocol=pickle.HIGHEST_PROTOCOL)
             fp.close()
 
@@ -1736,12 +1763,15 @@ class MainFrame(wx.Frame):
         Display the dialog to save the current calculation internally.
         '''
 
-        # check if any calcualtion was done or if there are some chemicals and
+        # check if any calculation was done or if there are some chemicals and
         # components selected
 
-        dlg = ctrl.AddSynthesisRecordDialog(parent=self,
+        dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                   model=self.model,
-                                                    session=self.session)
+                                                  session=self.session,
+                                                  record=None,
+                                                  title="Add",
+                                                  add_record=True)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -1750,14 +1780,13 @@ class MainFrame(wx.Frame):
         Open the file dialog to choose the name of the pdf file.
         '''
 
-        pdfwildcard =  "pdf Files (*.pdf)|*pdf|"     \
-                       "All files (*.*)|*.*"
+        pdfwildcard = "pdf Files (*.pdf)|*pdf|"     \
+                      "All files (*.*)|*.*"
 
-
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", wildcard=pdfwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
-            )
+        dlg = wx.FileDialog(self, message="Save file as ...",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=pdfwildcard,
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1769,22 +1798,22 @@ class MainFrame(wx.Frame):
 
     def OnSaveTeX(self, texdata, typeset, pdflatex):
 
-        texwildcard =  "TeX Files (*.tex)|*tex|"     \
-                       "All files (*.*)|*.*"
+        texwildcard = "TeX Files (*.tex)|*tex|"     \
+                      "All files (*.*)|*.*"
 
         opts = "-halt-on-error"
 
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", wildcard=texwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
-            )
+        dlg = wx.FileDialog(self, message="Save file as ...",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=texwildcard,
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             if not os.path.splitext(path)[1] == '.tex':
                 path += '.tex'
 
-            fp = file(path, 'w') # Create file anew
+            fp = file(path, 'w')  # Create file anew
             fp.write(texdata)
             fp.close()
 
@@ -1822,11 +1851,11 @@ class MainFrame(wx.Frame):
             frame = ShowBFrame(self, sys.stdout)
             frame.Show(True)
 
-
     def OnShowSyntheses(self, event):
         '''Show a frame with all stored syntheses'''
 
-        frame = ShowSynthesesFrame(parent=self, size=(1000, 600), session=self.session)
+        frame = ShowSynthesesFrame(parent=self, size=(1000, 600),
+                                   session=self.session)
         frame.Show(True)
 
     def update_all_objectlistviews(self):
@@ -1837,6 +1866,7 @@ class MainFrame(wx.Frame):
         self.inppanel.comp_olv.SetObjects(self.model.components)
         self.inppanel.chem_olv.SetObjects(self.model.chemicals)
         self.outpanel.resultOlv.SetObjects(self.model.chemicals)
+
 
 def ExceptionHook(exctype, value, trace):
     '''
@@ -1858,6 +1888,7 @@ def ExceptionHook(exctype, value, trace):
     dlg.ShowModal()
     dlg.Destroy()
 
+
 class ZeoGui(wx.App):
 
     def OnInit(self):
@@ -1871,10 +1902,13 @@ class ZeoGui(wx.App):
 
         return True
 
-if __name__ == "__main__":
+
+def main():
 
     app = ZeoGui(False)
-    # uncomment the line below for debugging
-    #wx.lib.inspection.InspectionTool().Show()
+
+    # uncomment for debugging
+    # import wx.lib.inspection
+    # wx.lib.inspection.InspectionTool().Show()
 
     app.MainLoop()

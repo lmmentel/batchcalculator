@@ -138,3 +138,6 @@ sympy-plots-for-*.tex/
 
 ### Vim swap files
 .*.swp
+
+bc.sublime-project
+bc.sublime-workspace
