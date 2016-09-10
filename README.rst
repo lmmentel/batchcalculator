@@ -1,6 +1,6 @@
-========================
-Zeolite Batch Calculator
-========================
+================
+Batch Calculator
+================
 
 A GUI script based on `wxPython <http://www.wxpython.org>`_ for calculating the
 correct amount of reactants (batch) for a particular zeolite composition given
@@ -12,11 +12,12 @@ Installation
 Prerequisites
 -------------
 
-* `python <https://www.python.org/>`_ 2.7.x,
+* `Python <https://www.python.org/>`_ 2.7.x,
 * `wxPython <http://www.wxpython.org>`_, run and tested with wx version 2.8.12.1,
 * `numpy <http://www.numpy.org/>`_, tested with version 1.8.1,
 * `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9.7,
 * `Jinja2 <http://jinja.pocoo.org>`_, 2.7.3,
+* `reportlab <http://www.reportlab.com/>`_,
 * `ObjectListView
   <http://sourceforge.net/projects/objectlistview/files/objectlistview-python/v1.2/>`_, 1.2,
 
