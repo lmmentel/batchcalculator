@@ -66,15 +66,16 @@ def clean_tex(fname):
 
 
 class AddModifyDBBaseFrame(wx.Frame):
+
     def __init__(self, parent, cols=None, id=wx.ID_ANY, title="Edit Database",
                  pos=wx.DefaultPosition, size=(500, 300),
                  style=wx.DEFAULT_FRAME_STYLE, name=""):
 
-        super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos, size, style, name)
+        super(AddModifyDBBaseFrame, self).__init__(parent, id, title, pos,
+                                                   size, style, name)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        font = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD)
 
         self.olv = ObjectListView(self, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.olv.evenRowsBackColor = "#DCF0C7"
@@ -168,7 +169,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
                                               record=sel_row,
                                               title="Modify",
                                               add_record=False)
-        result = dlg.ShowModal()
+        dlg.ShowModal()
         dlg.Destroy()
         self.show_all()
 
@@ -238,7 +239,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
                                                  record=sel_row,
                                                  title="Modify",
                                                  add_record=False)
-        result = dlg.ShowModal()
+        dlg.ShowModal()
         dlg.Destroy()
         self.show_all()
 
@@ -308,7 +309,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
                                                   record=sel_row,
                                                   title="Modify",
                                                   add_record=False)
-        result = dlg.ShowModal()
+        dlg.ShowModal()
         dlg.Destroy()
         self.show_all()
 
@@ -347,6 +348,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
         components = ctrl.get_components(self.session)
         self.set_olv(components)
 
+
 class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
     def __init__(self, parent, **kwargs):
@@ -364,9 +366,10 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        dlg = wx.TextEntryDialog(None,
-            "Enter new category",
-            "Enter new category", "", style=wx.OK|wx.CANCEL)
+        dlg = wx.TextEntryDialog(None, "Enter new category",
+                                 "Enter new category", "",
+                                 style=wx.OK | wx.CANCEL)
+
         if dlg.ShowModal() == wx.ID_OK:
             category = dlg.GetValue()
             if category != "":
@@ -387,9 +390,10 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
             dialogs.show_message_dlg("No row selected", "Error")
             return
 
-        dlg = wx.TextEntryDialog(None,
-            "Enter the category",
-            "Enter the category", sel_row.name, style=wx.OK|wx.CANCEL)
+        dlg = wx.TextEntryDialog(None, "Enter the category",
+                                 "Enter the category", sel_row.name,
+                                 style=wx.OK | wx.CANCEL)
+
         if dlg.ShowModal() == wx.ID_OK:
             category = dlg.GetValue()
             if category != "":
@@ -447,9 +451,10 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        dlg = wx.TextEntryDialog(None,
-            "Enter the reaction",
-            "Enter the reaction", "", style=wx.OK|wx.CANCEL)
+        dlg = wx.TextEntryDialog(None, "Enter the reaction",
+                                 "Enter the reaction", "",
+                                 style=wx.OK | wx.CANCEL)
+
         if dlg.ShowModal() == wx.ID_OK:
             reaction = dlg.GetValue()
             if reaction != "":
@@ -470,9 +475,10 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
             dialogs.show_message_dlg("No row selected", "Error")
             return
 
-        dlg = wx.TextEntryDialog(None,
-            "Enter the reaction",
-            "Enter the reaction", sel_row.reaction, style=wx.OK|wx.CANCEL)
+        dlg = wx.TextEntryDialog(None, "Enter the reaction",
+                                 "Enter the reaction", sel_row.reaction,
+                                 style=wx.OK | wx.CANCEL)
+
         if dlg.ShowModal() == wx.ID_OK:
             reaction = dlg.GetValue()
             if reaction != "":
@@ -610,7 +616,7 @@ class ShowSynthesesFrame(wx.Frame):
                                                   record=sel_row,
                                                   title="Modify",
                                                   add_record=False)
-        result = dlg.ShowModal()
+        dlg.ShowModal()
         dlg.Destroy()
         self.show_all()
 
@@ -789,11 +795,11 @@ class CustTableGrid(gridlib.Grid):
 
 
 def compRowFormatter(listItem, Component):
+    'Formatter for the components OLV'
+
     red = "#FF6B66"
     yellow = "#FFDE66"
     orange = "#FF9166"
-    green = "#D4FF66"
-    gray = "#939393"
 
     if Component.category == "zeolite":
         listItem.SetBackgroundColour(red)
@@ -882,8 +888,9 @@ class InputPanel(wx.Panel):
         self.session = tw.get_session()
 
         self.dlg = ctrl.ComponentsDialog(self, self.session, self.model,
-                    cols=get_columns(self.comp_cols),
-                    id=-1, title="Choose Zeolite Components...")
+                                         cols=get_columns(self.comp_cols),
+                                         id=-1,
+                                         title="Choose Zeolite Components...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.components = self.dlg.GetCurrentSelections()
@@ -899,8 +906,8 @@ class InputPanel(wx.Panel):
         self.session = tw.get_session()
 
         self.dlg = ctrl.ChemicalsDialog(self, self.session, self.model,
-                    cols=get_columns(self.chem_cols),
-                    id=-1, title="Choose Chemicals...")
+                                        cols=get_columns(self.chem_cols),
+                                        id=-1, title="Choose Chemicals...")
         result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.model.chemicals = self.dlg.GetCurrentSelections()
@@ -954,41 +961,47 @@ class OutputPanel(wx.Panel):
         # Attributes
 
         self.model = model
-        self.gray  = "#939393"
+        self.gray = "#939393"
 
         resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER,
-                useAlternateBackColors=True)
-        self.resultOlv.evenRowsBackColor="#DCF0C7"
-        self.resultOlv.oddRowsBackColor="#FFFFFF"
+        self.resultOlv = ObjectListView(self, wx.ID_ANY,
+                                        style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+                                        useAlternateBackColors=True)
+        self.resultOlv.evenRowsBackColor = "#DCF0C7"
+        self.resultOlv.oddRowsBackColor = "#FFFFFF"
 
         calculateBtn = wx.Button(self, label="Calculate")
 
-        scaling_title = wx.StaticBox( self, -1, "Scaling options" )
-        scaling_box = wx.StaticBoxSizer( scaling_title, wx.VERTICAL )
+        scaling_title = wx.StaticBox(self, -1, "Scaling options")
+        scaling_box = wx.StaticBoxSizer(scaling_title, wx.VERTICAL)
 
         self.scaling_ctrls = []
-        scalenone = wx.RadioButton(self, -1, label="No scaling", style=wx.RB_GROUP)
+        scalenone = wx.RadioButton(self, -1, label="No scaling",
+                                   style=wx.RB_GROUP)
         scaleall = wx.RadioButton(self, -1, label="Scale all")
         scalesample = wx.RadioButton(self, -1, label="Scale to sample")
         scaleitem = wx.RadioButton(self, -1, label="Scale to item")
 
-        sn_text = wx.StaticText(self, -1, label="", size=(100, 20), style=wx.ALIGN_RIGHT)
-        sa_text = wx.StaticText(self, -1, label="", size=(70, 20), style=wx.ALIGN_RIGHT)
-        ss_text = wx.StaticText(self, -1, label="", size=(70, 20), style=wx.ALIGN_RIGHT)
-        si_text = wx.StaticText(self, -1, label="", size=(70, 20), style=wx.ALIGN_RIGHT)
+        sn_text = wx.StaticText(self, -1, label="", size=(100, 20),
+                                style=wx.ALIGN_RIGHT)
+        sa_text = wx.StaticText(self, -1, label="", size=(70, 20),
+                                style=wx.ALIGN_RIGHT)
+        ss_text = wx.StaticText(self, -1, label="", size=(70, 20),
+                                style=wx.ALIGN_RIGHT)
+        si_text = wx.StaticText(self, -1, label="", size=(70, 20),
+                                style=wx.ALIGN_RIGHT)
 
         self.scaling_ctrls.append(("none", scalenone, sn_text))
         self.scaling_ctrls.append(("all", scaleall, sa_text))
         self.scaling_ctrls.append(("sample", scalesample, ss_text))
         self.scaling_ctrls.append(("item", scaleitem, si_text))
 
-        scaling_grid = wx.FlexGridSizer( cols=2 )
+        scaling_grid = wx.FlexGridSizer(cols=2)
         for label, radio, text in self.scaling_ctrls:
-            scaling_grid.Add( radio, 0, wx.ALIGN_LEFT|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
-            scaling_grid.Add( text, 0, wx.ALIGN_RIGHT|wx.LEFT|wx.RIGHT|wx.TOP, 5 )
+            scaling_grid.Add(radio, 0, wx.ALIGN_LEFT | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+            scaling_grid.Add(text, 0, wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.TOP, 5)
 
         scaling_box.Add(scaling_grid)
 
@@ -996,19 +1009,20 @@ class OutputPanel(wx.Panel):
 
         # Layout
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-
         gbs = wx.GridBagSizer(hgap=10, vgap=10)
-
-        gbs.Add(resulttxt, pos=(0, 0), span=(1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT|wx.TOP, border=5)
-
-        gbs.Add(self.resultOlv, pos=(1, 0), span=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT|wx.BOTTOM, border=10)
-        gbs.Add(scaling_box, pos=(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.GROW|wx.LEFT|wx.RIGHT, border=10)
-
-        gbs.Add(calculateBtn, pos=(2, 1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_BOTTOM|wx.BOTTOM|wx.LEFT, border=10)
+        gbs.Add(resulttxt, pos=(0, 0), span=(1, 2),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.TOP, border=5)
+        gbs.Add(self.resultOlv, pos=(1, 0), span=(2, 1),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.GROW | wx.LEFT | wx.BOTTOM,
+                border=10)
+        gbs.Add(scaling_box, pos=(1, 1),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.GROW | wx.LEFT | wx.RIGHT,
+                border=10)
+        gbs.Add(calculateBtn, pos=(2, 1),
+                flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_BOTTOM | wx.BOTTOM | wx.LEFT,
+                border=10)
 
         gbs.AddGrowableCol(0)
-        #gbs.AddGrowableCol(1)
         gbs.AddGrowableRow(1)
 
         self.SetSizerAndFit(gbs)
@@ -1030,7 +1044,6 @@ class OutputPanel(wx.Panel):
 
         tw = wx.GetTopLevelParent(self)
         self.session = tw.get_session()
-        #self.model = tw.get_model()
 
         # get the checked radio control label and StaticText object
         scale_type, text = next((x[0], x[2]) for x in self.scaling_ctrls if x[1].GetValue())
@@ -1057,9 +1070,11 @@ class OutputPanel(wx.Panel):
         it to the ListCtrl.
         '''
 
-        dialog = wx.TextEntryDialog(None,
-            "Enter the scaling factor",
-            "Enter the scaling factor", str(self.model.scale_all), style=wx.OK|wx.CANCEL)
+        dialog = wx.TextEntryDialog(None, "Enter the scaling factor",
+                                    "Enter the scaling factor",
+                                    str(self.model.scale_all),
+                                    style=wx.OK | wx.CANCEL)
+
         if dialog.ShowModal() == wx.ID_OK:
             try:
                 self.model.scale_all = float(dialog.GetValue())
@@ -1081,8 +1096,8 @@ class OutputPanel(wx.Panel):
         '''
 
         rtsd = dialogs.RescaleToItemDialog(self, self.model.chemicals,
-                cols=get_columns(["label", "mass"]),
-                title="Choose chemical and desired mass")
+                                           cols=get_columns(["label", "mass"]),
+                                           title="Choose chemical and desired mass")
 
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
@@ -1116,8 +1131,8 @@ class OutputPanel(wx.Panel):
         '''
 
         rto = dialogs.RescaleToSampleDialog(self, self.model,
-                cols=get_columns(["label", "mass"]),
-                title="Choose chemicals and sample size")
+                                            cols=get_columns(["label", "mass"]),
+                                            title="Choose chemicals and sample size")
         result = rto.ShowModal()
         if result == wx.ID_OK:
             # get the sample size and sample selections
@@ -1160,7 +1175,8 @@ class MolesOutputPanel(wx.Panel):
 
         resulttxt = wx.StaticText(self, -1, label="Results")
         resulttxt.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD))
-        self.resultOlv = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER,
+        self.resultOlv = ObjectListView(self, wx.ID_ANY,
+                                        style=wx.LC_REPORT | wx.SUNKEN_BORDER,
                                         useAlternateBackColors=True)
         self.resultOlv.evenRowsBackColor = "#DCF0C7"
         self.resultOlv.oddRowsBackColor = "#FFFFFF"
@@ -1172,14 +1188,18 @@ class MolesOutputPanel(wx.Panel):
         # Layout
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, border=5)
-        vbox.Add(self.resultOlv, 1, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.LEFT | wx.RIGHT, border=10)
+        vbox.Add(resulttxt, 0, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALL,
+                 border=5)
+        vbox.Add(self.resultOlv, 1,
+                 flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND | wx.LEFT | wx.RIGHT,
+                 border=10)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(calculatebtn, 0, flag=wx.ALL, border=5)
         hbox.Add(rescalebtn, 0, flag=wx.ALL, border=5)
 
-        vbox.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT, border=10)
+        vbox.Add(hbox, 0, flag=wx.ALIGN_CENTER_HORIZONTAL | wx.LEFT | wx.RIGHT,
+                 border=10)
 
         self.SetSizer(vbox)
         self.Fit()
@@ -1209,7 +1229,8 @@ class MolesOutputPanel(wx.Panel):
         '''
 
         rtsd = dialogs.RescaleToItemDialog(self, self.model.components,
-                cols=get_columns(["label", "moles"]), title="Choose one component and enter moles")
+                                           cols=get_columns(["label", "moles"]),
+                                           title="Choose one component and enter moles")
         result = rtsd.ShowModal()
         if result == wx.ID_OK:
             amount, item = rtsd.GetCurrentSelections()
@@ -1258,8 +1279,8 @@ class InverseBatch(wx.Frame):
         self.inppanel = MolesInputPanel(panel, self.session, self.model)
         self.outpanel = MolesOutputPanel(panel, self.session, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
-        vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
+        vbox.Add(self.inppanel, 1, flag=wx.CENTER | wx.EXPAND)
+        vbox.Add(self.outpanel, 1, flag=wx.CENTER | wx.EXPAND)
 
         panel.SetSizer(vbox)
         panel.Fit()
@@ -1270,7 +1291,7 @@ class InverseBatch(wx.Frame):
 
         # File Menu
         filem = wx.Menu()
-        mnew  = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
+        mnew = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
         filem.AppendSeparator()
         mepdf = filem.Append(wx.ID_ANY, "Export pdf")
         filem.AppendSeparator()
@@ -1282,19 +1303,19 @@ class InverseBatch(wx.Frame):
         self.SetMenuBar(menubar)
         # Database Menu
         dbm = wx.Menu()
-        mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
+        mchangedb = dbm.Append(wx.ID_ANY, "Change db\t",
+                               "Switch to a different database")
         menubar.Append(dbm, "Database")
 
         # Event Handlers
 
-        # Bind Menu Handlers
         self.Bind(wx.EVT_MENU, self.OnNew, mnew)
         self.Bind(wx.EVT_MENU, self.OnExit, mexit)
         self.Bind(wx.EVT_MENU, self.OnExportPdf, mepdf)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
         self.Bind(wx.EVT_MENU, self.OnChangeDB, mchangedb)
 
-    # Menu Bindings ------------------------------------------------------------
+    # Menu Bindings
 
     def OnChangeDB(self, event):
         '''
@@ -1305,13 +1326,11 @@ class InverseBatch(wx.Frame):
         dbwildcard = "db Files (*.db)|*.db|"     \
                      "All files (*.*)|*.*"
 
-        dlg = wx.FileDialog(
-            self, message="Choose database file",
-            defaultDir=os.getcwd(),
-            defaultFile="",
-            wildcard=dbwildcard,
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
+        dlg = wx.FileDialog(self, message="Choose database file",
+                            defaultDir=os.getcwd(),
+                            defaultFile="",
+                            wildcard=dbwildcard,
+                            style=wx.OPEN | wx.CHANGE_DIR)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1326,7 +1345,8 @@ class InverseBatch(wx.Frame):
         Open the dialog with options about the pdf document to be written.
         '''
 
-        dlg = dialogs.ExportPdfMinimalDialog(parent=self, id=-1, size=(400, 330))
+        dlg = dialogs.ExportPdfMinimalDialog(parent=self, id=-1,
+                                             size=(400, 330))
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()
@@ -1359,11 +1379,10 @@ class InverseBatch(wx.Frame):
         pdfwildcard = "pdf Files (*.pdf)|*pdf|"     \
                       "All files (*.*)|*.*"
 
-
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", wildcard=pdfwildcard, style=wx.SAVE|wx.OVERWRITE_PROMPT
-            )
+        dlg = wx.FileDialog(self, message="Save file as ...",
+                            defaultDir=os.getcwd(),
+                            defaultFile="", wildcard=pdfwildcard,
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1377,7 +1396,7 @@ class InverseBatch(wx.Frame):
 
         if isinstance(self.model.B, list):
             dlg = wx.MessageDialog(None, "Batch Matrix needs to be defined first.",
-                                    "", wx.OK | wx.ICON_WARNING)
+                                   "", wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
             dlg.Destroy()
         elif type(self.model.B).__module__ == np.__name__:
@@ -1414,12 +1433,9 @@ class MainFrame(wx.Frame):
         splitter.SplitHorizontally(self.inppanel, self.outpanel)
         splitter.SetSashGravity(0.5)
 
-        #self.inppanel = InputPanel(main_panel, self.model)
-        #self.outpanel = OutputPanel(main_panel, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(splitter, 1, wx.EXPAND)
-        #vbox.Add(self.inppanel, 1, flag=wx.CENTER|wx.EXPAND)
-        #vbox.Add(self.outpanel, 1, flag=wx.CENTER|wx.EXPAND)
+
         main_panel.SetSizer(vbox)
         main_panel.Fit()
 
@@ -1494,8 +1510,6 @@ class MainFrame(wx.Frame):
     def get_session(self):
         return self.session
 
-    # Menu Bindings ------------------------------------------------------------
-
     def OnAbout(self, event):
         '''
         Show the about dialog
@@ -1510,9 +1524,10 @@ class MainFrame(wx.Frame):
             "particular zeolite composition given by the molar ratio "     +\
             "of its components.", 350, wx.ClientDC(self)))
 
-        info.WebSite = ("https://github.com/lmmentel/batchcalculator", "ZBC Code Repository")
-        info.Developers = ["Katarzyna Lukaszuk"]
-        #info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
+        info.WebSite = ("https://github.com/lmmentel/batchcalculator",
+                        "Batch Calculator Code Repository")
+        info.Developers = ["Lukasz Mentel", "Katarzyna Lukaszuk"]
+        # info.License = wordwrap(__doc__, 600, wx.ClientDC(self))
         wx.AboutBox(info)
 
     def OnAddBatchToDB(self, event):
@@ -1564,13 +1579,10 @@ class MainFrame(wx.Frame):
         dbwildcard = "db Files (*.db)|*.db|"     \
                      "All files (*.*)|*.*"
 
-        dlg = wx.FileDialog(
-            self, message="Choose database file",
-            defaultDir=os.getcwd(),
-            defaultFile="",
-            wildcard=dbwildcard,
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
+        dlg = wx.FileDialog(self, message="Choose database file",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=dbwildcard,
+                            style=wx.OPEN | wx.CHANGE_DIR)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1617,13 +1629,13 @@ class MainFrame(wx.Frame):
                 create_pdf(path, self.session, self.model, flags)
             except:
                 dlg = wx.MessageDialog(None, "An error occured while generating pdf",
-                                        "", wx.OK | wx.ICON_ERROR)
+                                       "", wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
                 raise
             else:
                 dlg = wx.MessageDialog(None, "Successfully generated pdf",
-                                        "", wx.OK | wx.ICON_INFORMATION)
+                                       "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
 
@@ -1640,10 +1652,11 @@ class MainFrame(wx.Frame):
         # check if there is some results that might need saving
         if any(len(x) != 0 for x in [self.model.components,
                                      self.model.chemicals]):
-            dlg = wx.MessageDialog(self, 'There are unsaved changes, Save now?',
-                                'Save',
-                                wx.YES_NO | wx.CANCEL | wx.ICON_WARNING
-                                )
+            dlg = wx.MessageDialog(self,
+                                   'There are unsaved changes, Save now?',
+                                   'Save',
+                                   wx.YES_NO | wx.CANCEL | wx.ICON_WARNING)
+
             result = dlg.ShowModal()
             if result == wx.ID_YES:
                 self.OnSave(-1)
@@ -1662,13 +1675,10 @@ class MainFrame(wx.Frame):
         dbwildcard = "db Files (*.db)|*.db|"     \
                      "All files (*.*)|*.*"
 
-        dlg = wx.FileDialog(
-            self, message="Choose database file",
-            defaultDir=os.getcwd(),
-            defaultFile="",
-            wildcard=dbwildcard,
-            style=wx.SAVE|wx.OVERWRITE_PROMPT|wx.CHANGE_DIR
-            )
+        dlg = wx.FileDialog(self, message="Choose database file",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=dbwildcard,
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT | wx.CHANGE_DIR)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1680,7 +1690,7 @@ class MainFrame(wx.Frame):
             ctrl.fill_physical_forms_table(self.session)
             ctrl.fill_electrolytes_table(self.session)
             dlg = wx.MessageDialog(None, "Successfully created new database",
-                                    "", wx.OK | wx.ICON_INFORMATION)
+                                   "", wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
 
@@ -1694,28 +1704,24 @@ class MainFrame(wx.Frame):
         wildcard = "ZBC Files (*.zbc)|*.zbc|"     \
                    "All files (*.*)|*.*"
 
-        dlg = wx.FileDialog(
-            self, message="Choose a file",
-            defaultDir=os.getcwd(),
-            defaultFile="",
-            wildcard=wildcard,
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
+        dlg = wx.FileDialog(self, message="Choose a file",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=wildcard, style=wx.OPEN | wx.CHANGE_DIR)
 
         dlg.SetFilterIndex(0)
 
-        # Show the dialog and retrieve the user response. If it is the OK response,
-        # process the data.
+        # Show the dialog and retrieve the user response.
+        # If it is the OK response, process the data.
         if dlg.ShowModal() == wx.ID_OK:
             # This returns a Python list of files that were selected.
             path = dlg.GetPath()
 
             # open the file and read the actual data
             fp = open(path, 'rb')
-            (self.model.components, self.model.chemicals,\
-            self.model.A, self.model.B, self.model.X,\
-            self.model.scale_all, self.model.sample_scale,\
-            self.model.sample_size, self.model.selections) = pickle.load(fp)
+            (self.model.components, self.model.chemicals,
+             self.model.A, self.model.B, self.model.X,
+             self.model.scale_all, self.model.sample_scale,
+             self.model.sample_size, self.model.selections) = pickle.load(fp)
 
             fp.close()
 
@@ -1725,23 +1731,24 @@ class MainFrame(wx.Frame):
 
     def OnSave(self, event):
         '''
-        Open the save file dialog and save the model data to a file as a pickle.
+        Open the save file dialog and save the model data to
+        a file as a pickle.
         '''
 
         wildcard = "ZBC Files (*.zbc)|*.zbc|"     \
                    "All files (*.*)|*.*"
 
-        dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=os.getcwd(),
-            defaultFile="", wildcard=wildcard,
-            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+        dlg = wx.FileDialog(self, message="Save file as ...",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=wildcard,
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
 
-        # This sets the default filter that the user will initially see. Otherwise,
-        # the first filter in the list will be used by default.
+        # This sets the default filter that the user will initially see.
+        # Otherwise, the first filter in the list will be used by default.
         dlg.SetFilterIndex(0)
 
-        # Show the dialog and retrieve the user response. If it is the OK response,
-        # process the data.
+        # Show the dialog and retrieve the user response.
+        # If it is the OK response, process the data.
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             if not os.path.splitext(path)[1] == '.zbc':
@@ -1823,7 +1830,7 @@ class MainFrame(wx.Frame):
                     retcode = subprocess.call([pdflatex, opts, path], )
                     if retcode != 0:
                         dlg = wx.MessageDialog(None, "There were problems generating the pdf, check the log file {l:s}, return code: {r:d}".format(l=path.replace(".tex", ".log"), r=retcode),
-                                                "", wx.OK | wx.ICON_WARNING)
+                                               "", wx.OK | wx.ICON_WARNING)
                         dlg.ShowModal()
                         dlg.Destroy()
                     else:
@@ -1831,12 +1838,12 @@ class MainFrame(wx.Frame):
                         retcode = subprocess.call([pdflatex, opts, path])
                         clean_tex(path)
                         dlg = wx.MessageDialog(None, "Successfully generated the pdf",
-                                                "", wx.OK | wx.ICON_INFORMATION)
+                                               "", wx.OK | wx.ICON_INFORMATION)
                         dlg.ShowModal()
                         dlg.Destroy()
                 else:
                     dlg = wx.MessageDialog(None, "pdflatex not found, pdf not generated",
-                                            "", wx.OK | wx.ICON_WARNING)
+                                           "", wx.OK | wx.ICON_WARNING)
                     dlg.ShowModal()
                     dlg.Destroy()
 
@@ -1844,7 +1851,7 @@ class MainFrame(wx.Frame):
 
         if isinstance(self.model.B, list):
             dlg = wx.MessageDialog(None, "Batch Matrix needs to be defined first.",
-                                    "", wx.OK | wx.ICON_WARNING)
+                                   "", wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
             dlg.Destroy()
         elif type(self.model.B).__module__ == np.__name__:
