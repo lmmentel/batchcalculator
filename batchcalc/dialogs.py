@@ -132,7 +132,7 @@ class ExportPdfDialog(wx.Dialog):
     '''
 
     def __init__(self, parent, id=wx.ID_ANY, title="", record=None,
-                 pos=wx.DefaultPosition, size=(450, 600),
+                 pos=wx.DefaultPosition, size=(420, 450),
                  style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
 
         super(ExportPdfDialog, self).__init__(parent, id, title, pos, size,

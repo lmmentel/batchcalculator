@@ -646,8 +646,8 @@ class ShowSynthesesFrame(wx.Frame):
         # functions
         self.model.calculate_masses(self.session)
 
-        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, record=sel_row,
-                                      size=(400, 520))
+        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, record=sel_row)
+
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()
