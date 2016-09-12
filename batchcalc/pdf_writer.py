@@ -186,6 +186,7 @@ def results_table(model, scale=None):
     tab.setStyle(res_tab_style)
     return tab
 
+
 def synthesis_paragraphs(flags):
 
     story = []
