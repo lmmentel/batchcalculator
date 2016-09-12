@@ -69,7 +69,7 @@ class ExportPdfMinimalDialog(wx.Dialog):
 
     def __init__(self, parent, id=wx.ID_ANY, title="",
                  pos=wx.DefaultPosition, size=(400, 550),
-                 style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
+                 style=wx.DEFAULT_FRAME_STYLE, name="Export PDF Dialog"):
 
         super(ExportPdfMinimalDialog, self).__init__(parent, id, title, pos,
                                                      size, style, name)
@@ -82,8 +82,6 @@ class ExportPdfMinimalDialog(wx.Dialog):
         title = wx.TextCtrl(panel, -1, "")
         author_lbl = wx.StaticText(panel, -1, "Author:")
         author = wx.TextCtrl(panel, -1, "")
-        email_lbl = wx.StaticText(panel, -1, "Email:")
-        email = wx.TextCtrl(panel, -1, "")
         comment_lbl = wx.StaticText(panel, -1, "Comment:")
         comment = wx.TextCtrl(panel, -1, "", size=(-1, 100),
                               style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
@@ -94,7 +92,6 @@ class ExportPdfMinimalDialog(wx.Dialog):
         self.widgets = {
             "title": title,
             "author": author,
-            "email": email,
             "comment": comment,
         }
 
@@ -109,8 +106,6 @@ class ExportPdfMinimalDialog(wx.Dialog):
         fgs_title.Add(title, 0, wx.EXPAND)
         fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(author, 0, wx.EXPAND)
-        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        fgs_title.Add(email, 0, wx.EXPAND)
         fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(comment, 0, wx.GROW)
 
@@ -136,23 +131,28 @@ class ExportPdfDialog(wx.Dialog):
     A dialog for setting the options of the pdf report (using reportlab).
     '''
 
-    def __init__(self, parent, id=wx.ID_ANY, title="",
+    def __init__(self, parent, id=wx.ID_ANY, title="", record=None,
                  pos=wx.DefaultPosition, size=(450, 600),
                  style=wx.DEFAULT_FRAME_STYLE, name="Export Pdf Dialog"):
 
         super(ExportPdfDialog, self).__init__(parent, id, title, pos, size,
                                               style, name)
 
+        if record is None:
+            title = ""
+            author = ""
+        else:
+            title = record.name
+            author = record.laborant
+
         panel = wx.Panel(self)
 
         top_lbl = wx.StaticText(panel, -1, "PDF document options")
         top_lbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
         title_lbl = wx.StaticText(panel, -1, "Title:")
-        title = wx.TextCtrl(panel, -1, "")
+        title = wx.TextCtrl(panel, -1, title)
         author_lbl = wx.StaticText(panel, -1, "Author:")
-        author = wx.TextCtrl(panel, -1, "")
-        email_lbl = wx.StaticText(panel, -1, "Email:")
-        email = wx.TextCtrl(panel, -1, "")
+        author = wx.TextCtrl(panel, -1, author)
         comment_lbl = wx.StaticText(panel, -1, "Comment:")
         comment = wx.TextCtrl(panel, -1, "", size=(-1, 100),
                               style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER)
@@ -186,7 +186,6 @@ class ExportPdfDialog(wx.Dialog):
         self.widgets = {
             "title": title,
             "author": author,
-            "email": email,
             "comment": comment,
             "composition": cb_cmpm,
             "batch": cb_bmat,
@@ -206,8 +205,6 @@ class ExportPdfDialog(wx.Dialog):
         fgs_title.Add(title, 0, wx.EXPAND)
         fgs_title.Add(author_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(author, 0, wx.EXPAND)
-        fgs_title.Add(email_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        fgs_title.Add(email, 0, wx.EXPAND)
         fgs_title.Add(comment_lbl, 0, wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         fgs_title.Add(comment, 0, wx.GROW)
 

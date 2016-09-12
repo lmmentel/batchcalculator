@@ -30,7 +30,7 @@
 
 import datetime
 import numpy as np
-from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_CENTER
+from reportlab.lib.enums import TA_JUSTIFY, TA_RIGHT, TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.platypus.flowables import KeepTogether
@@ -42,9 +42,12 @@ __version__ = "0.2.2"
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
 styles.add(ParagraphStyle(name='RightJ', alignment=TA_RIGHT))
-styles.add(ParagraphStyle(name='BlueTitle', alignment=TA_CENTER, textColor=colors.blue, fontSize=22))
+styles.add(ParagraphStyle(name='LeftJ', alignment=TA_LEFT))
+styles.add(ParagraphStyle(name='BlueTitle', alignment=TA_CENTER,
+                          textColor=colors.blue, fontSize=22))
 styles.add(ParagraphStyle(name='Section', textColor=colors.blue, fontSize=16))
-styles.add(ParagraphStyle(name='Compo', alignment=TA_CENTER, textColor=colors.blue, fontSize=14))
+styles.add(ParagraphStyle(name='Compo', alignment=TA_CENTER,
+                          textColor=colors.blue, fontSize=14))
 styles.add(ParagraphStyle(name='CenterJ', alignment=TA_CENTER))
 
 tab_style = TableStyle([
@@ -67,7 +70,7 @@ res_tab_style = TableStyle([
     ('LINEBELOW', (0, -2), (-1, -1), 0.5, colors.black),
     ('LINEBEFORE', (-1, 0), (-1, -1), 0.5, colors.black),
     ('LINEBELOW', (-1, 1), (-1, -1), 0.5, colors.black),
-    ])
+])
 
 
 def volume2str(vol, scale=1.0, fmt="{0:10.4f}"):
@@ -79,19 +82,23 @@ def volume2str(vol, scale=1.0, fmt="{0:10.4f}"):
         return ""
 
 
-def create_header(model, title, author, email, no_moles=False):
+def create_header(model, title, author, synth_id=None, no_moles=False):
+    'Creates the header of the report'
+
     story = []
+    if synth_id is not None:
+        story.append(Paragraph('Synthesis ID: {0:d}'.format(synth_id),
+                               styles['LeftJ']))
     date = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
     story.append(Paragraph(date, styles['RightJ']))
     story.append(Paragraph(title, styles['BlueTitle']))
     story.append(Spacer(1, 16))
     if no_moles:
-        story.append(Paragraph(ur':'.join(['{0}'.format(x.html_label()) for x in model.components]), styles['Compo']))
+        story.append(Paragraph(ur' : '.join(['{0}'.format(x.html_label()) for x in model.components]), styles['Compo']))
     else:
-        story.append(Paragraph(ur':'.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
+        story.append(Paragraph(ur' : '.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
     story.append(Spacer(1, 12))
     story.append(Paragraph(author, styles['CenterJ']))
-    story.append(Paragraph(email, styles['CenterJ']))
     return story
 
 
@@ -179,6 +186,28 @@ def results_table(model, scale=None):
     tab.setStyle(res_tab_style)
     return tab
 
+def synthesis_paragraphs(flags):
+
+    story = []
+
+    if 'target' in flags.keys():
+        story.append(Paragraph('Target material: {}'.format(flags['target']), styles['Normal']))
+        story.append(Spacer(1, 10))
+    if 'ref' in flags.keys():
+        story.append(Paragraph('Reference: {}'.format(flags['ref']), styles['Normal']))
+        story.append(Spacer(1, 10))
+    if 'temp' in flags.keys():
+        story.append(Paragraph('Temperature [K]: {0}'.format(flags['temp']), styles['Normal']))
+        story.append(Spacer(1, 10))
+    if 'cryst' in flags.keys():
+        story.append(Paragraph('Crystallization time [h]: {0}'.format(flags['cryst']), styles['Normal']))
+    if 'desc' in flags.keys():
+        story.append(KeepTogether([Spacer(1, 10),
+                                   Paragraph("Description", styles['Section']),
+                                   Spacer(1, 12),
+                                   Paragraph(flags['desc'], styles['Normal'])]))
+    return story
+
 
 def create_pdf(path, session, model, flags):
 
@@ -186,12 +215,16 @@ def create_pdf(path, session, model, flags):
                             topMargin=25, bottomMargin=25)
 
     story = []
-    header = create_header(model, flags['title'], flags['author'], flags['email'])
+    header = create_header(model, flags['title'], flags['author'], flags['id'])
     comps = components_table(model)
     batch = batch_table(session, model)
 
     story.extend(header)
     story.append(Spacer(1, 15))
+
+    story.extend(synthesis_paragraphs(flags))
+    story.append(Spacer(1, 15))
+
     if flags['composition']:
         story.append(KeepTogether([Paragraph("Composition Matrix [C]", styles['Section']),
                                    Spacer(1, 15), comps, Spacer(1, 10)]))
@@ -225,7 +258,7 @@ def create_pdf_composition(path, model, flags):
                             topMargin=25, bottomMargin=25)
 
     story = []
-    header = create_header(model, flags['title'], flags['author'], flags['email'], no_moles=True)
+    header = create_header(model, flags['title'], flags['author'], no_moles=True)
     chems = chemicals_table(model)
     batch = batch_table(model)
     result = composition_results_table(model)

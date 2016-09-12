@@ -105,6 +105,13 @@ class BaseChemical(object):
         else:
             return False
 
+    def __repr__(self):
+        return "%s(\n%s)" % (
+               (self.__class__.__name__),
+               ' '.join(["\t%s=%r,\n" % (key, getattr(self, key))
+                         for key in sorted(self.__dict__.keys())
+                         if not key.startswith('_')]))
+
 
 class Synthesis(ObjRepr, Base):
     '''
@@ -320,12 +327,8 @@ class Component(BaseChemical, Base):
         '''
         return self.moles * self.molwt
 
-    def __repr__(self):
-        return "<Component(id={i:>2d}, name='{n:s}', formula='{f:s}')>".format(
-               i=self.id, n=self.name, f=self.formula)
 
-
-class Chemical(BaseChemical, Base, ObjRepr):
+class Chemical(BaseChemical, Base):
     '''
     Chemical object
 

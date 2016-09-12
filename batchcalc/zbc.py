@@ -621,16 +621,77 @@ class ShowSynthesesFrame(wx.Frame):
         self.show_all()
 
     def onExportRecord(self, event):
-        'Add a record to the database'
-
-        # TODO: finish this
+        '''
+        Open the dialog with options about the pdf document to be written.
+        '''
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
 
-        print "exporting synthesis: ", sel_row
+        else:
+            # add component to the model
+            components = [c.component for c in sel_row.components]
+            for comp, synthcomp in zip(components, sel_row.components):
+                comp.moles = synthcomp.moles
+            self.model.components = components
+            # add chemicals to the model
+            chemicals = [c.chemical for c in sel_row.chemicals]
+            for chem, synthchem in zip(chemicals, sel_row.chemicals):
+                chem.mass = synthchem.mass
+            self.model.chemicals = chemicals
+
+        # recalculate the masses since the scaling is done in the printing
+        # functions
+        self.model.calculate_masses(self.session)
+
+        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, record=sel_row,
+                                      size=(400, 520))
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:
+            flags = dlg.get_data()
+            flags['id'] = sel_row.id
+            flags['target'] = sel_row.target_material
+            flags['temp'] = sel_row.temperature
+            flags['ref'] = sel_row.reference
+            flags['desc'] = sel_row.description
+            flags['cryst'] = sel_row.crystallization_time
+            path = self.OnSavePdf()
+            try:
+                create_pdf(path, self.session, self.model, flags)
+            except:
+                dlg = wx.MessageDialog(None, "An error occured while generating pdf",
+                                       "", wx.OK | wx.ICON_ERROR)
+                dlg.ShowModal()
+                dlg.Destroy()
+                raise
+            else:
+                dlg = wx.MessageDialog(None, "Successfully generated pdf",
+                                       "", wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+
+    def OnSavePdf(self):
+        '''
+        Open the file dialog to choose the name of the pdf file.
+        '''
+
+        pdfwildcard = "pdf Files (*.pdf)|*pdf|"     \
+                      "All files (*.*)|*.*"
+
+        dlg = wx.FileDialog(self, message="Save file as ...",
+                            defaultDir=os.getcwd(), defaultFile="",
+                            wildcard=pdfwildcard,
+                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            if not os.path.splitext(path)[1] == '.pdf':
+                path += '.pdf'
+            return path
+        else:
+            return
 
     def onDelete(self, event):
         '''Delete a synthesis record'''
@@ -1266,6 +1327,7 @@ class MolesOutputPanel(wx.Panel):
 class InverseBatch(wx.Frame):
 
     def __init__(self, parent, title=""):
+
         super(InverseBatch, self).__init__(parent, id=-1, title="",
                                            pos=wx.DefaultPosition,
                                            size=(600, 600),
