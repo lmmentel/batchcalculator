@@ -36,6 +36,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.platypus.flowables import KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+from batchcalc import controller as ctrl
+
 
 __version__ = "0.2.2"
 
@@ -82,23 +84,23 @@ def volume2str(vol, scale=1.0, fmt="{0:10.4f}"):
         return ""
 
 
-def create_header(model, title, author, synth_id=None, no_moles=False):
+def create_header(model, no_moles, **kwargs):
     'Creates the header of the report'
 
     story = []
-    if synth_id is not None:
-        story.append(Paragraph('Synthesis ID: {0:d}'.format(synth_id),
+    if 'id' in kwargs and kwargs['id'] is not None:
+        story.append(Paragraph('Synthesis ID: {0:d}'.format(kwargs['id']),
                                styles['LeftJ']))
     date = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
     story.append(Paragraph(date, styles['RightJ']))
-    story.append(Paragraph(title, styles['BlueTitle']))
+    story.append(Paragraph(kwargs['title'], styles['BlueTitle']))
     story.append(Spacer(1, 16))
     if no_moles:
         story.append(Paragraph(ur' : '.join(['{0}'.format(x.html_label()) for x in model.components]), styles['Compo']))
     else:
         story.append(Paragraph(ur' : '.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
     story.append(Spacer(1, 12))
-    story.append(Paragraph(author, styles['CenterJ']))
+    story.append(Paragraph(kwargs['author'], styles['CenterJ']))
     return story
 
 
@@ -141,13 +143,15 @@ def composition_results_table(model):
     return tab
 
 
-def batch_table(session, model):
+def batch_table(model):
 
-    temp = np.array(map(lambda x: "{0:8.4f}".format(x), model.get_B_matrix(session).reshape(model.B.size)))
-    data = temp.reshape(model.get_B_matrix(session).shape).tolist()
+    db = ctrl.DB()
+
+    temp = np.array(map(lambda x: "{0:8.4f}".format(x), model.get_B_matrix(db.session).reshape(model.B.size)))
+    data = temp.reshape(model.get_B_matrix(db.session).shape).tolist()
     for row, chemical in zip(data, model.chemicals):
-        row.insert(0, chemical.formula + " ({0:6.2f}%)".format(chemical.concentration*100))
-    data.insert(0, ['Compound']+[c.formula for c in model.components])
+        row.insert(0, chemical.formula + " ({0:6.2f}%)".format(chemical.concentration * 100))
+    data.insert(0, ['Compound'] + [c.formula for c in model.components])
     tab = Table(data)
     tab.setStyle(tab_style)
     return tab
@@ -210,15 +214,15 @@ def synthesis_paragraphs(flags):
     return story
 
 
-def create_pdf(path, session, model, flags):
+def create_pdf(path, model, flags):
 
     doc = SimpleDocTemplate(path, pagesize=A4, rightMargin=25, leftMargin=25,
                             topMargin=25, bottomMargin=25)
 
     story = []
-    header = create_header(model, flags['title'], flags['author'], flags['id'])
+    header = create_header(model, no_moles=False, **flags)
     comps = components_table(model)
-    batch = batch_table(session, model)
+    batch = batch_table(model)
 
     story.extend(header)
     story.append(Spacer(1, 15))
@@ -259,7 +263,7 @@ def create_pdf_composition(path, model, flags):
                             topMargin=25, bottomMargin=25)
 
     story = []
-    header = create_header(model, flags['title'], flags['author'], no_moles=True)
+    header = create_header(model, no_moles=True, **flags)
     chems = chemicals_table(model)
     batch = batch_table(model)
     result = composition_results_table(model)

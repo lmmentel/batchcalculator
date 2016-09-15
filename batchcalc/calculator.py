@@ -115,6 +115,8 @@ class BatchCalculator(object):
         Solve the linear system of equations  B * X = C
         '''
 
+        db = ctrl.DB()
+
         if len(self.components) == 0:
             raise ValueError("No Zeolite components selected")
 
@@ -122,7 +124,7 @@ class BatchCalculator(object):
             raise ValueError("No chemicals selected")
 
         for comp in self.components:
-            temp = ctrl.get_chemicals(session, components=[comp])
+            temp = db.get_chemicals(components=[comp])
             if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some components need their sources: {0:s}".format(comp.name))
 
@@ -150,6 +152,8 @@ class BatchCalculator(object):
         Calculate the composition matrix by multiplying C = B * X
         '''
 
+        db = ctrl.DB()
+
         if len(self.components) == 0:
             raise ValueError("No Zeolite components selected")
 
@@ -157,7 +161,7 @@ class BatchCalculator(object):
             raise ValueError("No chemicals selected")
 
         for comp in self.components:
-            temp = ctrl.get_chemicals(session, components=[comp])
+            temp = db.get_chemicals(components=[comp])
             if len(set([t.id for t in temp]) & set([r.id for r in self.chemicals])) == 0:
                 raise ValueError("some components need their sources: {0:s}".format(comp.name))
 

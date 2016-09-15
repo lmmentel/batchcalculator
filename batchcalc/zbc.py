@@ -138,7 +138,6 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
         # attributes
 
-        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "chemical", "component", "coeff", "reaction"]
 
@@ -149,8 +148,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         Add a record to the database
         """
 
-        dlg = ctrl.AddModifyBatchRecordDialog(self, session=self.session,
-                                              title="Add",
+        dlg = ctrl.AddModifyBatchRecordDialog(self, title="Add",
                                               add_record=True)
         dlg.ShowModal()
         dlg.Destroy()
@@ -165,8 +163,7 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        dlg = ctrl.AddModifyBatchRecordDialog(self, session=self.session,
-                                              record=sel_row,
+        dlg = ctrl.AddModifyBatchRecordDialog(self, record=sel_row,
                                               title="Modify",
                                               add_record=False)
         dlg.ShowModal()
@@ -175,12 +172,12 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
 
     def onDelete(self, event):
         '''Delete a record'''
-
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        ctrl.delete_batch_record(self.session, sel_row.id)
+        ctrl.delete_batch_record(db.session, sel_row.id)
         self.show_all()
 
     def onShowAllRecords(self, event):
@@ -198,7 +195,8 @@ class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
         '''Get all batch records and put them in the OLV'''
 
-        batches = ctrl.get_batches(self.session)
+        db = ctrl.DB()
+        batches = db.get_batches()
         self.set_olv(batches)
 
 
@@ -210,8 +208,6 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
 
         # attributes
 
-        self.session = parent.get_session()
-
         self.model = parent.model
         self.cols = ["id", "name", "formula", "conc", "molwt", "short", "kind",
                      "physform", "elect", "cas", "pk", "density", "smiles"]
@@ -221,8 +217,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        dlg = ctrl.AddModifyChemicalRecordDialog(self, session=self.session,
-                                                 title="Add",
+        dlg = ctrl.AddModifyChemicalRecordDialog(self, title="Add",
                                                  add_record=True)
         dlg.ShowModal()
         dlg.Destroy()
@@ -235,8 +230,7 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        dlg = ctrl.AddModifyChemicalRecordDialog(self, session=self.session,
-                                                 record=sel_row,
+        dlg = ctrl.AddModifyChemicalRecordDialog(self, record=sel_row,
                                                  title="Modify",
                                                  add_record=False)
         dlg.ShowModal()
@@ -246,11 +240,12 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
     def onDelete(self, event):
         '''Delete a record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        ctrl.delete_chemical_record(self.session, sel_row.id)
+        ctrl.delete_chemical_record(db.session, sel_row.id)
         self.show_all()
 
     def onShowAllRecords(self, event):
@@ -268,8 +263,8 @@ class AddModifyChemicalTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
         '''Get all chemical records and put them in the OLV'''
 
-        chemicals = ctrl.get_chemicals(self.session, components=None,
-                                       showall=True)
+        db = ctrl.DB()
+        chemicals = db.get_chemicals(components=None, showall=True)
         self.set_olv(chemicals)
 
 
@@ -281,7 +276,6 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
 
         # attributes
 
-        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "name", "formula", "molwt", "short", "category"]
 
@@ -290,8 +284,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        dlg = ctrl.AddModifyComponentRecordDialog(self, session=self.session,
-                                                  title="Add",
+        dlg = ctrl.AddModifyComponentRecordDialog(self, title="Add",
                                                   add_record=True)
         dlg.ShowModal()
         dlg.Destroy()
@@ -305,8 +298,7 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
             dialogs.show_message_dlg("No row selected", "Error")
 
             return
-        dlg = ctrl.AddModifyComponentRecordDialog(self, session=self.session,
-                                                  record=sel_row,
+        dlg = ctrl.AddModifyComponentRecordDialog(self, record=sel_row,
                                                   title="Modify",
                                                   add_record=False)
         dlg.ShowModal()
@@ -316,11 +308,12 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
     def onDelete(self, event):
         '''Delete a record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        ctrl.delete_component_record(self.session, sel_row.id)
+        ctrl.delete_component_record(db.session, sel_row.id)
         self.show_all()
 
     def onSearch(self, event):
@@ -345,7 +338,8 @@ class AddModifyComponentTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
         '''Get all component records and put them in the OLV'''
 
-        components = ctrl.get_components(self.session)
+        db = ctrl.DB()
+        components = db.get_components()
         self.set_olv(components)
 
 
@@ -357,7 +351,6 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
 
         # attributes
 
-        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "categobj"]
 
@@ -366,6 +359,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
+        db = ctrl.DB()
         dlg = wx.TextEntryDialog(None, "Enter new category",
                                  "Enter new category", "",
                                  style=wx.OK | wx.CANCEL)
@@ -373,7 +367,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             category = dlg.GetValue()
             if category != "":
-                ctrl.add_category_record(self.session, category)
+                ctrl.add_category_record(db.session, category)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -385,6 +379,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
     def onEditRecord(self, event):
         '''Edit a record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
@@ -397,7 +392,7 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             category = dlg.GetValue()
             if category != "":
-                ctrl.modify_category_record(self.session, sel_row.id, category)
+                ctrl.modify_category_record(db.session, sel_row.id, category)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -409,11 +404,12 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
     def onDelete(self, event):
         '''Delete a record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        ctrl.delete_category_record(self.session, sel_row.id)
+        ctrl.delete_category_record(db.session, sel_row.id)
         self.show_all()
 
     def onShowAllRecords(self, event):
@@ -431,7 +427,8 @@ class AddModifyCategoryTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
         '''Get all category records and put them in the OLV'''
 
-        categories = ctrl.get_categories(self.session)
+        db = ctrl.DB()
+        categories = db.get_categories()
         self.set_olv(categories)
 
 
@@ -443,7 +440,6 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
 
         # attributes
 
-        self.session = parent.get_session()
         self.model = parent.model
         self.cols = ["id", "reaction"]
         self.show_all()
@@ -451,6 +447,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
+        db = ctrl.DB()
         dlg = wx.TextEntryDialog(None, "Enter the reaction",
                                  "Enter the reaction", "",
                                  style=wx.OK | wx.CANCEL)
@@ -458,7 +455,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             reaction = dlg.GetValue()
             if reaction != "":
-                ctrl.add_reaction_record(self.session, reaction)
+                ctrl.add_reaction_record(db.session, reaction)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -470,6 +467,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
     def onEditRecord(self, event):
         '''Edit a record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
@@ -482,7 +480,7 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
         if dlg.ShowModal() == wx.ID_OK:
             reaction = dlg.GetValue()
             if reaction != "":
-                ctrl.modify_reaction_record(self.session, sel_row.id, reaction)
+                ctrl.modify_reaction_record(db.session, sel_row.id, reaction)
             else:
                 ed = wx.MessageDialog(None, "Nothing entered",
                                       "", wx.OK | wx.ICON_INFORMATION)
@@ -494,11 +492,12 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
     def onDelete(self, event):
         '''Delete a record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        ctrl.delete_reaction_record(self.session, sel_row.id)
+        ctrl.delete_reaction_record(db.session, sel_row.id)
         self.show_all()
 
     def onShowAllRecords(self, event):
@@ -516,7 +515,8 @@ class AddModifyReactionTableFrame(AddModifyDBBaseFrame):
     def show_all(self):
         '''Get all reaction records and put them in the OLV'''
 
-        reactions = ctrl.get_reactions(self.session)
+        db = ctrl.DB()
+        reactions = db.get_reactions()
         self.set_olv(reactions)
 
 
@@ -550,7 +550,7 @@ class ShowBFrame(wx.Frame):
 
 class ShowSynthesesFrame(wx.Frame):
 
-    def __init__(self, parent, session, cols=None, id=wx.ID_ANY,
+    def __init__(self, parent, cols=None, id=wx.ID_ANY,
                  title="Syntheses", pos=wx.DefaultPosition, size=(600, 400),
                  style=wx.DEFAULT_FRAME_STYLE, name="Syntheses"):
 
@@ -562,7 +562,6 @@ class ShowSynthesesFrame(wx.Frame):
         self.cols = ["id", "name", "target", "laborant", "reference",
                      "temperature", "descr"]
 
-        self.session = session
         self.model = BatchCalculator()
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -612,7 +611,6 @@ class ShowSynthesesFrame(wx.Frame):
 
         dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                   model=self.model,
-                                                  session=self.session,
                                                   record=sel_row,
                                                   title="Modify",
                                                   add_record=False)
@@ -624,6 +622,8 @@ class ShowSynthesesFrame(wx.Frame):
         '''
         Open the dialog with options about the pdf document to be written.
         '''
+
+        db = ctrl.DB()
 
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
@@ -644,7 +644,7 @@ class ShowSynthesesFrame(wx.Frame):
 
         # recalculate the masses since the scaling is done in the printing
         # functions
-        self.model.calculate_masses(self.session)
+        self.model.calculate_masses(db.session)
 
         dlg = dialogs.ExportPdfDialog(parent=self, id=-1, record=sel_row)
 
@@ -659,7 +659,7 @@ class ShowSynthesesFrame(wx.Frame):
             flags['cryst'] = sel_row.crystallization_time
             path = self.OnSavePdf()
             try:
-                create_pdf(path, self.session, self.model, flags)
+                create_pdf(path, db.session, self.model, flags)
             except:
                 dlg = wx.MessageDialog(None, "An error occured while generating pdf",
                                        "", wx.OK | wx.ICON_ERROR)
@@ -696,11 +696,12 @@ class ShowSynthesesFrame(wx.Frame):
     def onDelete(self, event):
         '''Delete a synthesis record'''
 
+        db = ctrl.DB()
         sel_row = self.olv.GetSelectedObject()
         if sel_row is None:
             dialogs.show_message_dlg("No row selected", "Error")
             return
-        ctrl.delete_synthesis_record(self.session, sel_row.id)
+        ctrl.delete_synthesis_record(db.session, sel_row.id)
         self.show_all()
 
     def onLoadRecord(self, event):
@@ -741,7 +742,8 @@ class ShowSynthesesFrame(wx.Frame):
     def show_all(self):
         '''Get all synthesis records and put them in the OLV'''
 
-        syntheses = ctrl.get_syntheses(self.session)
+        db = ctrl.DB()
+        syntheses = db.get_syntheses()
         self.set_olv(syntheses)
 
 
@@ -945,10 +947,7 @@ class InputPanel(wx.Panel):
         database.
         '''
 
-        tw = wx.GetTopLevelParent(self)
-        self.session = tw.get_session()
-
-        self.dlg = ctrl.ComponentsDialog(self, self.session, self.model,
+        self.dlg = ctrl.ComponentsDialog(self, self.model,
                                          cols=get_columns(self.comp_cols),
                                          id=-1,
                                          title="Choose Zeolite Components...")
@@ -963,10 +962,7 @@ class InputPanel(wx.Panel):
         Show the dialog with the chemicals retrieved from the database.
         '''
 
-        tw = wx.GetTopLevelParent(self)
-        self.session = tw.get_session()
-
-        self.dlg = ctrl.ChemicalsDialog(self, self.session, self.model,
+        self.dlg = ctrl.ChemicalsDialog(self, self.model,
                                         cols=get_columns(self.chem_cols),
                                         id=-1, title="Choose Chemicals...")
         result = self.dlg.ShowModal()
@@ -989,6 +985,12 @@ class InputPanel(wx.Panel):
         self.chem_olv.SetColumns(olv_cols)
         self.chem_olv.SetObjects(self.model.chemicals)
 
+    def update_olv(self):
+        'update the OLVs'
+
+        self.comp_olv.SetObjects(self.model.components)
+        self.chem_olv.SetObjects(self.model.chemicals)
+
 
 class MolesInputPanel(InputPanel):
     '''
@@ -1001,6 +1003,7 @@ class MolesInputPanel(InputPanel):
     def SetComponents(self):
         '''Set the OLV columns and put current Component objects in the OLV'''
 
+        print 'in MolesInputPanel SetComponents'
         olv_cols = get_columns(["label"])
         self.comp_olv.SetColumns(olv_cols)
         self.comp_olv.SetObjects(self.model.components)
@@ -1017,6 +1020,7 @@ class MolesInputPanel(InputPanel):
 class OutputPanel(wx.Panel):
 
     def __init__(self, parent, model):
+
         super(OutputPanel, self).__init__(parent, style=wx.SUNKEN_BORDER)
 
         # Attributes
@@ -1103,13 +1107,13 @@ class OutputPanel(wx.Panel):
         result in the OLV.
         '''
 
-        tw = wx.GetTopLevelParent(self)
-        self.session = tw.get_session()
+        db = ctrl.DB()
+
 
         # get the checked radio control label and StaticText object
         scale_type, text = next((x[0], x[2]) for x in self.scaling_ctrls if x[1].GetValue())
 
-        self.model.calculate_masses(self.session)
+        self.model.calculate_masses(db.session)
 
         if scale_type == 'none':
             pass
@@ -1276,10 +1280,9 @@ class MolesOutputPanel(wx.Panel):
         of chemicals and display the result in the OLV.
         '''
 
-        tw = wx.GetTopLevelParent(self)
-        self.session = tw.get_session()
+        db = ctrl.DB()
 
-        self.model.calculate_moles(self.session)
+        self.model.calculate_moles(db.session)
         self.resultOlv.SetObjects(self.model.components)
 
     def OnRescaleMoles(self, event):
@@ -1323,6 +1326,11 @@ class MolesOutputPanel(wx.Panel):
         self.resultOlv.SetColumns(olv_cols)
         self.resultOlv.SetObjects(self.model.components)
 
+    def update_olv(self):
+        'update the OLVs'
+
+        self.resultOlv.SetObjects(self.model.chemicals)
+
 
 class InverseBatch(wx.Frame):
 
@@ -1334,12 +1342,12 @@ class InverseBatch(wx.Frame):
                                            style=wx.DEFAULT_FRAME_STYLE,
                                            name="")
 
-        self.session = ctrl.get_session()
         self.model = BatchCalculator()
+        self.model.reset()
 
         panel = wx.Panel(self)
-        self.inppanel = MolesInputPanel(panel, self.session, self.model)
-        self.outpanel = MolesOutputPanel(panel, self.session, self.model)
+        self.inppanel = MolesInputPanel(panel, self.model)
+        self.outpanel = MolesOutputPanel(panel, self.model)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.inppanel, 1, flag=wx.CENTER | wx.EXPAND)
         vbox.Add(self.outpanel, 1, flag=wx.CENTER | wx.EXPAND)
@@ -1353,7 +1361,7 @@ class InverseBatch(wx.Frame):
 
         # File Menu
         filem = wx.Menu()
-        mnew = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
+        mnew = filem.Append(wx.ID_NEW, "&Clear\tCtrl+N", "Clear")
         filem.AppendSeparator()
         mepdf = filem.Append(wx.ID_ANY, "Export pdf")
         filem.AppendSeparator()
@@ -1371,7 +1379,7 @@ class InverseBatch(wx.Frame):
 
         # Event Handlers
 
-        self.Bind(wx.EVT_MENU, self.OnNew, mnew)
+        self.Bind(wx.EVT_MENU, self.OnClear, mnew)
         self.Bind(wx.EVT_MENU, self.OnExit, mexit)
         self.Bind(wx.EVT_MENU, self.OnExportPdf, mepdf)
         self.Bind(wx.EVT_MENU, self.OnShowB, mshowb)
@@ -1385,6 +1393,8 @@ class InverseBatch(wx.Frame):
         then establish the db session in the model (BatchCalculator).
         '''
 
+        db = ctrl.DB()
+
         dbwildcard = "db Files (*.db)|*.db|"     \
                      "All files (*.*)|*.*"
 
@@ -1396,10 +1406,11 @@ class InverseBatch(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.session = ctrl.get_session(path)
+            db.switch_session(path)
         dlg.Destroy()
 
     def OnExit(self, event):
+        self.model.reset()
         self.Close()
 
     def OnExportPdf(self, event):
@@ -1416,22 +1427,22 @@ class InverseBatch(wx.Frame):
             try:
                 create_pdf_composition(path, self.model, flags)
             except:
-                dlg = wx.MessageDialog(None, "An error occured while generating pdf",
-                                        "", wx.OK | wx.ICON_ERROR)
+                dlg = wx.MessageDialog(None,
+                                       "An error occured while generating pdf",
+                                       "", wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
                 raise
             else:
                 dlg = wx.MessageDialog(None, "Successfully generated pdf",
-                                        "", wx.OK | wx.ICON_INFORMATION)
+                                       "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
 
-    def OnNew(self, event):
+    def OnClear(self, event):
         self.model.reset()
-        self.inppanel.SetComponents()
-        self.inppanel.SetChemicals()
-        self.outpanel.SetResults()
+        self.inppanel.update_olv()
+        self.outpanel.update_olv()
 
     def OnSavePdf(self):
         '''
@@ -1457,7 +1468,8 @@ class InverseBatch(wx.Frame):
     def OnShowB(self, event):
 
         if isinstance(self.model.B, list):
-            dlg = wx.MessageDialog(None, "Batch Matrix needs to be defined first.",
+            dlg = wx.MessageDialog(None,
+                                   "Batch Matrix needs to be defined first.",
                                    "", wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
             dlg.Destroy()
@@ -1480,9 +1492,6 @@ class MainFrame(wx.Frame):
         # Attributes
 
         self.gray = "#939393"
-
-        # global dbpath
-        self.session = ctrl.get_session()
 
         self.model = BatchCalculator()
 
@@ -1507,7 +1516,7 @@ class MainFrame(wx.Frame):
 
         # File Menu
         filem = wx.Menu()
-        mnew = filem.Append(wx.ID_NEW, "&New\tCtrl+N", "New")
+        mnew = filem.Append(wx.ID_NEW, "&Clear\tCtrl+N", "Clear")
         filem.AppendSeparator()
         mopen = filem.Append(wx.ID_OPEN, "&Open\tCtrl+O", "Open")
         msave = filem.Append(wx.ID_SAVE, "&Save\tCtrl+S", "Save")
@@ -1568,9 +1577,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnShowSyntheses, synth_show)
         self.Bind(wx.EVT_MENU, self.OnSaveCalculation, synth_save)
         self.Bind(wx.EVT_MENU, self.OnAbout, about)
-
-    def get_session(self):
-        return self.session
 
     def OnAbout(self, event):
         '''
@@ -1638,6 +1644,8 @@ class MainFrame(wx.Frame):
         then establish the db session in the model (BatchCalculator).
         '''
 
+        db = ctrl.DB()
+
         dbwildcard = "db Files (*.db)|*.db|"     \
                      "All files (*.*)|*.*"
 
@@ -1648,13 +1656,14 @@ class MainFrame(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.session = ctrl.get_session(path)
+            db.switch_session(path)
             self.model = BatchCalculator()
             self.update_all_objectlistviews()
         dlg.Destroy()
 
     def OnExit(self, event):
-        self.session.close()
+        db = ctrl.DB()
+        db.session.close()
         self.Close()
 
     def OnExportTex(self, event):
@@ -1663,7 +1672,8 @@ class MainFrame(wx.Frame):
         '''
         # recalculate the masses since the scaling is done in the printing
         # functions
-        self.model.calculate_masses(self.session)
+        db = ctrl.DB()
+        self.model.calculate_masses(db.session)
 
         etexdialog = dialogs.ExportTexDialog(parent=self, id=-1)
         result = etexdialog.ShowModal()
@@ -1680,15 +1690,16 @@ class MainFrame(wx.Frame):
 
         # recalculate the masses since the scaling is done in the printing
         # functions
-        self.model.calculate_masses(self.session)
+        db = ctrl.DB()
+        self.model.calculate_masses(db.session)
 
-        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, size=(400, 520))
+        dlg = dialogs.ExportPdfDialog(parent=self, id=-1, size=(400, 450))
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()
             path = self.OnSavePdf()
             try:
-                create_pdf(path, self.session, self.model, flags)
+                create_pdf(path, self.model, flags)
             except:
                 dlg = wx.MessageDialog(None, "An error occured while generating pdf",
                                        "", wx.OK | wx.ICON_ERROR)
@@ -1715,22 +1726,18 @@ class MainFrame(wx.Frame):
         if any(len(x) != 0 for x in [self.model.components,
                                      self.model.chemicals]):
             dlg = wx.MessageDialog(self,
-                                   'There are unsaved changes, Save now?',
-                                   'Save',
-                                   wx.YES_NO | wx.CANCEL | wx.ICON_WARNING)
+                                   'There are unsaved changes, Clear?',
+                                   'Clear',
+                                   wx.YES_NO | wx.ICON_WARNING)
 
             result = dlg.ShowModal()
             if result == wx.ID_YES:
-                self.OnSave(-1)
                 self.model.reset()
                 self.update_all_objectlistviews()
-            elif result == wx.ID_NO:
-                self.model.reset()
-                self.update_all_objectlistviews()
-            else:
-                event.Skip()
+        else:
+            event.Skip()
 
-            dlg.Destroy()
+        dlg.Destroy()
 
     def OnNewDB(self, event):
 
@@ -1746,11 +1753,13 @@ class MainFrame(wx.Frame):
             path = dlg.GetPath()
             if os.path.exists(path):
                 os.remove(path)
-            self.session = ctrl.new_db(path)
+
+            db = ctrl.DB()
+            db.switch_session(path)
             # fill the tables
-            ctrl.fill_kinds_table(self.session)
-            ctrl.fill_physical_forms_table(self.session)
-            ctrl.fill_electrolytes_table(self.session)
+            ctrl.fill_kinds_table(db.session)
+            ctrl.fill_physical_forms_table(db.session)
+            ctrl.fill_electrolytes_table(db.session)
             dlg = wx.MessageDialog(None, "Successfully created new database",
                                    "", wx.OK | wx.ICON_INFORMATION)
             dlg.ShowModal()
@@ -1837,7 +1846,6 @@ class MainFrame(wx.Frame):
 
         dlg = ctrl.AddModifySynthesisRecordDialog(parent=self,
                                                   model=self.model,
-                                                  session=self.session,
                                                   record=None,
                                                   title="Add",
                                                   add_record=True)
@@ -1923,8 +1931,7 @@ class MainFrame(wx.Frame):
     def OnShowSyntheses(self, event):
         '''Show a frame with all stored syntheses'''
 
-        frame = ShowSynthesesFrame(parent=self, size=(1000, 600),
-                                   session=self.session)
+        frame = ShowSynthesesFrame(parent=self, size=(1000, 600))
         frame.Show(True)
 
     def update_all_objectlistviews(self):
