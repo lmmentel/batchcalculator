@@ -1419,7 +1419,7 @@ class InverseBatch(wx.Frame):
         '''
 
         dlg = dialogs.ExportPdfMinimalDialog(parent=self, id=-1,
-                                             size=(400, 330))
+                                             size=(400, 300))
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             flags = dlg.get_data()
