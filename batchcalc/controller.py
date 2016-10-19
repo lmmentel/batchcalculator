@@ -358,9 +358,9 @@ class AddModifyBatchRecordDialog(wx.Dialog):
         self.txtc_coeff = wx.TextCtrl(self.panel, -1, value=v_coeff,
                                       size=(50, 20))
 
-        chemicals = db.get_chemicals(showall=True)
-        components = db.get_components()
-        reactions = db.get_reactions()
+        chemicals = self.db.get_chemicals(showall=True)
+        components = self.db.get_components()
+        reactions = self.db.get_reactions()
 
         self.chemicals = {i: c for i, c in zip(range(len(chemicals)), chemicals)}
         self.components = {i: c for i, c in zip(range(len(components)), components)}
