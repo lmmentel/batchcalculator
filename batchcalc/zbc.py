@@ -1969,7 +1969,7 @@ class ZeoGui(wx.App):
 
     def OnInit(self):
 
-        self.frame = MainFrame(None, title="Zeolite Batch Calculator",
+        self.frame = MainFrame(None, title="Batch Calculator",
                                size=(860, 600))
         # change the default exception handling
         sys.excepthook = ExceptionHook
