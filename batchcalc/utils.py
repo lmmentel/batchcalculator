@@ -32,7 +32,7 @@
 from collections import OrderedDict
 from ObjectListView import ColumnDefn
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 
 def format_float(item):

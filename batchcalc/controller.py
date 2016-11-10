@@ -47,7 +47,7 @@ from batchcalc.model import (Chemical, Component, Electrolyte, Kind, Category,
 from batchcalc.utils import get_columns
 
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 
 #['batches', 'components', 'categories', 'chemicals', 'electrolytes', 'kinds',

@@ -33,7 +33,7 @@ import sys
 import datetime
 from jinja2 import Environment, FileSystemLoader
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 
 def get_temppath():

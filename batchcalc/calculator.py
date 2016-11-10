@@ -37,7 +37,7 @@ import numpy as np
 from batchcalc import controller as ctrl
 from batchcalc.model import Chemical, Component, Batch
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 
 _MINWIDTH = 15
