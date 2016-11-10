@@ -1537,18 +1537,26 @@ class MainFrame(wx.Frame):
         dbm = wx.Menu()
         mnewdb = dbm.Append(wx.ID_ANY, "New db\t", "Create a new database")
         dbm.AppendSeparator()
-        mchangedb = dbm.Append(wx.ID_ANY, "Change db\t", "Switch to a different database")
+        mchangedb = dbm.Append(wx.ID_ANY, "Change db\t",
+                               "Switch to a different database")
         dbm.AppendSeparator()
-        maddchemicaldb = dbm.Append(wx.ID_ANY, "Edit Chemicals\t", "Edit chemicals records in the database")
-        maddcomponentdb = dbm.Append(wx.ID_ANY, "Edit Components\t", "Edit zeolite component records in the database")
-        maddbatchdb = dbm.Append(wx.ID_ANY, "Edit Batch\t", "Edit batch records in the database")
-        maddreactiondb = dbm.Append(wx.ID_ANY, "Edit Reactions\t", "Edit reaction records in the database")
-        maddcategorydb = dbm.Append(wx.ID_ANY, "Edit Categories\t", "Edit category records in the database")
+        maddchemicaldb = dbm.Append(wx.ID_ANY, "Edit Chemicals\t",
+                                    "Edit chemicals records in the database")
+        maddcomponentdb = dbm.Append(wx.ID_ANY, "Edit Components\t",
+                                     "Edit zeolite component records in the database")
+        maddbatchdb = dbm.Append(wx.ID_ANY, "Edit Batch\t",
+                                 "Edit batch records in the database")
+        maddreactiondb = dbm.Append(wx.ID_ANY, "Edit Reactions\t",
+                                    "Edit reaction records in the database")
+        maddcategorydb = dbm.Append(wx.ID_ANY, "Edit Categories\t",
+                                    "Edit category records in the database")
         menubar.Append(dbm, "Database")
         # Synthesis Menu
         synthm = wx.Menu()
-        synth_show = synthm.Append(wx.ID_ANY, "Show All\t", "Show all stored syntheses")
-        synth_save = synthm.Append(wx.ID_ANY, "Add current\t", "Save current calculation internally")
+        synth_show = synthm.Append(wx.ID_ANY, "Show All\t",
+                                   "Show all stored syntheses")
+        synth_save = synthm.Append(wx.ID_ANY, "Add current\t",
+                                   "Save current calculation internally")
         menubar.Append(synthm, "Syntheses")
         # About Menu
         aboutm = wx.Menu()
@@ -1587,9 +1595,9 @@ class MainFrame(wx.Frame):
         info.SetName("Zeolite Batch Calculator")
         info.SetVersion(__version__)
         info.SetCopyright("Copyright (C) Lukasz Mentel")
-        info.SetDescription(wordwrap("A GUI script based on wxPython for " +\
-            "calculating the correct amount of reagents (batch) for a  "   +\
-            "particular zeolite composition given by the molar ratio "     +\
+        info.SetDescription(wordwrap("A GUI script based on wxPython for " +
+            "calculating the correct amount of reagents (batch) for a  " +
+            "particular zeolite composition given by the molar ratio " +
             "of its components.", 350, wx.ClientDC(self)))
 
         info.WebSite = ("https://github.com/lmmentel/batchcalculator",
@@ -1701,13 +1709,14 @@ class MainFrame(wx.Frame):
             try:
                 create_pdf(path, self.model, flags)
             except:
-                dlg = wx.MessageDialog(None, "An error occured while generating pdf",
+                dlg = wx.MessageDialog(None,
+                                       "An error occured while generating PDF",
                                        "", wx.OK | wx.ICON_ERROR)
                 dlg.ShowModal()
                 dlg.Destroy()
                 raise
             else:
-                dlg = wx.MessageDialog(None, "Successfully generated pdf",
+                dlg = wx.MessageDialog(None, "Successfully generated PDF",
                                        "", wx.OK | wx.ICON_INFORMATION)
                 dlg.ShowModal()
                 dlg.Destroy()
@@ -1734,10 +1743,9 @@ class MainFrame(wx.Frame):
             if result == wx.ID_YES:
                 self.model.reset()
                 self.update_all_objectlistviews()
+            dlg.Destroy()
         else:
             event.Skip()
-
-        dlg.Destroy()
 
     def OnNewDB(self, event):
 
@@ -1899,7 +1907,8 @@ class MainFrame(wx.Frame):
                     os.chdir(os.path.split(path)[0])
                     retcode = subprocess.call([pdflatex, opts, path], )
                     if retcode != 0:
-                        dlg = wx.MessageDialog(None, "There were problems generating the pdf, check the log file {l:s}, return code: {r:d}".format(l=path.replace(".tex", ".log"), r=retcode),
+                        dlg = wx.MessageDialog(None,
+                                               "There were problems generating the pdf, check the log file {l:s}, return code: {r:d}".format(l=path.replace(".tex", ".log"), r=retcode),
                                                "", wx.OK | wx.ICON_WARNING)
                         dlg.ShowModal()
                         dlg.Destroy()
@@ -1907,12 +1916,14 @@ class MainFrame(wx.Frame):
                         # run again and clean the auxiliary files
                         retcode = subprocess.call([pdflatex, opts, path])
                         clean_tex(path)
-                        dlg = wx.MessageDialog(None, "Successfully generated the pdf",
+                        dlg = wx.MessageDialog(None,
+                                              "PDF generated successfully",
                                                "", wx.OK | wx.ICON_INFORMATION)
                         dlg.ShowModal()
                         dlg.Destroy()
                 else:
-                    dlg = wx.MessageDialog(None, "pdflatex not found, pdf not generated",
+                    dlg = wx.MessageDialog(None,
+                                           "pdflatex not found, PDF not generated",
                                            "", wx.OK | wx.ICON_WARNING)
                     dlg.ShowModal()
                     dlg.Destroy()
@@ -1920,7 +1931,8 @@ class MainFrame(wx.Frame):
     def OnShowB(self, event):
 
         if isinstance(self.model.B, list):
-            dlg = wx.MessageDialog(None, "Batch Matrix needs to be defined first.",
+            dlg = wx.MessageDialog(None,
+                                   "Batch Matrix needs to be defined first.",
                                    "", wx.OK | wx.ICON_WARNING)
             dlg.ShowModal()
             dlg.Destroy()
@@ -1988,3 +2000,8 @@ def main():
     # wx.lib.inspection.InspectionTool().Show()
 
     app.MainLoop()
+
+
+if __name__ == '__main__':
+
+    main()
