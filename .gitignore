@@ -141,3 +141,6 @@ sympy-plots-for-*.tex/
 
 bc.sublime-project
 bc.sublime-workspace
+
+# ipython
+utils/ipython_notebooks/.ipynb_checkpoints/**
