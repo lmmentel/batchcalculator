@@ -18,8 +18,7 @@ Prerequisites
 * `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9.7,
 * `Jinja2 <http://jinja.pocoo.org>`_, 2.7.3,
 * `reportlab <http://www.reportlab.com/>`_,
-* `ObjectListView
-  <http://sourceforge.net/projects/objectlistview/files/objectlistview-python/v1.2/>`_, 1.2,
+* `ObjectListView <https://bitbucket.org/wbruhin/objectlistview>`_,
 
 If you want to export your calculations to a `TeX <https://www.tug.org/>`_
 report and be able to automatically typeset the pdf you should have a TeX
@@ -63,6 +62,24 @@ from the command line by typing::
 
 Changelog
 =========
+
+v0.3.0 - November 2016
+----------------------
+
+Features
+^^^^^^^^
+
+* New improved layout, with one output frame and buttons to control scaling
+* New option to store, extract, load and export synthesis recipes
+* First draft of the `sphinx <http://www.sphinx-doc.org>`_ based documentation
+* Database with essential components and chemicals for zeolite synthesis already included
+
+Fixes and improvements
+^^^^^^^^^^^^^^^^^^^^^^
+
+* A lot of internal improvements and fixes with considerable simplifications to the code base
+
+
 
 v0.1.2 - October 2014
 ---------------------
