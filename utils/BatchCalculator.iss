@@ -2,16 +2,16 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "BatchCalculator"
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.3.0"
 #define MyAppPublisher "Lukasz Mentel"
-#define MyAppURL "http://lmmentel.github.io/batchcalculator"
+#define MyAppURL "http://github.com/lmmentel/batchcalculator"
 #define MyAppExeName "BatchCalculator.exe"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{90DB83CD-2732-4165-A767-E5D77FA0F33A}
+AppId={{A7198ACC-56C1-4A10-9CB0-1084BFC6C8BA}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -20,12 +20,10 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
-DefaultGroupName={#MyAppName}
-AllowNoIcons=yes
-LicenseFile=C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\LICENSE.txt
-OutputDir=C:\Output
-OutputBaseFilename=batchcalculator-win32-v020-setup
-SetupIconFile=C:\cygwin\home\lmentel\devel\batchcalculator\icons\icon.ico
+DisableProgramGroupPage=yes
+LicenseFile=C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\LICENSE.txt
+OutputBaseFilename=batchcalculator-win32-v030-setup
+SetupIconFile=C:\cygwin64\home\kasia\Devel\batchcalculator\icons\icon.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -34,93 +32,81 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\BatchCalculator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_MEI\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\batchcalc\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\eggs\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\include\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_cffi_backend.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_ctypes.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_hashlib.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_multiprocessing.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_socket.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_sqlite3.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_ssl.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_tkinter.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\_win32sysloader.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\BatchCalculator.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\batchcalculator.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\bz2.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\cdecimal.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\libiomp5md.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\markupsafe._speedups.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\mfc90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\mfc90u.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\mfcm90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\mfcm90u.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\microsoft.vc90.crt.manifest"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\microsoft.vc90.mfc.manifest"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\msvcm90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\msvcp90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\msvcr90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\msvcrt.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.core._dotblas.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.core.multiarray.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.core.scalarmath.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.core.umath.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.fft.fftpack_lite.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.lib._compiled_base.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.linalg._umath_linalg.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.linalg.lapack_lite.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\numpy.random.mtrand.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\PIL._imaging.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\PIL._imagingtk.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\PIL._webp.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\pyexpat.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\pythoncom27.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\pywintypes27.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\reportlab.lib.pyHnj.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\select.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\sqlalchemy.cprocessors.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\sqlalchemy.cresultproxy.pyd"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\sqlalchemy.cutils.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\tcl85.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\tk85.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\unicodedata.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\user32.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32api.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32clipboard.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32evtlog.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32pdh.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32pipe.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32trace.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32ui.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\win32wnet.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wx._controls_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wx._core_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wx._gdi_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wx._grid.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wx._misc_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wx._windows_.pyd"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wxbase30u_net_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wxbase30u_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wxmsw30u_adv_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wxmsw30u_core_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\cygwin\home\lmentel\devel\batchcalculator\dist\BatchCalculator\wxmsw30u_html_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\BatchCalculator.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\data\*"; DestDir: "{app}\\data"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\Include\*"; DestDir: "{app}\\Include"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\tcl\*"; DestDir: "{app}\\tcl"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\templates\*"; DestDir: "{app}\\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\tk\*"; DestDir: "{app}\\tk"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_bsddb.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_ctypes.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_hashlib.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_multiprocessing.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_socket.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_sqlite3.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_ssl.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_testcapi.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_tkinter.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\_win32sysloader.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\BatchCalculator.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\bz2.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\mfc90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\mfc90u.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\mfcm90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\mfcm90u.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\Microsoft.VC90.CRT.manifest"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\Microsoft.VC90.MFC.manifest"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\msvcm90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\msvcp90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\msvcr90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy.core.multiarray.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy.core.umath.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy.fft.fftpack_lite.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy.linalg._umath_linalg.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy.linalg.lapack_lite.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy.random.mtrand.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\numpy-atlas.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\PIL._imaging.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\PIL._imagingtk.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\PIL._webp.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\pyexpat.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\pythoncom27.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\pywintypes27.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\reportlab.lib.pyHnj.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\select.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\tcl85.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\tk85.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\unicodedata.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32api.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32clipboard.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32com.shell.shell.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32pdh.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32pipe.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32trace.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32ui.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\win32wnet.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wx._controls_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wx._core_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wx._gdi_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wx._grid.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wx._misc_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wx._windows_.pyd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wxbase30u_net_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wxbase30u_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wxmsw30u_adv_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wxmsw30u_core_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\cygwin64\home\kasia\Devel\batchcalculator\dist\BatchCalculator\wxmsw30u_html_vc90.dll"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+Name: "{commonprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
+Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; WorkingDir: "{app}"
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"
 
