@@ -2,6 +2,10 @@
 Batch Calculator
 ================
 
+.. image:: https://readthedocs.org/projects/batchcalculator/badge/
+   :target: https://batchcalculator.readthedocs.org
+   :alt: Documentation Status
+
 A GUI script based on `wxPython <http://www.wxpython.org>`_ for calculating the
 correct amount of reactants (batch) for a particular zeolite composition given
 by the molar ratio of its components.
