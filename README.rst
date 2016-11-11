@@ -2,6 +2,9 @@
 Batch Calculator
 ================
 
+.. image:: https://travis-ci.org/lmmentel/batchcalculator.svg?branch=master
+   :alt: Build Status
+
 .. image:: https://readthedocs.org/projects/batchcalculator/badge/
    :target: https://batchcalculator.readthedocs.org
    :alt: Documentation Status
