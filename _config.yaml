@@ -30,4 +30,4 @@ gems: [jekyll-paginate]
 
 # Build settings
 permalink: pretty
-highlighter: pygments
+highlighter: rouge
