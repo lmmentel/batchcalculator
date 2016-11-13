@@ -1,0 +1,156 @@
+---
+title: Tutorial
+layout: subpage
+permalink: /docs/tutorial.html
+---
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial">
+<h1>Tutorial</h1>
+<p>To illustrate the usage of the <strong>Batch Calculator</strong> we will calculate the the amounts
+of reactants required to perform the synthesis of ZSM-22 described by Ernst et al. <a class="footnote-reference" href="#id3" id="id1">[1]</a>.</p>
+<p>The batch composition is given as (p. 139 of <a class="footnote-reference" href="#id3" id="id2">[1]</a>):</p>
+<ul>
+<li>13 K<sub>2</sub>O</li>
+<li>Al<sub>2</sub>O<sub>3</sub></li>
+<li>91 SiO<sub>2</sub></li>
+<li>3670 H<sub>2</sub>0</li>
+<li>27 NH<sub>2</sub>(CH<sub>2</sub>)<sub>6</sub>NH<sub>2</sub></li>
+</ul>
+<p>The reactants used are:</p>
+<ul>
+<li>silica sol (40% silica; Ludox AS40, DuPont)</li>
+<li>Al<sub>2</sub>(SO<sub>4</sub>)<sub>3</sub>* 18H<sub>2</sub> O</li>
+<li>KOH</li>
+<li>1,6-diaminohexane (HMDA)</li>
+<li>water</li>
+</ul>
+<p>The amounts of reactants used in the synthesis are presented in the
+table below for reference</p>
+<table class='table table-bordered table-striped'>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Amount [g]</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>KOH</td>
+<td>7.8</td>
+</tr>
+<tr><td>Al2(SO4)3</td>
+<td>3.5</td>
+</tr>
+<tr><td>silica sol</td>
+<td>72</td>
+</tr>
+<tr><td>water</td>
+<td>301</td>
+</tr>
+<tr><td>HDMA</td>
+<td>16.7</td>
+</tr>
+</tbody>
+</table>
+<p>After starting the <strong>Batch Calculator</strong> the main window appears. As a first
+step we need to add the components by clicking on the <strong>Add/Remove</strong> button
+in the <strong>Components</strong> panel.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img//BC_002.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_002.png" style="width: 800px;" /></a>
+<p>A dialog window should appear with all the components that are currently
+available in the database.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_003.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_003.png" style="width: 800px;" /></a>
+<p>We need to choose the appropriate components by ticking the correct boxes
+as shown below and click the <strong>OK</strong> button.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_004.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_004.png" style="width: 800px;" /></a>
+<p>By doing that the selected components are now shown in the main window
+with the default amounts equal to 1.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_006.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_006.png" style="width: 800px;" /></a>
+<p>To adjust the amount double click on the appropriate number and enter
+the correct amount, in our case the amounts are:</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_007.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_007.png" style="width: 800px;" /></a>
+<p>Now we need to add the chemicals by clicking the <strong>Add/Remove</strong> button
+in the <strong>Chemicals</strong> panel to open the dialog with all the chemicals
+in the database that are potential sources for the selected components</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_008.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_008.png" style="width: 800px;" /></a>
+<p>We can now select the appropriate chemicals by ticking the boxes in
+the first column and click <strong>OK</strong>.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_009.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_009.png" style="width: 800px;" /></a>
+<p>We can see that the chemical we successfully added to the main window
+with their default concentration/purities depending on the kind of
+chemical. The concentrations/purities can be adjusted in the same way
+as the amounts of components by double clicking the fields and entering
+the desired values.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_010.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_010.png" style="width: 800px;" /></a>
+<p>By clicking the <strong>Calculate</strong> button, the calculation will be performed
+and the result will appear in the <strong>Results</strong> panel.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_011.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_011.png" style="width: 800px;" /></a>
+<p>On the right hand side of the <strong>Results</strong> panel are the scaling options
+to adjust the batch size. In order to compare our results to the ones
+used in the paper we will rescale all the masses to the 16.7 g of HDMA
+using the <strong>Scale to item</strong> option.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_012.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_012.png" style="width: 800px;" /></a>
+<p>After selecting that option and clicking <strong>Calculate</strong> again a dialog will
+appear where we will select <strong>HMDA</strong> and enter a value of <strong>16.7</strong> to scale
+all the masses (and volumes) to 16.7 g of <strong>HMDA</strong> and click <strong>OK</strong>.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_013.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_013.png" style="width: 400px;" /></a>
+<p>The updated masses are now shown in the <strong>Results</strong> panel instead of the
+initial results.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_014.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_014.png" style="width: 800px;" /></a>
+<p>The result can be stored internally for further reference or modification
+by clicking the <strong>Add current</strong> option from the <strong>Syntheses</strong> drop down menu</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_019.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_019.png" style="width: 150px;" /></a>
+<p>A dialog will be opened with an option to provide additional information
+about the synthesis of the material</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_020.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_020.png" style="width: 500px;" /></a>
+<p>After filling in the form we can click the <strong>Add</strong> button that will store
+the information in the internal database.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_021.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_021.png" style="width: 500px;" /></a>
+<p>The dialog confirming the success of the modification should be displayed.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_022.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_022.png" style="width: 200px;" /></a>
+<p>To verify or access the stored syntheses go to the <strong>Syntheses</strong> menu and
+select <strong>Show All</strong> which will open up a dialog with the stored records.
+From here the syntheses can be loaded back into the <em>Batch Calculator</em> deleted
+or modified.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_023.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_023.png" style="width: 500px;" /></a>
+<p>To finalize we can export a lab report for this synthesis by selecting the
+<strong>Export to pdf</strong> option from the <strong>File</strong> menu</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_015.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_015.png" style="width: 200px;" /></a>
+<p>Another dialog appears with additional options for the report, where
+also the sections of the report can be chosen</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_016.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_016.png" style="width: 400px;" /></a>
+<p>After filling out the details and clicking <strong>Export</strong></p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_017.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_017.png" style="width: 400px;" /></a>
+<p>a dialog will appear to choose the file name and finally a message
+should appear that the pdf was successfully generated.</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_018.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_018.png" style="width: 250px;" /></a>
+<p>The report should like similar to the one below</p>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_report-0.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_report-0.png" style="width: 800px;" /></a>
+<a class="reference internal image-reference" href="{{ site.baseurl }}/img/BC_report-1.png"><img alt="alternate text" class="center-block" src="{{ site.baseurl }}/img/BC_report-1.png" style="width: 800px;" /></a>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> Ernst, S., Weitkamp, J., Martens, J. A., &amp; Jacobs, P. A. (1989).
+Synthesis and shape-selective properties of ZSM-22.
+Applied Catalysis, 48(1), 137–148.
+<a class="reference external" href="http://doi.org/10.1016/S0166-9834(00)80271-7">doi:/10.1016/S0166-9834(00)80271-7</a></td></tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <div class="clearer"></div>
+    </div>
+
+
