@@ -1,124 +1,94 @@
 ---
-title: Installation
+title: Documentation
 layout: subpage
 ---
 
-<div class=container">
-    <div class="row">
-        <div class="col-md-12">
-            <h1>Overview</h1>
-            <ul>
-                <li><a href="#tex">PDF/Tex reports</a></li>
-                <li><a href="#windows">Installation on Windows and Mac</a></li>
-                <li><a href="#source">Installation from source</a></li>
-                <li><a href="#database">Database</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
 
-<div class=container">
-    <div class="row" id="tex">
-        <div class="col-md-12">
-            <h1>PDF/TeX reports</h1>
-            <p> In the <a href="https://github.com/lmmentel/batchcalculator/releases/latest">latest</a>
-                batch calculator release there is a built in pdf report generator based on <a href="http://www.reportlab.com/">reportlab</a>
-                package that will generate a report wihtout using eny external programs. The pdf can be generated for
-                the conventional batch calculation (moles to masses) or from the composition calculation (masses to moles).
-                <p> An alternative and more flexible option is generating a report in <a href="http://en.wikipedia.org/wiki/TeX">tex</a>
-                format which can be edited further or used to generate the pdf file. To generate the pdf
-                a <a href="http://en.wikipedia.org/wiki/TeX">tex</a> distribution is required.
-                Although a <a href=https://www.tug.org/">TeX</a> distribution is not a formal dependency
-                and the program will work without any trouble without it, it is required if you want to
-                produce nice pdf reports. If you don't know what TeX is, but you would like to know more
-                <a href=https://www.tug.org/">TUG (TeX Users Group)</a> website is a good place to start.</p>
-            <p> If you just want to get it to work here are some quick links to major TeX distributions
-                for different platforms
-                <ul class="lead">
-                    <li><a href="http://tug.org/texlive/">TeX Live</a> for Unix/Linux</li>
-                    <li><a href="http://tug.org/mactex/">MacTeX</a> for Mac OS</li>
-                    <li><a href="http://www.miktex.org/">MikTeX</a> for Windows</li>
-                </ul>
-            </p>
-        </div>
-    </div>
-</div>
+<h1>Overview</h1>
 
-<div class=container">
-    <div class="row" id="windows">
-        <div class="col-md-12">
-            <h1>Installation on Windows and Mac</h1>
-            <p>For windows and MacOSX GUI installers are available for each release that can be downloaded from
-            <a href="https://github.com/lmmentel/batchcalculator/releases/latest">here</a>. After downloading
-            adn double clicking on the installer a familiar wizard should appear and you only need to follow instructions
-            on the screen.</p>
-        </div>
-    </div>
-</div>
+<ul class="lead">
+    <li><a href="#windows">Installation on Windows and Mac</a></li>
+    <li><a href="#source">Installation from source</a></li>
+    <li><a href="#tex">PDF/Tex reports</a></li>
+</ul>
+
+<a href="{{ site.baseurl }}/docs/tutorial.html"><h1>Tutorial</h1></a>
+
+<p class="lead">
+You can find a basic <a href="{{ site.baseurl }}/docs/tutorial.html">tutorial</a>
+that uses a real life example and provides a guide though a standard calculation and generation
+of the report.
+</p>
 
 
-<div class=container">
-    <div class="row" id="database">
-        <div class="col-md-12">
-        <h1>Database</h1>
+<h1>Installation</h1>
 
-        <p>The program uses an <a href="http://www.sqlite.org/">SQLite3</a>
-        database to store all of the data on chemicals and all of the details
-        used in the calculations. The database distributed with the code is
-        limited but can easily be extended with additional reactants. The
-        schema of the database in shown on the diagram below.</p>
+<h3>Installation on Windows and Mac</h3>
+<p>For windows and MacOSX GUI installers are available for each release that can be downloaded from
+<a href="https://github.com/lmmentel/batchcalculator/releases/latest">here</a>. After downloading
+adn double clicking on the installer a familiar wizard should appear and you only need to follow instructions
+on the screen.</p>
 
-        <p style="text-align: center"><img  src="{{ site.baseurl }}/img/db_schema.png" style="width: 80%" alt="db schema" title="db schema" /></p>
+<h3>Installation from source</h3>
 
-        <p> Statring from <a href="https://github.com/lmmentel/batchcalculator/releases/latest">version 0.2.0</a>
-            adding new records or modifying and deleting existing ones is possible from within the batch calculator.
-            This new functionality makes any external database browser redundant.
-        <p> The program offers an option to use an external database (e.g. from other users)
-            or creting a new customized database from scratch.</p>
-        </div>
-    </div>
-</div>
+<h4>Prerequisites</h4>
 
-<div class=container">
-    <div class="row" id="source">
-        <div class="col-md-12">
-            <h1>Installation from source</h1>
-            <h3>Prerequisites</h3>
-            <p>Installation from source is the only choice for now for linux users but it is also an option for
-            other users if they want to develop the package or test some new features. </p>
-            <p>Before installing batch calculator on linux you should make sure you have wxPython installed
-            which is the GUI toolkit used. wxPython is a multiplatform GUI toolkit and its latest version together
-            with detailed instructions on how to install it are on <a href="http://www.wxpython.org">wxPython's webpage</a>.</p>
+<p>
+    Installation from source is the only choice for now for linux users but it is also an option for
+    other users if they want to develop the package or test some new features.
+</p>
 
-            <p>Below in the list of all the packages that batch calculator depends on:</p>
-            <ul>
-                <li> <a href="http://www.python.org">Python</a> 2.7.x,</li>
-                <li> <a href="http://www.wxpython.org">wxPython</a> run and tested with wx version 2.8.12.1,</li>
-                <li> <a href="http://www.numpy.org">numpy</a>tested with version 1.8.1,</li>
-                <li> <a href="http://www.sqlalchemy.org">SQLAlchemy</a> 0.9.7,</li>
-                <li> <a href="http://jinja.pocoo.org">Jinja2</a> 2.7.3,</li>
-                <li> <a href="http://sourceforge.net/projects/objectlistview/files/objectlistview-python/v1.2/">ObjectListView</a> 1.2,</li>
-                <li> <a href="http://www.reportlab.com/">ReportLab</a> 3.1.8,</li>
-            </ul>
-            <h3>Manual installation</h3>
-            <p>To get the program you can either download the latest stable
-            <a href="https://github.com/lmmentel/batchcalculator/releases/latest">release</a> from the
-            <a href="https://github.com/lmmentel/batchcalculator">repository</a> or clone the whole repository to have the very latest version
 
-            {% highlight bash %}
-            git clone https://github.com/lmmentel/batchcalculator.git
-            {% endhighlight %}
-            If you installed all the  prerequsites donwloaded or clone the repository and unpacked then to finally install the package cd to the package direcotry and type
-            {% highlight bash %}
-            $ [sudo] python setup.py install
-            {% endhighlight %}
-            If the installation finishes without errors you should be able to start the GUI
-            from the command line by typing
-            {% highlight bash %}
-            zbc.py
-            {% endhighlight %}
-            </p>
-        </div>
-    </div>
-</div>
+<p>Below in the list of all the packages that batch calculator depends on:</p>
+<ul class="lead">
+    <li><a href="https://www.python.org/">Python 2.7.x</a></li>
+    <li><a href="https://wxpython.org/">wxPython</a></li>
+    <li><a href="https://bitbucket.org/wbruhin/objectlistview">ObjectListView</a>,</li>
+    <li><a href="http://www.reportlab.com/">reportlab</a></li>
+    <li><a href="http://www.numpy.org/">numpy</a></li>
+    <li><a href="http://jinja.pocoo.org/">jinja2</a></li>
+    <li><a href="http://www.sqlalchemy.org/">SQLAlchemy</a></li>
+</ul>
+<h3>Manual installation</h3>
+<p>To get the program you can either download the latest stable
+<a href="https://github.com/lmmentel/batchcalculator/releases/latest">release</a> from the
+<a href="https://github.com/lmmentel/batchcalculator">repository</a> or clone the whole repository to have the very latest version
 
+{% highlight bash %}
+git clone https://github.com/lmmentel/batchcalculator.git
+{% endhighlight %}
+If you installed all the  prerequisites downloaded or clone the repository and unpacked then to finally install the package cd to the package directory and type
+{% highlight bash %}
+$ [sudo] python setup.py install
+{% endhighlight %}
+If the installation finishes without errors you should be able to start the GUI
+from the command line by typing
+{% highlight bash %}
+zbc
+{% endhighlight %}
+</p>
+
+
+<h1>PDF/TeX reports</h1>
+
+<p> In the <a href="https://github.com/lmmentel/batchcalculator/releases/latest">latest</a>
+    batch calculator release there is a built in pdf report generator based on <a href="http://www.reportlab.com/">reportlab</a>
+    package that will generate a report without using external programs. The pdf can be generated for
+    the conventional batch calculation (moles to masses) or from the composition calculation (masses to moles).
+    <p> An alternative and more flexible option is generating a report in <a href="http://en.wikipedia.org/wiki/TeX">tex</a>
+    format which can be edited further or used to generate the pdf file. To generate the pdf
+    a <a href="http://en.wikipedia.org/wiki/TeX">tex</a> distribution is required.
+    Although a <a href=https://www.tug.org/">TeX</a> distribution is not a formal dependency
+    and the program will work without any trouble without it, it is required if you want to
+    produce nice pdf reports. If you don't know what TeX is, but you would like to know more
+    <a href=https://www.tug.org/">TUG (TeX Users Group)</a> website is a good place to start.
+</p>
+
+<p> If you just want to get it to work here are some quick links to major TeX distributions
+    for different platforms
+    <ul class="lead">
+        <li><a href="http://tug.org/texlive/">TeX Live</a> for Unix/Linux</li>
+        <li><a href="http://tug.org/mactex/">MacTeX</a> for Mac OS</li>
+        <li><a href="http://www.miktex.org/">MikTeX</a> for Windows</li>
+    </ul>
+</p>
