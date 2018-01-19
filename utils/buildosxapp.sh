@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 PROJECT_ROOT=/Users/lukaszmentel/Devel/batchcalculator
 IMAGE_FILE=BatchCalculator.dmg
 APP_NAME=BatchCalculator
