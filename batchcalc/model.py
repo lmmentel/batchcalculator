@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import re
 
@@ -57,13 +58,13 @@ class BaseChemical(object):
         '''
         Convert the formula string to tex string.
         '''
-        return re.sub(ur'(\d+)', ur'$_{\1}$', self.formula)
+        return re.sub(r'(\d+)', r'$_{\1}$', self.formula)
 
     def formula_to_html(self):
         '''
         Convert the formula string to html string.
         '''
-        return re.sub(ur'(\d+)', ur'<sub>\1</sub>', self.formula)
+        return re.sub(r'(\d+)', r'<sub>\1</sub>', self.formula)
 
     def listctrl_label(self):
         '''

@@ -1,6 +1,6 @@
 
 __version__ = "0.3.0"
 
-import controller
-import dialogs
-import model
+from . import controller
+from . import dialogs
+from . import model

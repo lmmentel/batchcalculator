@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import os
 import sys
@@ -551,7 +552,7 @@ class NonEmptyValidator(wx.PyValidator):
 
     def __init__(self):
         wx.PyValidator.__init__(self)
-        print "called validator"
+        print("called validator")
 
     def Clone(self):
         """
@@ -562,7 +563,7 @@ class NonEmptyValidator(wx.PyValidator):
     def Validate(self, win):
         textCtrl = self.GetWindow()
         text = textCtrl.GetValue()
-        print "len(text) = ", len(text)
+        print("len(text) = ", len(text))
         if len(text) == 0:
             wx.MessageBox("This field must contain some text!", "Error")
             textCtrl.SetBackgroundColour("pink")

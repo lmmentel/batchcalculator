@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import operator
 import re
@@ -317,13 +318,13 @@ class BatchCalculator(object):
         '''
 
         width = max([len(c.listctrl_label()) for c in self.components] + [_MINWIDTH])
-        print "\n     {0:*^{w}s}\n".format("  "+ "Composition Vector [C]" +"  ", w=width+34)
-        print " "*5 + "{l:^{wl}}  |{mol:^15s}|{mas:^15s}".format(
-                    l="Formula", wl=width, mol="Moles", mas="Mass [g]")
-        print " "*5 + "-"*(width+4+30)
+        print("\n     {0:*^{w}s}\n".format("  "+ "Composition Vector [C]" +"  ", w=width+34))
+        print(" "*5 + "{l:^{wl}}  |{mol:^15s}|{mas:^15s}".format(
+                    l="Formula", wl=width, mol="Moles", mas="Mass [g]"))
+        print(" "*5 + "-"*(width+4+30))
         for comp in self.components:
-            print " "*5+"{l:>{wl}}  |{mol:>15.4f}|{mas:>15.4f}".format(
-                    l=comp.listctrl_label(), wl=width, mol=comp.moles, mas=comp.mass)
+            print(" "*5+"{l:>{wl}}  |{mol:>15.4f}|{mas:>15.4f}".format(
+                    l=comp.listctrl_label(), wl=width, mol=comp.moles, mas=comp.mass))
 
     def print_batch_matrix(self):
         '''
@@ -335,11 +336,11 @@ class BatchCalculator(object):
         rowwidth = max([len(c.listctrl_label()) for c in self.components] + [_MINWIDTH])
         colwidth = max([len(r.listctrl_label()) for r in self.chemicals] + [_MINWIDTH])
 
-        print "\n{0}{1:*^{w}s}\n".format(" "*7, "  Batch Matrix [B]  ", w=(colwidth+1)*lr+rowwidth)
-        print "{}".format(" "*(8+rowwidth))+"|".join(["{0:^{cw}s}".format(c.listctrl_label(), cw=colwidth) for c in self.components])
-        print "{}".format(" "*(7+rowwidth))+"{}".format("-"*(colwidth+1)*lr)
+        print("\n{0}{1:*^{w}s}\n".format(" "*7, "  Batch Matrix [B]  ", w=(colwidth+1)*lr+rowwidth))
+        print("{}".format(" "*(8+rowwidth))+"|".join(["{0:^{cw}s}".format(c.listctrl_label(), cw=colwidth) for c in self.components]))
+        print("{}".format(" "*(7+rowwidth))+"{}".format("-"*(colwidth+1)*lr))
         for reac, row in zip(self.chemicals, self.B):
-            print "     {0:>{w}s}  |".format(reac.listctrl_label(), w=rowwidth)+"|".join("{0:>{w}.4f}    ".format(x, w=colwidth-4) for x in row)
+            print("     {0:>{w}s}  |".format(reac.listctrl_label(), w=rowwidth)+"|".join("{0:>{w}.4f}    ".format(x, w=colwidth-4) for x in row))
 
     def parse_formulas(self, string, delimiter=':'):
         '''
