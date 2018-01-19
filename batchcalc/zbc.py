@@ -29,6 +29,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import os
 import pickle
@@ -106,28 +107,28 @@ class AddModifyDBBaseFrame(wx.Frame):
     def onAddRecord(self, event):
         '''Add a record to the database'''
 
-        print "adding"
+        print("adding")
 
     def onEditRecord(self, event):
         '''Edit a record'''
 
-        print "editing"
+        print("editing")
 
     def onDelete(self, event):
         '''Delete a record'''
 
-        print "deleting"
+        print("deleting")
 
     def onSearch(self, event):
         """
         Searches database based on the user's filter choice and keyword
         """
-        print "searching"
+        print("searching")
 
     def onShowAllRecords(self, event):
         '''Updates the record list to show all of them'''
 
-        print "showing all"
+        print("showing all")
 
 
 class AddModifyBatchTableFrame(AddModifyDBBaseFrame):
@@ -1003,7 +1004,6 @@ class MolesInputPanel(InputPanel):
     def SetComponents(self):
         '''Set the OLV columns and put current Component objects in the OLV'''
 
-        print 'in MolesInputPanel SetComponents'
         olv_cols = get_columns(["label"])
         self.comp_olv.SetColumns(olv_cols)
         self.comp_olv.SetObjects(self.model.components)
