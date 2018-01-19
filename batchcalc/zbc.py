@@ -684,7 +684,7 @@ class ShowSynthesesFrame(wx.Frame):
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=os.getcwd(), defaultFile="",
                             wildcard=pdfwildcard,
-                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1455,7 +1455,7 @@ class InverseBatch(wx.Frame):
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=os.getcwd(),
                             defaultFile="", wildcard=pdfwildcard,
-                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1755,7 +1755,7 @@ class MainFrame(wx.Frame):
         dlg = wx.FileDialog(self, message="Choose database file",
                             defaultDir=os.getcwd(), defaultFile="",
                             wildcard=dbwildcard,
-                            style=wx.SAVE | wx.OVERWRITE_PROMPT | wx.CHANGE_DIR)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1820,7 +1820,7 @@ class MainFrame(wx.Frame):
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=os.getcwd(), defaultFile="",
                             wildcard=wildcard,
-                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         # This sets the default filter that the user will initially see.
         # Otherwise, the first filter in the list will be used by default.
@@ -1871,7 +1871,7 @@ class MainFrame(wx.Frame):
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=os.getcwd(), defaultFile="",
                             wildcard=pdfwildcard,
-                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -1891,7 +1891,7 @@ class MainFrame(wx.Frame):
         dlg = wx.FileDialog(self, message="Save file as ...",
                             defaultDir=os.getcwd(), defaultFile="",
                             wildcard=texwildcard,
-                            style=wx.SAVE | wx.OVERWRITE_PROMPT)
+                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
