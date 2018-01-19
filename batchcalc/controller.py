@@ -29,6 +29,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import wx
 import os
@@ -77,13 +78,21 @@ class DB(object):
         Depending on the execution environment get the proper database path.
         '''
 
+        if getattr(sys, '_MEIPASS', None):
+            # running from an executable bundled by pyinstaller
+            dbpath = os.path.join(sys._MEIPASS, 'data', 'zeolite.db')
+            assert os.path.exists(dbpath), 'Cannot find db at: '.format(dbpath)
+            return dbpath
+
+        # running from installed package
         dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
                               "data", "zeolite.db")
         if os.path.exists(dbpath):
             return dbpath
         elif sys.executable is not None:
-            return os.path.join(os.path.dirname(sys.executable),
-                                "data", "zeolite.db")
+            dbpath = os.path.join(os.path.dirname(sys.executable),
+                                  "data", "zeolite.db")
+            return dbpath
         else:
             raise ValueError("database not found on: {}".format(dbpath))
 
@@ -1285,10 +1294,10 @@ class AddModifySynthesisRecordDialog(wx.Dialog):
 
 def print_attrs(inst):
 
-    print "Class {0}".format(inst.__class__.__name__)
+    print("Class {0}".format(inst.__class__.__name__))
     for key in sorted(inst.__dict__.keys()):
         if not key.startswith("_"):
-            print "{0:s} : {1:s}".format(key, str(getattr(inst, key)))
+            print("{0:s} : {1:s}".format(key, str(getattr(inst, key))))
 
 
 ################################################################################
