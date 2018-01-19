@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import datetime
 import numpy as np
@@ -96,9 +97,9 @@ def create_header(model, no_moles, **kwargs):
     story.append(Paragraph(kwargs['title'], styles['BlueTitle']))
     story.append(Spacer(1, 16))
     if no_moles:
-        story.append(Paragraph(ur' : '.join(['{0}'.format(x.html_label()) for x in model.components]), styles['Compo']))
+        story.append(Paragraph(r' : '.join(['{0}'.format(x.html_label()) for x in model.components]), styles['Compo']))
     else:
-        story.append(Paragraph(ur' : '.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
+        story.append(Paragraph(r' : '.join(['{0}{1}'.format(x.moles, x.html_label()) for x in model.components]), styles['Compo']))
     story.append(Spacer(1, 12))
     story.append(Paragraph(kwargs['author'], styles['CenterJ']))
     return story

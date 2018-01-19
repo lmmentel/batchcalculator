@@ -27,6 +27,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import print_function, unicode_literals
 
 import os
 import sys
@@ -65,7 +66,7 @@ def get_report_as_string(flags, model):
     template = env.get_template('report_color.tex')
 
     flags['date'] = datetime.datetime.now().strftime("%H:%M:%S %d.%m.%Y")
-    flags['molar_ratios'] = ur':'.join(['{0}{1}'.format(x.moles, x.tex_label()) for x in model.components])
+    flags['molar_ratios'] = r':'.join(['{0}{1}'.format(x.moles, x.tex_label()) for x in model.components])
 
     if flags["composition"]:
         flags['a_matrix'] = tex_A(model)
@@ -87,42 +88,42 @@ def get_report_as_string(flags, model):
 def tex_A(model):
 
     tshape = u'{l' + u'R' * len(model.components) + u'}'
-    table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}'+tshape+ur'\toprule'+u'\n'
-    table += u'Compound &' + ' & '.join([ur'\multicolumn{1}{c}{'+c.tex_label()+ur'}' for c in model.components]) + ur'\\ \midrule' + u'\n'
-    table += u'Mole ratio &' + ' & '.join(["{0:10.3f}".format(c.moles) for c in model.components]) + ur'\\ ' + u'\n'
-    table += u'Weight [g] &' + ' & '.join(["{0:10.3f}".format(c.mass) for c in model.components]) + ur'\\ ' + u'\n'
-    table += u'Mol. wt. [g/mol] &' + ' & '.join(["{0:10.3f}".format(c.molwt) for c in model.components]) + ur'\\ ' + u'\n'
-    return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+    table = r'\begin{center}'+u'\n'+r'\begin{tabularx}{\textwidth}'+tshape+r'\toprule'+u'\n'
+    table += u'Compound &' + ' & '.join([r'\multicolumn{1}{c}{'+c.tex_label()+r'}' for c in model.components]) + r'\\ \midrule' + u'\n'
+    table += u'Mole ratio &' + ' & '.join(["{0:10.3f}".format(c.moles) for c in model.components]) + r'\\ ' + u'\n'
+    table += u'Weight [g] &' + ' & '.join(["{0:10.3f}".format(c.mass) for c in model.components]) + r'\\ ' + u'\n'
+    table += u'Mol. wt. [g/mol] &' + ' & '.join(["{0:10.3f}".format(c.molwt) for c in model.components]) + r'\\ ' + u'\n'
+    return table + r'\bottomrule\end{tabularx}'+u'\n'+r'\end{center}'+u'\n'
 
 
 def tex_B(model):
 
     tshape = u'{l'+u'C'*len(model.components)+u'}'
-    table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}'+tshape+ur'\toprule'+u'\n'
-    table += u'Compound' + u' & ' + u' & '.join([z.tex_label() for z in model.components]) + ur'\\ \midrule' + u'\n'
+    table = r'\begin{center}'+u'\n'+r'\begin{tabularx}{\textwidth}'+tshape+r'\toprule'+u'\n'
+    table += u'Compound' + u' & ' + u' & '.join([z.tex_label() for z in model.components]) + r'\\ \midrule' + u'\n'
     for reactant, row in zip(model.chemicals, model.B):
-        table += reactant.tex_label() + u' & ' + u' & '.join(["{0:10.4f}".format(x) for x in row]) + ur'\\' + u'\n'
-    return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+        table += reactant.tex_label() + u' & ' + u' & '.join(["{0:10.4f}".format(x) for x in row]) + r'\\' + u'\n'
+    return table + r'\bottomrule\end{tabularx}'+u'\n'+r'\end{center}'+u'\n'
 
 
 def tex_X(model):
 
     masssum = sum([s.mass for s in model.chemicals])
 
-    table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
-    table += " & ".join([ur'Substance', ur'\multicolumn{1}{c}{Mass [g]}',
-                         ur'Scaled Mass [g]',
-                         ur'Weighted mass [g]']) + ur'\\ \midrule' + u'\n'
+    table = r'\begin{center}'+u'\n'+r'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
+    table += " & ".join([r'Substance', r'\multicolumn{1}{c}{Mass [g]}',
+                         r'Scaled Mass [g]',
+                         r'Weighted mass [g]']) + r'\\ \midrule' + u'\n'
     for i, subs in enumerate(model.chemicals, start=1):
-        table += ur"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(
+        table += r"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(
                     l=subs.tex_label(), v=subs.mass, s=subs.mass/model.scale_all)
         if i < len(model.chemicals):
-            table += ur'\cline{4-4}' + u'\n'
+            table += r'\cline{4-4}' + u'\n'
         else:
             table += u'\n'
-    table += ur'\midrule Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' +\
-             "{0:>15.4f}".format(masssum/model.scale_all) + ur' & \\ ' + u'\n'
-    return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+    table += r'\midrule Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' +\
+             "{0:>15.4f}".format(masssum/model.scale_all) + r' & \\ ' + u'\n'
+    return table + r'\bottomrule\end{tabularx}'+u'\n'+r'\end{center}'+u'\n'
 
 
 def tex_X_rescale(model):
@@ -130,26 +131,26 @@ def tex_X_rescale(model):
     masspar = sum([s.mass for s in model.selections])
     masssum = sum([s.mass for s in model.chemicals])
 
-    table = ur'\begin{center}'+u'\n'+ur'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
-    table += " & ".join([ur'Substance', ur'\multicolumn{1}{c}{Mass [g]}',
-                         ur'Scaled Mass [g]',
-                         ur'Weighted mass [g]']) + ur'\\ \midrule' + u'\n'
+    table = r'\begin{center}'+u'\n'+r'\begin{tabularx}{\textwidth}{lRR|C|}\toprule'+u'\n'
+    table += " & ".join([r'Substance', r'\multicolumn{1}{c}{Mass [g]}',
+                         r'Scaled Mass [g]',
+                         r'Weighted mass [g]']) + r'\\ \midrule' + u'\n'
     for i, subs in enumerate(model.selections, start=1):
-        table += ur"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(l=subs.tex_label(), v=subs.mass, s=subs.mass/model.sample_scale)
+        table += r"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\".format(l=subs.tex_label(), v=subs.mass, s=subs.mass/model.sample_scale)
         if i < len(model.selections):
-            table += ur'\cline{4-4}' + u'\n'
+            table += r'\cline{4-4}' + u'\n'
         else:
             table += u'\n'
-    table += ur'\midrule Sum & '+ "{0:>15.4f}".format(masspar) + ' & ' + "{0:>15.4f}".format(masspar/model.sample_scale) + ur' & \\ '
+    table += r'\midrule Sum & '+ "{0:>15.4f}".format(masspar) + ' & ' + "{0:>15.4f}".format(masspar/model.sample_scale) + r' & \\ '
     nsel_ids = set([x.id for x in model.chemicals]).difference(set([x.id for x in model.selections]))
     not_selected = [x for x in model.chemicals if x.id in nsel_ids]
     if len(not_selected) > 0:
-        table += ur'\midrule' + u'\n'
+        table += r'\midrule' + u'\n'
     for i, subs in enumerate(not_selected, start=1):
-            table += ur"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\ ".format(l=subs.tex_label(), v=subs.mass, s=subs.mass/model.sample_scale)
+            table += r"{l:>20s} & {v:>15.4f} & {s:>15.4f} & \\ ".format(l=subs.tex_label(), v=subs.mass, s=subs.mass/model.sample_scale)
             if i < len(not_selected):
-                table += ur'\cline{4-4}' + u'\n'
+                table += r'\cline{4-4}' + u'\n'
             else:
                 table += u'\n'
-    table += ur'\midrule Total Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' + "{0:>15.4f}".format(masssum/model.sample_scale) + ur' & \\ '
-    return table + ur'\bottomrule\end{tabularx}'+u'\n'+ur'\end{center}'+u'\n'
+    table += r'\midrule Total Sum & '+ "{0:>15.4f}".format(masssum) + ' & ' + "{0:>15.4f}".format(masssum/model.sample_scale) + r' & \\ '
+    return table + r'\bottomrule\end{tabularx}'+u'\n'+r'\end{center}'+u'\n'
