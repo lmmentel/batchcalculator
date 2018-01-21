@@ -35,7 +35,7 @@ from collections import OrderedDict
 from ObjectListView import ColumnDefn
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 def get_resource_path(*args):

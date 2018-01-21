@@ -37,7 +37,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.hybrid import hybrid_property
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 Base = declarative_base()
 

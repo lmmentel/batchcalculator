@@ -36,7 +36,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from batchcalc.utils import get_resource_path
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 def get_report_as_string(flags, model):

@@ -40,7 +40,7 @@ from reportlab.lib import colors
 from batchcalc import controller as ctrl
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 styles = getSampleStyleSheet()
 styles.add(ParagraphStyle(name='Justify', alignment=TA_JUSTIFY))
