@@ -45,7 +45,7 @@ from batchcalc.model import (Chemical, Component, Electrolyte, Kind, Category,
                              Reaction, PhysicalForm, Batch, Synthesis,
                              SynthesisComponent, SynthesisChemical)
 
-from batchcalc.utils import get_columns
+from batchcalc.utils import get_columns, get_resource_path
 
 
 __version__ = "0.3.0"
@@ -78,23 +78,7 @@ class DB(object):
         Depending on the execution environment get the proper database path.
         '''
 
-        if getattr(sys, '_MEIPASS', None):
-            # running from an executable bundled by pyinstaller
-            dbpath = os.path.join(sys._MEIPASS, 'data', 'zeolite.db')
-            assert os.path.exists(dbpath), 'Cannot find db at: '.format(dbpath)
-            return dbpath
-
-        # running from installed package
-        dbpath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                              "data", "zeolite.db")
-        if os.path.exists(dbpath):
-            return dbpath
-        elif sys.executable is not None:
-            dbpath = os.path.join(os.path.dirname(sys.executable),
-                                  "data", "zeolite.db")
-            return dbpath
-        else:
-            raise ValueError("database not found on: {}".format(dbpath))
+        return get_resource_path('data', 'zeolite.db')
 
     def get_session(self):
         '''

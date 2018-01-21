@@ -29,10 +29,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
+import sys
 from collections import OrderedDict
 from ObjectListView import ColumnDefn
 
+
 __version__ = "0.3.0"
+
+
+def get_resource_path(*args):
+    '''
+    Depending on the execution mode (source, pip installed package, pyinstaller binary)
+    retreieve the path to the file
+
+    Args:
+        *args: path relative to the package root
+    '''
+
+    if getattr(sys, '_MEIPASS', None):
+        # running from an executable bundled by pyinstaller
+        path = os.path.join(sys._MEIPASS, *args)
+        assert os.path.exists(path), 'Cannot find resource at: '.format(path)
+        return path
+
+    # running from installed package
+    path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                        *args)
+    if os.path.exists(path):
+        return path
+    elif sys.executable is not None:
+        path = os.path.join(os.path.dirname(sys.executable),
+                            *args)
+        return path
+    else:
+        raise ValueError("Resource not found on: {}".format(path))
 
 
 def format_float(item):
