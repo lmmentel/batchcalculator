@@ -27,6 +27,9 @@ addons:
     - libtiff-dev
     - libxtst-dev
 
+env:
+  - LD_LIBRARY_PATH=/usr/local/lib64/:$LD_LIBRARY_PATH
+  
 # command to install dependencies
 install: 
   - sudo apt-get update
