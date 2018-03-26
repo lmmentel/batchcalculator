@@ -65,7 +65,7 @@ then `cd` to the package directory and run::
 If the installation finishes without errors you should be able to start the GUI
 from the command line by typing::
 
-    $ zbc.py
+    $ zbc
 
 Changelog
 =========
